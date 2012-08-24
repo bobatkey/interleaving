@@ -13,6 +13,7 @@
 
 \newcommand{\fold}[1]{\llparenthesis #1 \rrparenthesis}
 \newcommand{\eFold}[2]{\llparenthesis #1|#2 \rrparenthesis}
+\newcommand{\fmext}[1]{\langle\langle #1 \rangle\rangle}
 \newcommand{\construct}{\mathsf{in}}
 \newcommand{\mbind}{\mathrel{>\kern-0.45em>\kern-0.45em=}}
 
@@ -155,6 +156,7 @@ we aim to introduce the concept of initial $f$-and-$m$-algebras to a
 general functional programming audience.
 
 \subsection{Interleaving data and effects}
+\label{sec:motivate-interleaving}
 
 We now motivate the consideration of interleaved data and effects by
 looking at a function in the Haskell standard library that is not as
@@ -267,21 +269,30 @@ as the $\mathit{List}~m~a$ datatype declaration:
 \end{displaymath}
 A value of type $\mathit{Reader}~m~a~b$ is some effect described by
 the monad $m$, yielding either a result $\mathsf{Yield}~b$, or a
-request for input. As Kiselyov shows, it is possible to define a
-$\mathit{Monad}$ instance for $\mathit{Reader}~m~a$, which allows for
-convenient composition of stream readers that may perform effects.
+request for input. As Kiselyov demonstrates, the fact that values of
+type $\mathit{Reader}~m~a~b$ leave the source of the data that they
+abstract is extremely powerful: different constructions allow readers
+to be chained together, or connected to actual input/output devices,
+while retaining the ability to perform concrete effects in the monad
+$m$.  Kiselyov treats the $\mathit{Reader}~m~a~b$ type in
+isolation. In this paper, we show that it can be regarded as an
+instance of the general construction of the coproduct of a free monad
+and an arbitrary monad, building on the general foundation of initial
+$f$-and-$m$-algebras.
 
-The $\mathit{List}~m~a$ and $\mathit{Reader}~m~a~b$ datatypes follow
-similar patterns of interleaving pure data with computational
-effects. The abstraction of $f$-and-$m$-algebras provides us with a
-convenient interface for programming with and reasoning about
-datatypes with interleaved effects.
+% The $\mathit{List}~m~a$ and $\mathit{Reader}~m~a~b$ datatypes follow
+% similar patterns of interleaving pure data with computational
+% effects. As we shall see in the rest of this paper, the abstraction of
+% $f$-and-$m$-algebras provides us with a convenient interface for
+% programming with and reasoning about datatypes with interleaved
+% effects.
 
 \subsection{The content of this paper}
 
 We aim to make this paper relatively self-contained, so we include the
 necessary background to enable the reader to follow our proofs and
-definitions. The basic structure of the data is as follows:
+definitions. The structure of the remainder of the paper is as
+follows:
 \begin{itemize}
 \item In \autoref{sec:f-algebras}, we recall the standard definitions
   of $f$-algebra and initial $f$-algebras, in a functional programming
@@ -317,11 +328,22 @@ definitions. The basic structure of the data is as follows:
   of the definition and proof from the pure case in
   \autoref{sec:pure-append}, and the additional work that we need to
   carry to deal with effects is minimal.
-\item Finally, in \autoref{sec:impl-f-and-m}, we show that the
-  construction of initial $f$-and-$m$-algebras can be reduced to
-  initial $(f \circ m)$-algebras. Consequently, we are able to give a
-  generic construction of initial $f$-and-$m$-algebras for arbirary
-  functors $f$ and monads $m$.
+\item In \autoref{sec:impl-f-and-m}, we show that the construction of
+  initial $f$-and-$m$-algebras can be reduced to initial $(f \circ
+  m)$-algebras. Consequently, we are able to give a generic
+  construction of initial $f$-and-$m$-algebras for arbirary functors
+  $f$ and monads $m$.
+\item Finally, in \autoref{sec:coproducts-with-free-monads}, we
+  present an extended example of the use of initial
+  $f$-and-$m$-algebras. We reconstruct a result of Hyland, Plotkin and
+  Power on the construction of coproducts of free monads with
+  arbitrary monads, using $f$-and-$m$-algebras. This construction has
+  practical interest in that it provides a general construction of
+  monads that interleave abstract and concrete commands, as seen in
+  the $\mathit{Reader}~m~a~b$ monad in the previous section. The monad
+  coproduct structure further highlights the central theme of this
+  paper: the separation of concerns of dealing with pure data and
+  effects.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -340,8 +362,9 @@ x.~g~(h~x)$.
 \subsection{Basic definitions}
 
 The initial $f$-algebra methodology uses functors $f$ to describe the
-individual ``layers'' of recursive datatypes. Formally, functors are
-defined as follows:
+individual ``layers'' of recursive datatypes. 
+%FIXME: reference ``two-level types''.
+Formally, functors are defined as follows:
 \begin{definition}\label{defn:functor}
   A functor is a pair $(f, \mathit{fmap}_f)$ of a type operator $f$
   and a function $\mathit{fmap}_f$ of type:
@@ -447,8 +470,8 @@ $f$-algebra for any functor $(f,\mathit{fmap_f})$.
       \begin{array}{l}
         \mathit{fmap}_{\mathit{ListF}~a} :: (x \to y) \to \mathit{ListF}~a~x \to \mathit{ListF}~a~y \\
         \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}lcl}
-          \mathit{fmap}_{\mathit{ListF}~a}&f&\mathsf{Nil} &=& \mathsf{Nil} \\
-          \mathit{fmap}_{\mathit{ListF}~a}&f&(\mathsf{Cons}~a~x) &=& \mathsf{Cons}~a~(f~x)
+          \mathit{fmap}_{\mathit{ListF}~a}&g&\mathsf{Nil} &=& \mathsf{Nil} \\
+          \mathit{fmap}_{\mathit{ListF}~a}&g&(\mathsf{Cons}~a~x) &=& \mathsf{Cons}~a~(g~x)
         \end{array}
       \end{array}
     \end{array}
@@ -690,6 +713,29 @@ always use subscripts on $\mathit{return}_m$ and $\mathit{join}_m$ to
 disambiguate which monad is being referred to, instead of leaving it
 to the reader to infer.
 
+Finally in this short recap of monads, we recall the definition of a
+\emph{monad morphism} between a pair of monads. Monad morphisms
+represent structure preserving maps between monads. We will use monad
+morphisms in our extended example of the use of $f$-and-$m$-algebras
+to construct the coproduct of two monads in
+\autoref{sec:coproducts-with-free-monads}.
+
+\begin{definition}[Monad morphism]
+  Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
+  \mathit{join_{m_1}})$ and $(m_2, \mathit{fmap_{m_1}},
+  \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A
+  \emph{monad morphism} between them is a polymorphic function $h ::
+  m_1~a \to m_2~a$ that satifies the following three properties:
+  \begin{eqnarray}
+    \label{eq:monad-mor-natural}
+    h \circ \mathit{fmap}_{m_1}~g & = & \mathit{fmap}_{m_2}~g \circ h \\
+    \label{eq:monad-mor-return}
+    h \circ \mathit{return}_{m_1} & = & \mathit{return}_{m_2} \\
+    \label{eq:monad-mor-join}
+    h \circ \mathit{join}_{m_1} & = & \mathit{join}_{m_2} \circ h \circ \mathit{fmap}_{m_1}~h
+  \end{eqnarray}
+\end{definition}
+
 \subsection{Monadic Recursion Schemes}
 
 The initial $f$-algebra methodology has been extended to effectful
@@ -719,9 +765,17 @@ effects are interleaved.
 \section{List append II: lists with interleaved effects, via $f$-algebras}
 \label{sec:direct-eappend}
 
-The obvious approach to defining functions on datatypes such as
-$\mathit{List}~m~a$ and $\mathit{Reader}~m~a~b$ is to look directly to
-the initial $f$-algebra methodology. By inspecting the types
+We now present our first attempt at adapting our list append example
+from \autoref{sec:pure-append} to handle lists with interleaved
+effects. Our presentation is parameteric in the kind of effects that
+are interleaved with the list. We merely assume that they can be
+described by some monad $(m, \mathit{fmap_m}, \mathit{return_m},
+\mathit{join_m})$.
+
+The obvious approach to defining functions on datatypes with
+interleaved effects, such as $\mathit{List}~m~a$ and
+$\mathit{Reader}~m~a~b$, is to look directly to the initial
+$f$-algebra methodology. By inspecting the auxillary declarations of
 $\mathit{List'}~m~a$ and $\mathit{Reader'}~m~a~b$, and comparing them
 to the examples of initial $f$-algebras that we presented in the
 \autoref{sec:f-algebras}, we can see that they are themselves carriers
@@ -731,14 +785,15 @@ $\mathit{List}~m~a$ is isomorphic to $m~(\mu (\mathit{ListF}~a \circ
 m))$, where $\mu (\mathit{ListF}~a \circ m)$ is the carrier of some
 initial $(\mathit{ListF}~a \circ m)$-algebra.
 
-Equipped with this observation, we can adapt the definition of
-$\mathit{append}$ that we gave in \autoref{sec:pure-append} to the
-setting of lists interleaved with effects. As above, we program and
-reason against the abstract interface of initial algebras. We assume
-that an initial $(\mathit{ListF}~a \circ m)$-algebra
-$(\mu(\mathit{ListF}~a \circ m), \mathit{construct})$ exists, and we
-write $\fold{-}$ for the unique homomorphism induced by initiality. We
-now define $\mathit{eAppend}$:
+Equipped with this observation, we can proceed with adapting the
+definition of $\mathit{append}$ that we gave in
+\autoref{sec:pure-append} to the setting of lists interleaved with
+effects. As above, we program and reason against the abstract
+interface of initial algebras. We assume that an initial
+$(\mathit{ListF}~a \circ m)$-algebra $(\mu(\mathit{ListF}~a \circ m),
+\mathit{construct})$ exists, and we write $\fold{-}$ for the unique
+homomorphism induced by initiality. We now define $\mathit{eAppend}$
+(``$\mathit{e}$'' for effectful):
 \begin{displaymath}
   \begin{array}{l}
     \mathit{eAppend} :: m~(\mu (\mathit{ListF}~a \circ m)) \to m~(\mu (\mathit{ListF}~a \circ m)) \to m~(\mu (\mathit{ListF}~a \circ m)) \\
@@ -875,16 +930,6 @@ the definition of $\mathit{eAppend}$ too early.
       =&\eqAnnotation{second property of $\mathit{eAppend}$ (\autoref{eq:eappend-direct-cons})} \\
       & \mathit{return_m}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs}))) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      % & \eqAnnotation{break here} \\
-      % =&\eqAnnotation{naturality of $\mathit{return_m}$} \\
-      % &\mathit{join_m}~(\mathit{return}_m~(\fold{\mathit{fAlgebra_{zs}}}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
-      % =&\eqAnnotation{monad law: $\mathit{join_m} \circ \mathit{return_m} = \mathit{id}$} \\
-      % &\fold{\mathit{fAlgebra_{zs}}}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))) \\
-      % =&\eqAnnotation{$\fold{\mathit{fAlgebra_{zs}}}$ is a $(\mathit{ListF}~a)$-algebra homomorphism} \\
-      % &\mathit{fAlgebra_{zs}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}})~(\mathsf{Cons}~a~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))) \\
-      % =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
-      % &\mathit{fAlgebra_{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))) \\
-      % =&\eqAnnotation{definition of $\mathit{fAlgebra_{zs}}$} \\
       &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
       =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
       &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
@@ -1695,39 +1740,245 @@ there is an implicit precondition that the second argument (of type
 $m~a \to a$) must be an Eilenberg-Moore algebra. Unfortunately, we are
 unable to express this requirement in Haskell's type system. 
 
-\bibliographystyle{jfp}
-\bibliography{paper}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Application: Coproducts of free monads with arbitrary monads}
+\label{sec:coproducts-with-free-monads}
 
-\newpage
-\appendix
+We now present an extended example of an application of initial
+$f$-and-$m$-algebras. This example highlights the advantages that
+$f$-and-$m$-algebra's separation of pure data and effects provides,
+and also has theoretical and practical interest. We reconstruct a
+result originally due to Hyland, Plotkin and Power
+\cite{hyland06combining} on the construction of coproducts of free
+monads with arbitrary monads. We now give a brief explanation of the
+relevant concepts.
 
-\section{Coproducts with Free Monads}
+\emph{Monad coproducts} provide a canonical way of describing the
+combination of two monads to form another monad. We formally define
+the coproduct of two monads below, in
+\autoref{sec:coproducts-of-monads}. For now, we can think of the
+coproduct of two monads as the ``least commitment'' combination. The
+coproduct of two monads is able to describe any effects that its
+constituents describes, but imposes no interaction between
+them. Unfortunately, the coproduct of two arbitrary monads is not
+always guaranteed to exist. Monad coproducts are guaranteed to exist
+in certain special cases, for example ideal monads
+\cite{ghani04coproducts}, or when working in the category of Sets
+\cite{adamek12coproducts}, or if the monads are constructed from algebraic
+theories \cite{hyland06combining}. One particular special case is when one of the
+constituent monads is \emph{free}.
 
-Reproduce the result of Hyland \emph{et al.}
+\emph{Free monads} for a functor $(f, \mathit{fmap}_f)$ are the
+``least commitment'' way of extending the functor $f$ to become a
+monad. A useful application of free monads is as a way of describing
+effectful computations over a set of commands -- described by the
+functor $f$ -- where no commitment is made as to the interpretation of
+these commands. Swierstra and Altenkirch \cite{swierstra07beauty} have
+developed this idea to provide a straightforward way of reasoning
+about programs that perform input/output. We briefly describe this
+view of free monads after we give the formal definition in
+\autoref{sec:free-monads}.
 
-\begin{enumerate}
-\item Define what the free monad is for all functors $f$
-\item Prove that it really is a monad
-\item Define what the sum of two monads is
-\item Show that the initial $(f + a)$-and-$m$-algebra is the sum of
-  the free $f$-monad and $m$
-\end{enumerate}
+Coproducts of free monads with arbitrary monads arise when considering
+certain kinds of datatypes interleaved with effects, such as the
+$\mathit{Reader}~m~a~b$ type in
+\autoref{sec:motivate-interleaving}. This type describes computations
+that interleave the possibility of reading with performing effects in
+some arbitrary monad (often the $\mathit{IO}$ monad). The power of the
+$\mathit{Reader}~m~a~b$ type, as demonstrated by Kiselyov
+\cite{kiselyov12iteratees}, is that we are provided with considerable
+flexibility in how to interpret ``reading'', allowing for instances of
+the type $\mathit{Reader}~m~a~b$ to be chained together in interesting
+ways. The monad coproduct interface provides us with a simple,
+general, and canonical way of precisely describing exactly how
+$\mathit{Reader}~m~a~b$ is the combination of read effects with
+effects in $m$.
 
-\subsection{Free Monads}
+In the next subsection, we present the formal definition of free
+monad, and briefly describe the reading of free monads as abstract
+sequences of commands that can be interpreted in multiple ways. In
+\autoref{sec:construct-free-monads}, we show that concrete free monads
+can be defined using initial $f$-algebras. We will be able to reuse
+most of this construction when constructing the coproduct in
+\autoref{sec:construct-coproducts}. We present the formal definition of
+monad coproduct in \autoref{sec:coproducts-of-monads}, and elaborate
+upon the reading of free monads as sequences of commands, now
+interleaved with effects from some arbitrary monad. Finally, in
+\autoref{sec:construct-coproducts}, we present a concrete construction
+of the coproduct of a free monad with an arbitrary monad. By making
+use of $f$-and-$m$-algebras, we are able to reuse much of the core of
+the definitions of the free monad structure we defined in
+\autoref{sec:construct-free-monads}.
+
+We emphasise that the result we present here is not new; Hyland
+\emph{et al.} have already demonstrated, albeit with a different proof
+technique, that the construction we give below in
+\autoref{sec:construct-coproducts} actually defines the monad
+coproduct. A special case of this result, where the free monad part of
+the construction is the free monad over the identity functor, has also
+been previously presented by Pirog and Gibbons
+\cite{pirog12tracing}. Our contribution is two show that the use of
+$f$-and-$m$-algebras simplifies and elucidates the definitions
+involved.
+
+\subsection{Free monads}
+\label{sec:free-monads}
+
+In this section, we give the formal definition of the free monad
+interface, and give a brief example showing how free monads provide a
+powerful way of writing effectful programs that have multiple
+interpretations.
 
 \begin{definition}[Free Monad]
   Let $(f, \mathit{fmap}_f)$ be a functor. A free monad on
   $(f,\mathit{fmap}_f)$ is a monad
   \begin{displaymath}
-    (\mathit{FreeM}~f, \mathit{return}_{\mathit{FreeM}~f}, \mbind_{\mathit{FreeM}~f})
+    (\mathit{FreeM}~f, \mathit{fmap}_{\mathit{FreeM}~f}, \mathit{return}_{\mathit{FreeM}~f}, \mathit{join}_{\mathit{FreeM}~f})
   \end{displaymath}
-  such that for every monad $(m, \mathit{return_m}, \mbind_m)$ and
-  natural transformation $g :: f~a \to m~a$, there is a unique monad
-  morphism $h :: \mathit{FreeM}~f~a \to m~a$.
+  equipped with a natural transformation:
+  \begin{displaymath}
+    \mathit{wrap}_f :: f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~a
+  \end{displaymath}
+  such that for every monad $(m,
+  \mathit{fmap}_m, \mathit{return_m}, \mathit{join}_m)$ and natural
+  transformation $g :: f~a \to m~a$, there is a unique monad morphism
+  $\fmext{g} :: \mathit{FreeM}~f~a \to m~a$ such that:
+  \begin{displaymath}
+    \mathit{join}_m \circ \mathit{fmap}_m~\fmext{g} \circ g = \fmext{g} \circ \mathit{wrap}_f
+  \end{displaymath}
 \end{definition}
 
-Let $f$ be a functor, and define:
+One way of explaining the free monad abstraction is in terms of
+expressions with variables, and substitution. Under this reading, the
+functor $(f,\mathit{fmap}_f)$ describes the constructors that can be
+used to make expressions, and a value of type $\mathit{FreeM}~f~a$ is
+an expression comprised of the constructors from $f$ and variables
+from $a$. The $\mathit{join}_{\mathit{FreeM}~f}$ part of the monad
+structure provides substitution of expressions into other expressions,
+and the extension $\fmext{g}$ allows us to interpret a whole
+expression if we can interpret all the constructors.
+
+Another reading, which is more in line with our general theme of
+computational effects, is in terms of sequences of ``commands''. We
+think of the functor $(f, \mathit{fmap}_f)$ as describing a collection
+of possible commands that can be issued by a program. For example, the
+functor $\mathit{ReaderF}~a$, that we define shortly, describes a
+single command of reading a value from some input. The free monad
+interface gives us considerable flexibility in deciding where the
+actual input is read from. The $\mathit{ReaderF}~a$ functor is defined
+as follows:
 \begin{displaymath}
+  \begin{array}{@{}l@{\hspace{2em}}l}
+    \begin{array}{@{}l}
+      \kw{data}~\mathit{ReaderF}~a~x \\
+      \quad
+      \begin{array}{c@{\hspace{0.3em}}l}
+        = & \mathsf{Read}~(a \to x)
+      \end{array}
+    \end{array}
+    &
+    \begin{array}{@{}l}
+      \mathit{fmap}_{\mathit{ReaderF}~a} :: (x \to y) \to \mathit{ReaderF}~a~x \to \mathit{ReaderF}~a~y \\
+      \mathit{fmap}_{\mathit{ReaderF}~a}~g~(\mathsf{Read}~k) = \mathsf{Read}~(g \circ k)
+    \end{array}
+  \end{array}
+\end{displaymath}
+We think of values of type $\mathit{FreeM}~(\mathit{ReaderF}~a)~b$ as
+sequences of read commands, eventually yielding a value of type
+$b$. We use the $\mathit{wrap}_{\mathit{ReaderF}~a}$ part of the free
+monad interface to define a primitive read operation:
+\begin{displaymath}
+  \begin{array}{@{}l}
+    \mathit{read} :: \mathit{FreeM}~(\mathit{ReaderF}~a)~a \\
+    \mathit{read} = \mathit{wrap}_{\mathit{ReaderF}~a}~(\mathsf{Read}~\mathit{return}_{\mathit{FreeM}~(\mathit{ReaderF}~a)})
+  \end{array}
+\end{displaymath}
+As every free monad is a monad, we can use Haskell's $\kw{do}$
+notation to sequence individual commands. For example, here is a
+simple program that reads two strings from some input, and returns
+them as a pair in the opposite order.
+\begin{displaymath}
+  \begin{array}{@{}l}
+  \mathit{swapRead} :: \mathit{FreeM}~(\mathit{ReaderF}~\mathit{String})~(\mathit{String},\mathit{String}) \\
+  \mathit{swapRead} = \kw{do}~\{ s_1 \leftarrow \mathit{read}; s_2 \leftarrow \mathit{read}; \mathit{return}~(s_2,s_1) \}
+\end{array}
+\end{displaymath}
+
+As we mentioned above, the free monad interface gives us considerable
+flexibility in how we actually interpret the $\mathit{read}$
+commands. For example, we can interpret each $\mathit{read}$ command
+as reading a line from the terminal by defining a natural
+transformation from $\mathit{ReaderF}~\mathit{String}$ to
+$\mathit{IO}$, using the standard Haskell function $\mathit{getLine}$
+to do the actual reading:
+\begin{displaymath}
+  \begin{array}{@{}l}
+    \mathit{useGetLine} :: \mathit{ReaderF}~\mathit{String}~a \to \mathit{IO}~a \\
+    \mathit{useGetLine}~(\mathsf{Read}~k) = \kw{do}~\{ s \leftarrow \mathit{getLine}; \mathit{return}~(k~s) \}
+  \end{array}
+\end{displaymath}
+The free monad interface now provides a way to extend this
+interpretation of individual commands to sequences of commmands:
+\begin{displaymath}
+  \fmext{\mathit{useGetLine}} :: \mathit{FreeM}~(\mathit{ReaderF}~a)~a \to \mathit{IO}~a
+\end{displaymath}
+Applying $\fmext{\mathit{useGetLine}}$ to $\mathit{swapRead}$ results
+in the following interaction, where the second and third lines are
+entered by the user, and the final line is printed by the Haskell
+implementation:
+\begin{displaymath}
+  \begin{array}{@{}l}
+    >~\fmext{\mathit{useGetLine}}~\mathit{swapRead} \\
+    \texttt{"free"} \\
+    \texttt{"monad"} \\
+    (\texttt{"monad"}, \texttt{"free"})
+  \end{array}
+\end{displaymath}
+
+The free monad interface provides us with a powerful way of giving
+multiple interpretations to effectful commands. Moreover, it is easy
+to extend the language of commands simply by extending the functor
+$f$. Swierstra \cite{swierstra08data} demonstrates a convenient method
+in Haskell for dealing with modular construction of functors for
+describing commands in free monads. However, explicitly naming every
+additional command that we wish to be able to perform can be
+tedious. Sometimes, we simply want access to effects in a known monad
+$m$. For example, we may know that definitely want to execute
+$\mathit{IO}$ actions as well as abstract read operations. One
+possible way of accomplishing this is to ensure that there is an
+additional constructor to the functor $f$ that describes an additional
+``abstract command'' of performing an effect in the chosen monad. For
+example, we could extend the $\mathit{ReaderF}~a$ functor like so to
+add the possibility of concrete effects in a monad $m$:
+\begin{displaymath}
+  \kw{data}~\mathit{ReaderMF}~m~a~x = \mathsf{Read}~(a \to x) \mathrel| \mathsf{Act}~(m~x)
+\end{displaymath}
+This approach has the disadvantage that the effects of the monad $m$
+must now be handled by the interpretation of the other abstract
+commands. For example, we would have to add another case to the
+$\mathit{useGetLine}$ function to handle the $\mathsf{Act}$
+case. Thus, we would be forced to combine the interpretation of the
+pure data representing abstract commands with the interpretation of
+concrete effects. As are have observed in the case of list append in
+\autoref{sec:direct-eappend}, the mingling of such concerns can lead
+to unnecessarily complicated reasoning. Fortunately, a conceptually
+simpler solution is available: we take the coproduct of the free monad
+for the funcor $f$ that describes our abstract effects with the monad
+$m$ that describes our concrete effects. We define the coproduct of
+two monads in \autoref{sec:coproducts-of-monads}, below, and
+demonstrate how monad coproducts cleanly combine abstract effects with
+concrete effects. Before that, in the next section, we demonstrate how
+to construct free monads from initial $f$-algebras.
+
+\subsection{Constructing free monads, via $f$-algebras}
+\label{sec:construct-free-monads}
+
+\begin{figure}
+  Let $(f,\mathit{fmap}_f)$ be a functor, and define:
+  \begin{displaymath}
     \begin{array}{l}
       \kw{data}~\mathit{FreeMF}~f~a~x \\
       \quad\begin{array}{cl}
@@ -1736,185 +1987,109 @@ Let $f$ be a functor, and define:
       \end{array} \\
       \\
       \mathit{fmap}_{\mathit{FreeMF}} :: (x \to y) \to \mathit{FreeMF}~f~a~x \to \mathit{FreeMF}~f~a~y \\
-      \begin{array}{@{}l@{\hspace{0.4em}}l@{\hspace{0.4em}}lcl}
+      \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
         \mathit{fmap}_{\mathit{FreeMF}} & g & (\mathsf{Var}~a) & = & \mathsf{Var}~a \\
         \mathit{fmap}_{\mathit{FreeMF}} & g & (\mathsf{Term}~\mathit{fx}) & = & \mathsf{Term}~(\mathit{fmap}_f~g~\mathit{fx})
+      \end{array}
     \end{array}
-  \end{array}
-\end{displaymath}
-
-\begin{theorem}
-  Let $(f, \mathit{fmap}_f)$ be a functor, and suppose that an initial
-  $(\mathit{FreeMF}~f~a)$-algebra $(\mu (\mathit{FreeMF}~f~a),
-  \mathit{construct})$ exists for all $a$. Let:
-  \begin{displaymath}
-    \kw{type}~\mathit{FreeM}~f~a = \mu (\mathit{FreeMF}~f~a)
   \end{displaymath}
-  Then the following definitions witness $\mathit{FreeF}~f$ as a monad:
+
+  \bigskip
+
+  Free monads:
   \begin{displaymath}
-    \begin{array}{l}
-      \mathit{return}_{\mathit{FreeM}~f} :: a \to \mathit{FreeM}~f~a \\
-      \mathit{return}_{\mathit{FreeM}~f}~a = \mathit{construct}~(\mathsf{Var}~a) \\
+    \begin{array}{@{}l}
+      \kw{type}~\mathit{FreeM}~f~a = \mu(\mathit{FreeMF~f~a}) \\
       \\
-      \mbind_{\mathit{FreeM}~f} :: \mathit{FreeM}~f~a \to (a \to \mathit{FreeM}~f~b) \to \mathit{FreeM}~f~b \\
-      c \mbind_{\mathit{FreeM}~f} g = \fold{\mathit{fAlgebra}}~c\\
-      \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-        \kw{where} & \mathit{fAlgebra}~(\mathsf{Var}~a) &=& g~a \\
-        & \mathit{fAlgebra}~(\mathsf{Term}~x)&=&\mathit{construct}~(\mathsf{Term}~x)
+      \begin{array}{@{}l}
+        \mathit{fmap}_{\mathit{FreeM}~f} :: (a \to b) \to \mathit{FreeM}~f~a \to \mathit{FreeM}~f~b \\
+        \mathit{fmap}_{\mathit{FreeM}~f}~g = \fold{\mathit{fmapAlgebra}} \\
+        \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+          \kw{where} & \mathit{fmapAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}~(\mathsf{Var}~(g~a)) \\
+          & \mathit{fmapAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}~(\mathsf{Term}~x)
+        \end{array}
+      \end{array} \\
+      \\
+      \begin{array}{@{}l}
+        \mathit{return}_{\mathit{FreeM}~f} :: a \to \mathit{FreeM}~f~a \\
+        \mathit{return}_{\mathit{FreeM}~f}~a = \mathit{construct}~(\mathsf{Var}~a)
+      \end{array} \\
+      \\
+      \begin{array}{@{}l}
+        \mathit{join}_{\mathit{FreeM}~f} :: \mathit{FreeM}~f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~b \\
+        \mathit{join}_{\mathit{FreeM}~f} = \fold{\mathit{joinAlgebra}} \\
+        \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+          \kw{where} & \mathit{joinAlgebra}~(\mathsf{Var}~x) &=& x \\
+          & \mathit{joinAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}~(\mathsf{Term}~x)
+        \end{array}
+      \end{array} \\
+      \\
+      \begin{array}{@{}l}
+        \mathit{wrap}_f :: f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~a \\
+        \mathit{wrap}_f~x = \mathit{construct}~(\mathsf{Term}~x)
+      \end{array} \\
+      \\
+      \begin{array}{@{}l}
+        \fmext{-} :: (f~a \to m~a) \to \mathit{FreeM}~f~a \to m~a \\
+        \fmext{g} = \fold{\mathit{extAlgebra}} \\
+        \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+          \kw{where} & \mathit{extAlgebra}~(\mathsf{Var}~a) &=& \mathit{return}_m~a \\
+          & \mathit{extAlgebra}~(\mathsf{Term}~x) &=& \mathit{join}_m~(g~x)
+        \end{array}
       \end{array}
     \end{array}
   \end{displaymath}
-  Moreover, $\mathit{FreeM}~f$ is the free monad on the functor $f$.
-\end{theorem}
+  
+  \caption{Constructing free monads via $f$-algebras}
+\label{fig:construct-free-monads}
+\end{figure}
 
-Before we embark on the proof of this theorem, we first observe two
-properties of $\mbind_{\mathit{FreeM}~f}$ that follow directly from
-its definition in terms of an initial algebra:
-\begin{displaymath}
-  \begin{array}{rcl}
-    \mathit{construct}~(\mathsf{Var}~a) \mbind_{\mathit{FreeM}~f} g & = & g~a \\
-    \mathit{construct}~(\mathsf{Term}~\mathit{fx}) \mbind_{\mathit{FreeM}~f} g & = & \construct~(\mathsf{Term}~(\mathit{fmap}_f~(\lambda c.~c\mbind_{\mathit{FreeM}~f}g)~\mathit{fx})
-  \end{array}
-\end{displaymath}
+\autoref{fig:construct-free-monads} demonstrates how the free monad
+interface we defined in the previous section may be implemented in
+terms of initial $(\mathit{FreeMF}~f~a)$-algebras, where the functor
+$\mathit{FreeMF}~f~a$ is also defined in
+\autoref{fig:construct-free-monads}. The key idea is that a value of
+type $\mathit{FreeM}~f~a$ is constructed from layers of ``terms''
+described by the functor $f$, represented by $\mathsf{Term}$
+constructor, and terminated by ``variables'', represented by the
+$\mathsf{Var}$ constructor.
 
-\begin{proof}
-  We first demonstrate that $\mathit{FreeF}~f$ is a monad with the
-  given definitions of $\mathit{return}$ and $\mbind$, by checking the
-  three required properties (FIXME: from defn X):
-  \begin{enumerate}
-  \item The first property---that $\mathit{return}_{\mathit{FreeM}~f}$
-    is a left unit---is a direct consequence of the first property of
-    $\mbind_{\mathit{FreeM}~f}$ that we noted above:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & \mathit{return}_{\mathit{FreeM}~f}~a \mbind_{\mathit{FreeM}~f} g \\
-        =&\eqAnnotation{definition of $\mathit{return}_{\mathit{FreeM}~f}$} \\
-        & \mathit{construct}~(\mathsf{Var}~a) \mbind_{\mathit{FreeM}~f} g \\
-        =&\eqAnnotation{first property of $\mbind_{\mathit{FreeM}~f}$} \\
-        & g~a
-      \end{array}
-    \end{displaymath}
-  \item The second property---that
-    $\mathit{return}_{\mathit{FreeM}~f}$ is a right unit---is stated
-    as follows:
-    \begin{displaymath}
-      c \mbind_{\mathit{FreeM}~f} \mathit{return} = c
-    \end{displaymath}
-    Unfolding the definition of $\mbind_{\mathit{FreeM}~f}$ yields:
-    \begin{displaymath}
-      \fold{\mathit{fAlgebra_{return}}}~c = c
-    \end{displaymath}
-    Following \proofprinref{pp:initial-alg}, we can show this equation
-    by proving, for all $x ::
-    \mathit{FreeMF}~f~a~(\mathit{FreeM}~f~a)$, the following:
-    \begin{displaymath}
-      \mathit{construct}~x = \mathit{fAlgebra_{return}}~x
-    \end{displaymath}
-    This task splits into two cases, depending on whether $x =
-    \mathsf{Var}~a$ or $x =\mathsf{Term}~\mathit{fx}$. In the former
-    case we reason as follows (from right to left):
-    \begin{displaymath}
-      \begin{array}{cl}
-        & \mathit{fAlgebra_{return}}~(\mathsf{Var}~a) \\
-        =&\eqAnnotation{definition of $\mathit{fAlgebra_{return}}$} \\
-        & \mathit{return}_{\mathit{FreeM}~f}~a \\
-        =&\eqAnnotation{definition of $\mathit{return}_{\mathit{FreeM}~f}$} \\
-        & \mathit{construct}~(\mathsf{Var}~a)
-      \end{array}
-    \end{displaymath}
-    In the latter case, when $x = \mathsf{Term}~\mathit{fx}$, the
-    equation to prove follows directly from the definition of
-    $\mathit{fAlgebra_{return}}$:
-    \begin{displaymath}
-      \mathit{fAlgebra}_{\mathit{return}}~(\mathsf{Term}~\mathit{fx}) = \mathit{construct}~(\mathsf{Term}~\mathit{fx})
-    \end{displaymath}
+The definition of the free monad structure is relatively
+straightforward, using the functions induced by the initial algebra
+property of $\mu (\mathit{FreeMF}~f~a)$. Each of the properties
+required of free monads is proved by making use of
+\proofprinref{pp:initial-alg}. When we construct the coproduct of a
+free monad with an arbitrary monad in
+\autoref{sec:construct-coproducts} we will be able to reuse much of
+the definitions in \autoref{fig:construct-free-monads}.
 
-  \item Finally, we prove the associativity property of
-    $\mbind_{\mathit{FreeM}~f}$:
-    \begin{displaymath}
-      c \mbind_{\mathit{FreeM}~f} (\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2) = (c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2
-    \end{displaymath}
-    Unfolding the leftmost occurrence of $\mbind_{\mathit{FreeM}~f}$
-    yields the following equation to be proved:
-    \begin{displaymath}
-      \fold{\mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}}~c = (c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2
-    \end{displaymath}
-    We now apply \proofprinref{pp:initial-alg}. Thus we need to show
-    the following equation for all $x ::
-    \mathit{FreeMF}~f~a~(\mathit{FreeM}~f~a)$:
-    \begin{displaymath}
-      \begin{array}{cl}
-        &(\mathit{construct}~x \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2\\
-        = &\mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathit{fmap}_{\mathit{FreeMF}~f~a}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~x)
-      \end{array}
-    \end{displaymath}
-    As above, this task splits into two, depending on whether $x =
-    \mathsf{Var}~a$ or $x = \mathsf{Term}~\mathit{fx}$. In the former
-    case, we reason as follows:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & (\mathit{construct}~(\mathsf{Var}~a) \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2\\
-        =&\eqAnnotation{first property of $\mbind_{\mathit{FreeM}~f}$} \\
-        & g_1~a \mbind_{\mathit{FreeM}~f} g_2 \\
-        =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}$}\\
-        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathsf{Var}~a) \\
-        =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{FreeMF}~f}$} \\
-        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathit{fmap}_{\mathit{FreeMF}~f}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~(\mathsf{Var}~a))
-      \end{array}
-    \end{displaymath}
-    In the latter case, when $x = \mathsf{Term}~\mathit{fx}$, we
-    reason as follows:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & (\mathit{construct}~(\mathsf{Term}~\mathit{fx}) \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2\\
-        =&\eqAnnotation{second property of $\mbind_{\mathit{FreeM}~f}$} \\
-        & \mathit{construct}~(\mathsf{Term}~(\mathit{fmap}_f~(\lambda c.~c \mbind_{\mathit{FreeM}~f} g_1)~\mathit{fx})) \mbind_{\mathit{FreeM}~f} g_2 \\
-        =&\eqAnnotation{second property of $\mbind_{\mathit{FreeM}~f}$} \\
-        & \mathit{construct}~(\mathsf{Term}~(\mathit{fmap_f}~(\lambda c.~c \mbind_{\mathit{FreeM}~f} g_2)~(\mathit{fmap_f}~(\lambda c.~c \mbind_{\mathit{FreeM}~f} g_1)~\mathit{fx}))) \\
-        =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition} \\
-        & \mathit{construct}~(\mathsf{Term}~(\mathit{fmap_f}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~\mathit{fx})) \\
-        =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\lambda x.~(g_1~x \mbind_{\mathit{FreeM}~f} g_1)}$} \\
-        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathsf{Term}~(\mathit{fmap_f}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~\mathit{fx})) \\
-        =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{FreeMF}~f~a}$} \\
-        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathit{fmap}_{\mathit{FreeMF}~f~a}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~(\mathsf{Term}~\mathit{fx}))
-      \end{array}
-    \end{displaymath}
-  \end{enumerate}
-  We now demonstrate the free monad property. Let $g :: f~a \to m~a$
-  be a natural transformation. We define:
-  \begin{displaymath}
-    \begin{array}{l}
-      h :: \mathit{FreeM}~f~a \to m~a \\
-      h = \fold{alg} where alg (var a) = return a, alg (term fx) = join (g fx)
-    \end{array}
-  \end{displaymath}
-
-  \begin{enumerate}
-  \item $h$ is a monad morphism
-  \item 
-  \end{enumerate}
-\end{proof}
-
-\subsection{Coproducts of Monads}
+\subsection{Coproducts of monads}
+\label{sec:coproducts-of-monads}
 
 \newcommand{\cprd}[2]{#1\mathord{+}#2}
 
-\begin{definition}
-  Let $(m_1, \mathit{return}_{m_1}, \mbind_{m_1})$ and $(m_2,
-  \mathit{return}_{m_2}, \mbind_{m_2})$ be a pair of monads in
-  Kleisli-triple form. A \emph{coproduct} of these two monads is a
-  monad $(\cprd{m_1}{m_2}, \mathit{return}_{\cprd{m_1}{m_2}},
-  \mbind_{\cprd{m_1}{m_2}})$ along with a pair of monad morphisms:
+In the introduction to this section, we intuitively described monad
+coproducts as the ``least commitment'' combination of a pair of
+monads. Formally, this least commitment aspect is realised as the
+existence of a \emph{unique} monad morphism out of a coproduct, for
+every way of interpreting its consistuent parts. The following
+definition sets out the precise conditions:
+\begin{definition}\label{defn:coproducts}
+  Let $(m_1, \mathit{fmap}_{m_1}, \mathit{return}_{m_1}, \mathit{join}_{m_1})$ and $(m_2,
+  \mathit{fmap}_{m_1}, \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A \emph{coproduct} of these two monads is a
+  monad $(\cprd{m_1}{m_2}, \mathit{fmap}_{\cprd{m_1}{m_2}}, \mathit{return}_{\cprd{m_1}{m_2}},
+  \mathit{join}_{\cprd{m_1}{m_2}})$ along with a pair of monad morphisms:
   \begin{displaymath}
     \begin{array}{rcl}
       \mathit{inj}_1 & :: & m_1~a \to (\cprd{m_1}{m_2})~a \\
       \mathit{inj}_2 & :: & m_1~a \to (\cprd{m_1}{m_2})~a
     \end{array}
   \end{displaymath}
-  and the property that for any monad $(m,\mathit{return}_m,
-  \mbind_m)$ and pair of monad morphisms $g_1 : m_1~a \to m~a$ and
-  $g_2 : m_2~a \to m~a$ there is a \emph{unique} monad morphism $[g_1,g_2] :
-  (\cprd{m_1}{m_2})~a \to m~a$ such that
+  and the property that for any monad $(m,\mathit{fmap}_m,
+  \mathit{return}_m, \mathit{join}_m)$ and pair of monad morphisms
+  $g_1 : m_1~a \to m~a$ and $g_2 : m_2~a \to m~a$ there is a
+  \emph{unique} monad morphism $[g_1,g_2] : (\cprd{m_1}{m_2})~a \to
+  m~a$ such that
   \begin{displaymath}
     \begin{array}{rcl}
       {}[g_1,g_2] \circ \mathit{inj}_1 & = & g_1 \\
@@ -1923,207 +2098,180 @@ its definition in terms of an initial algebra:
   \end{displaymath}
 \end{definition}
 
-\subsection{Coproduct of a Free Monad with an Arbitrary Monad}
-
-The coproduct of $\mathit{FreeM}~f$ and $m$ is the initial
-$\mathit{FreeMF}~f~a$-and-$m$-algebra (FIXME: pointwise, indexed blah).
-
-Define $\mathit{CoprodM}~f~m~a$
-
-Define:
+In \autoref{sec:free-monads}, we demonstrated how the free monad over
+a functor describing read commands allowed us to provide multiple
+interpretations of ``reading''. We now show how we can use the
+coproduct interface describe computations that interleave abstract
+read operations with concrete $\mathit{IO}$ effects. The
+$\mathit{inj_1}$ and $\mathit{inj_2}$ components of the monad
+interface allow us to lift effectful computations from the free monad
+and the arbitrary monad respectively, as the following example
+demonstrates:
 \begin{displaymath}
-  \begin{array}{l}
-  \mathit{inj_1} :: \mathit{FreeM}~f~a \to \mathit{CoprodM}~f~m~a \\
-  \mathit{inj_1}~c = \fold{\mathit{fAlgebra}}~c \\
-  \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    \kw{where}&\mathit{fAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}~(\mathsf{Var}~a) \\
-    &\mathit{fAlgebra}~(\mathsf{Term}~\mathit{fx}) &=& \mathit{construct}~(\mathsf{Term}~\mathit{fx})
+  \begin{array}{@{}l}
+    \mathit{swapRead2} :: (\cprd{(\mathit{FreeM}~f)}{\mathit{IO}})~() \\
+    \mathit{swapRead2} = \kw{do}~
+    \begin{array}[t]{@{}l}
+      s_1 \leftarrow \mathit{inj_1}~\mathit{read} \\
+      s_2 \leftarrow \mathit{inj_1}~\mathit{read} \\
+      \mathit{inj_2}~(\mathit{putStrLn}~(\texttt{"("} \dplus s_2 \dplus \texttt{","} \dplus s_1 \dplus \texttt{")"}))
+    \end{array}
   \end{array}
-\end{array}
+\end{displaymath}
+This program executes two read commands, which we have not yet
+provided an interpretation for, to read a pair of strings, and then
+executes a concrete $\mathit{IO}$ action to print the two strings in
+reverse order to the terminal.
+
+We can provide an interpretation for the abstract $\mathit{read}$
+operations, by combining the coproduct interface with the free monad
+interface. For example, to interpret the read commands as reading from
+the terminal, we use the $\mathit{useGetLine}$ interpretation from
+\autoref{sec:free-monads}:
+\begin{displaymath}
+  [\fmext{\mathit{useGetLine}}, \mathit{id}] :: (\cprd{(\mathit{FreeM}~f)}{\mathit{IO}})~a \to \mathit{IO}~a
 \end{displaymath}
 
-FIXME: $\mathit{inj}_2$
+Alternatively, we can interpret the abstract $\mathit{read}$ commands
+as reading from a file handle. The function $\mathit{useFileHandle}$
+describes how to execute single reads on a file handle as an $\mathit{IO}$ action:
+\begin{displaymath}
+  \begin{array}{@{}l}
+    \mathit{useFileHandle} :: \mathit{Handle} \to \mathit{ReaderF}~\mathit{String}~a \to \mathit{IO}~a \\
+    \mathit{useFileHandle}~h~(\mathsf{Read}~k) = \kw{do}~\{ s \leftarrow \mathit{hGetLine}~h; \mathit{return}~(k~s) \}
+  \end{array}
+\end{displaymath}
+Again, we can combine the free monad and monad coproduct interfaces to
+extend this interpretation of individual abstract $\mathit{read}$
+commands to all sequences of $\mathit{read}$ commands interleaved with
+arbitrary $\mathit{IO}$ actions:
+\begin{displaymath}
+  [\fmext{\mathit{useFileHandle}}, \mathit{id}] :: (\cprd{(\mathit{FreeM}~f)}{\mathit{IO}})~a \to \mathit{IO}~a
+\end{displaymath}
 
-% WRONG
-% \begin{displaymath}
-%   \begin{array}{l}
-%     {}[-,-] :: (\forall a.~\mathit{FreeM}~f~a \to m'~a) \to (\forall a.~m~a \to m'~a) \to \mathit{CoprodM}~f~m~a \to m'~a \\
-%     {}[g_1,g_2] = \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}}\\
-%     \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-%       \kw{where}&\mathit{fAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}~(\mathsf{Var}~a) \\
-%       &\mathit{fAlgebra}~(\mathsf{Term}~\mathit{fx}) &=& \mathit{construct}~(\mathsf{Term}~\mathit{fx})
-%     \end{array}
-%   \end{array}
-% \end{displaymath}
+\subsection{Constructing coproducts with free monads via $f$-and-$m$-algebras}
+\label{sec:construct-coproducts}
 
-To prove:
-\begin{enumerate}
-\item $\mathit{CoprodM}~f~m$ with the above stuff is actually a monad:
-  this should go through exactly as for the non-interleaved case.
-\item $\mathit{inj}_1$ is a monad morphism
-\item $\mathit{inj}_2$ is a monad morphism
-\item The universal map exists, is a monad morphism, and is unique
-\end{enumerate}
+\begin{figure}
+  \centering
+  \begin{displaymath}
+    \begin{array}{@{}l}
+      \kw{type}~(\cprd{(\mathit{FreeM}~f)}{m})~a = \mu(\mathit{FreeMF}~f~a|m) \\
+      \\
+      \begin{array}{@{}l}
+        \mathit{fmap}_{\cprd{(\mathit{FreeM}~f)}{m}} :: (a \to b) \to (\cprd{(\mathit{FreeM}~f)}{m})~a \to (\cprd{(\mathit{FreeM}~f)}{m})~b \\
+        \mathit{fmap}_{\cprd{(\mathit{FreeM}~f)}{m}}~g = \eFold{\mathit{fmapAlgebra}}{\mathit{construct_m}} \\
+        \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+          \kw{where} & \mathit{fmapAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}_{\mathit{FreeMF}~f~b}~(\mathsf{Var}~(g~a)) \\
+          & \mathit{fmapAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}_{\mathit{FreeMF}~f~b}~(\mathsf{Term}~x)
+        \end{array}
+      \end{array} \\
+      \\
+      \begin{array}{@{}l}
+        \mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}} :: a \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
+        \mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}}~a = \mathit{construct}_{\mathit{FreeMF}~f~a}~(\mathsf{Var}~a)
+      \end{array} \\
+      \\
+      \begin{array}{@{}l}
+        \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} :: (\cprd{(\mathit{FreeM}~f)}{m})~((\cprd{(\mathit{FreeM}~f)}{m})~a) \to (\cprd{(\mathit{FreeM}~f)}{m})~b \\
+        \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} = \eFold{\mathit{joinAlgebra}}{\mathit{construct}_m} \\
+        \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+          \kw{where} & \mathit{joinAlgebra}~(\mathsf{Var}~x) &=& x \\
+          & \mathit{joinAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}~(\mathsf{Term}~x)
+        \end{array}
+      \end{array} \\
+      \\
+      \mathit{inj_1} :: \mathit{FreeM}~f~a \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
+      \mathit{inj_1} = \fmext{\mathit{construct}_{\mathit{FreeMF}~f~a} \circ \mathsf{Term}} \\
+      \\
+      \mathit{inj_2} :: m~a \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
+      \mathit{inj_2} = \mathit{construct}_m \circ \mathit{fmap}_m~\mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}}\\
+      \\
+      \begin{array}{@{}l}
+        {}[-,-] :: (\forall a.~\mathit{FreeM}~f~a \to m'~a) \to (\forall a.~m~a \to m'~a) \to (\cprd{(\mathit{FreeM}~f)}{m})~a \to m'~a \\
+        {}[g_1,g_2] = \eFold{\mathit{caseAlgebra}}{\mathit{join}_{m'} \circ g_2} \\
+        \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+          \kw{where} & \mathit{caseAlgebra}~(\mathsf{Var}~a) &=& \mathit{return}_{m'}~a \\
+          & \mathit{caseAlgebra}~(\mathsf{Term}~x) &=& \mathit{join}_{m'}~([g_1]~x)
+        \end{array}
+      \end{array}
+    \end{array}
+  \end{displaymath}
+  \caption{Construction of coproducts with free monads via $f$-and-$m$-algebras}
+  \label{fig:construct-coproduct}
+\end{figure}
 
-% \section{Streams, Transformers and Readers}
+\autoref{fig:construct-coproduct} demonstrates the construction of the
+coproduct of a free monad with an arbitrary monad $m$ in terms of
+initial $f$-and-$m$-algebras. We program against the abstract
+interface of initial $f$-and-$m$-algebras, rather relying on any
+particular implementation. If we take the implementation that we
+presented in \autoref{sec:impl-f-and-m}, then the definition of
+$(\cprd{(\mathit{FreeM}~f)}{m})~a$ unfolds to be
+$m~(\mathit{Mu}~(\mathit{FreeMF}~f~a \fcompose m))$, which is exactly
+the Haskell translation of the construction that Hyland \emph{et al.}
+present.
 
-% Longer worked example, and on-the-way develop the theory of effectful
-% paramorphisms.
+The definitions of the basic monad structure -- $\mathit{fmap}$,
+$\mathit{return}$ and $\mathit{join}$ -- are almost identical to the
+corresponding definitions for the free monad in
+\autoref{fig:construct-free-monads}. This demonstrates the same
+feature of the use of $f$-and-$m$-algebras that we saw when defining
+the effectful list append in \autoref{sec:f-and-m-append}: the clean
+separation of pure and effectful concerns allows us to reuse much of
+the work we performed in the non-effectful case. The proofs that these
+definitions actually form a monad carry over just as they did for the
+list append example.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+For the monad coproduct structure, we use the pure and effectful parts
+of the initial $(\mathit{FreeMF}~f~a)$-and-$m$-algebra stucture --
+$\mathit{construct}_{\mathit{FreeMF}~f~a}$ and $\mathit{construct}_m$
+-- for the first and second injections $\mathit{inj}_1$ and
+$\mathit{inj}_2$ respectively. Since
+$\mathit{construct}_{\mathit{FreeMF}~f~a}$ injects an single abstract
+command from $f$ into the coproduct, we use the free monad structure
+to inject all the commands into the coproduct.
 
-% The arrow $\eFold{f}{g} : T(\mu FT) \to A$ satisfies the following two
-% properties:
-% \begin{displaymath}
-%   \begin{array}{c@{\hspace{3em}}c}
-%     \xymatrix{
-%       {F(T(\mu FT))}
-%       \ar[r]^(.6){F\eFold{f}{g}}
-%       \ar[d]_{\eta \circ \construct}
-%       &
-%       {FA}
-%       \ar[d]^{f}
-%       \\
-%       {T(\mu FT)}
-%       \ar[r]^(.6){\eFold{f}{g}}
-%       &
-%       {A}
-%     }
-%     &
-%     \xymatrix{
-%       {T(T(\mu FT))}
-%       \ar[r]^(.6){T\eFold{f}{g}}
-%       \ar[d]_\mu
-%       &
-%       {TA}
-%       \ar[d]^{g}
-%       \\
-%       {T(\mu FT)}
-%       \ar[r]^(.6){\eFold{f}{g}}
-%       &
-%       {A}
-%     }
-%   \end{array}
-% \end{displaymath}
-% and is the unique arrow to do so.
+In order for the use of the $(\mathit{FreeMF}~f~a)$-and-$m$-algebra
+initiality to construct a function on $\mu(\mathit{FreeMF}~f~a|m)$ in
+the definition of $[-,-]$ to be valid, we must check that the second
+component of $\eFold{\mathit{caseAlgebra}}{\mathit{join_{m'}} \circ
+  g_2}$ is actually an $m$-Eilenberg-Moore-algebra. For the first law
+(\autoref{eq:em-alg-return}), we reason as follows:
+\begin{displaymath}
+  \begin{array}{cl}
+    & \mathit{join}_{m'} \circ g_2 \circ \mathit{return}_m \\
+    =&\eqAnnotation{$g_2$ is a monad morphism (\autoref{eq:monad-mor-return})} \\
+    & \mathit{join}_{m'} \circ \mathit{return}_{m'} \\
+    =&\eqAnnotation{monad law: $\mathit{join}_{m'} \circ \mathit{return}_{m'} = \mathit{id}$ (\autoref{eq:monad-join-return})} \\
+    & \mathit{id}
+  \end{array}
+\end{displaymath}
+The second law (\autoref{eq:em-alg-join}) is also straightforward:
+\begin{displaymath}
+  \begin{array}{cl}
+    & \mathit{join}_{m'} \circ g_2 \circ \mathit{join}_m \\
+    =&\eqAnnotation{$g_2$ is a monad morphism (\autoref{eq:monad-mor-join})} \\
+    & \mathit{join}_{m'} \circ \mathit{join}_{m'} \circ g_2 \circ \mathit{fmap}_m~g_2 \\
+    =&\eqAnnotation{monad law: $\mathit{join}_{m'} \circ \mathit{join}_{m'} = \mathit{join}_{m'} \circ \mathit{fmap}_m'~\mathit{join}_{m'}$ (\autoref{eq:monad-join-join})} \\
+    & \mathit{join}_{m'} \circ \mathit{fmap}_{m'}~\mathit{join}_{m'} \circ g_2 \circ \mathit{fmap}_m~g_2 \\
+    =&\eqAnnotation{naturality of $g_2$} \\
+    & \mathit{join}_{m'} \circ g_2 \circ \mathit{fmap}_{m}~\mathit{join}_{m'} \circ \mathit{fmap}_m~g_2 \\
+    =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
+    & \mathit{join}_{m'} \circ g_2 \circ \mathit{fmap}_{m}~(\mathit{join}_{m'} \circ g_2)
+  \end{array}
+\end{displaymath}
+The proof that $[g_1,g_2]$ satisfies the conditions specified in
+\defref{defn:coproducts} is remarkably similar to the proof that
+$\fmext{g}$ satisfies the required properties for the free monad
+specification. This is another testament to the power of
+$f$-and-$m$-algebras.
 
-% \section{Some Examples}
-
-% \paragraph{Non-effectful Lists}
-
-% Do a proof of the associativity of append for normal (finite) lists,
-% for the purposes of comparison to the proof for effectful lists.
-
-% \paragraph{Effectful Lists}
-
-% Let $FX = 1 + A \times X$. We define a function $\mathit{append} :
-% T(\mu FT) \times T(\mu FT) \to T(\mu FT)$ as follows:
-% \begin{displaymath}
-%   \begin{array}{l}
-%     \mathit{append}\ (\mathit{xs}, \mathit{ys}) = \eFold{f}{\mu}\ \mathit{xs} \\
-%     \quad \mathbf{where} \\
-%     \quad\quad f\ \mathsf{Nil} = \mathit{ys} \\
-%     \quad\quad f\ (\mathsf{Cons}\ a\ l) = \eta\ (\construct\ (\mathsf{Cons}\ a\ l))
-%   \end{array}
-% \end{displaymath}
-
-% Directly from the definition of $\mathit{append}$, we have the
-% following two equational properties, derived directly from the first
-% property of our effectful recursion scheme $\eFold{-}{-}$:
-% \begin{displaymath}
-%   \begin{array}{rcl}
-%     \mathit{append}\ (\eta\ (\construct\ \mathsf{Nil}), \mathit{ys}) &=& \mathit{ys} \\
-%     \mathit{append}\ (\eta\ (\construct\ (\mathsf{Cons}\ a\ \mathit{xs})), \mathit{ys}) &=& \eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}))))
-%   \end{array}
-% \end{displaymath}
-% We also have the following property, derived directly from the second
-% property of our effectful recursion scheme:
-% \begin{displaymath}
-%   \begin{array}{rcl}
-%     \mathit{append}\ (\mu\ \mathit{x}, \mathit{ys}) &=& \mu\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{ys}))\ \mathit{x})
-%   \end{array}
-% \end{displaymath}
-% We will use these three properties to prove the following lemma:
-
-% \begin{lemma}
-%   For all $\mathit{xs}, \mathit{ys}, \mathit{zs} : T(\mu FT)$,
-%   \begin{displaymath}
-%     \mathit{append}\ (\mathit{xs}, \mathit{append}\ (\mathit{ys}, \mathit{zs})) = \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs})
-%   \end{displaymath}
-% \end{lemma}
-
-% \begin{proof}
-%   We make use of the uniqueness of functions defined using the
-%   effectful recursion scheme... FIXME
-
-%   Need to prove that the right-hand side satisfies the two
-%   properties. The first property is:
-%   \begin{displaymath}
-%     \mathit{append}\ (\mathit{append}\ (\eta\ (\construct\ x), \mathit{ys}), \mathit{zs}) = f_1\ (F\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ x)
-%   \end{displaymath}
-%   where
-%   \begin{displaymath}
-%     \begin{array}{l}
-%       f_1\ \mathsf{Nil} = \mathit{append}\ (\mathit{xs}, \mathit{ys}) \\
-%       f_1\ (\mathsf{Cons}\ a\ l) = \eta\ (\construct\ (\mathsf{Cons}\ a\ l))
-%     \end{array}
-%   \end{displaymath}
-
-%   Case $x = \mathsf{Nil}$. The left hand side of the equation is:
-%   \begin{displaymath}
-%     \begin{array}{cl}
-%       & \mathit{append}\ (\mathit{append}\ (\eta\ (\construct\ \mathsf{Nil}), \mathit{ys}), \mathit{zs}) \\
-%       =&\mathit{append}\ (\mathit{ys}, \mathit{zs})
-%     \end{array}
-%   \end{displaymath}
-%   and the right hand side of the equation is:
-%   \begin{displaymath}
-%     \begin{array}{cl}
-%       & f_1\ (F\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ \mathsf{Nil}) \\
-%       =&f_1\ \mathsf{Nil} \\
-%       =&\mathit{append}\ (\mathit{xs}, \mathit{ys})
-%     \end{array}
-%   \end{displaymath}
-%   as required.
-
-%   Case $x = \mathsf{Cons}\ a\ \mathit{xs}$. The left hand side of the equation is:
-%   \begin{displaymath}
-%     \begin{array}{cl}
-%       & \mathit{append}\ (\mathit{append}\ (\eta\ (\construct\ (\mathsf{Cons}\ a\ \mathit{xs})), \mathit{ys}), \mathit{zs}) \\
-%       =&\mathit{append}\ (\eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{xs}, \mathit{ys})))), \mathit{zs}) \\
-%       =&\eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))))
-%     \end{array}
-%   \end{displaymath}
-%   and the right hand side of the equation to be proved is:
-%   \begin{displaymath}
-%     \begin{array}{cl}
-%       & f_1\ (F\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ (\mathsf{Cons}\ a\ \mathit{xs})) \\
-%       =&f_1\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))) \\
-%       =&\eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))))
-%     \end{array}
-%   \end{displaymath}
-%   as required.
-
-%   The second property is:
-%   \begin{displaymath}
-%     \mathit{append}\ (\mathit{append}\ (\mu\ x, \mathit{ys}), \mathit{zs})
-%     = \mu\ (T\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{append}\ \mathit{xs}, \mathit{ys}), \mathit{zs})\ x)
-%   \end{displaymath}
-%   We reason as follows, using the Eilenberg-Moore algebra homomorphism
-%   property of $\mathit{append}$, and the fact that functors preserve
-%   composition:
-%   \begin{displaymath}
-%     \begin{array}{cl}
-%       & \mathit{append}\ (\mathit{append}\ (\mu\ x, \mathit{ys}), \mathit{zs}) \\
-%       =&\mathit{append}\ (\mu\ (T\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{ys}))\ x), \mathit{zs}) \\
-%       =&\mu\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{zs}))\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{ys}))\ \mathit{x})) \\
-%       =&\mu\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ \mathit{x})
-%     \end{array}
-%   \end{displaymath}
-%   as required. Thus the property is proved.
-% \end{proof}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{jfp}
+\bibliography{paper}
 
 \end{document}
