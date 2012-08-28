@@ -593,20 +593,20 @@ define and prove associative the append function on pure lists. In
 with interleaved effects, using the initial $f$-algebra technique, and
 see that direct use of initial $f$-algebras makes the definition and
 proof unnecessarily complicated. In \autoref{sec:f-and-m-algebras}, we
-use $f$-and-$m$-algebras to simplify the definition and proof, with
-the benefit that we will be able to reuse much of the definition and
-proof that we give in this section.
+use $f$-and-$m$-algebras to simplify the definition and proof, and
+show that this lets us reuse much of the definition and proof that we
+give in this section.
 
 The definition and proof that we present here are standard and have
 appeared many times in the literature. We present them in some detail
-in order to use them as a reference when we cover the more complicated
-case of lists interleaved with effects.
+in order to use them as a reference when we cover the analogous proof
+for append for lists interleaved with effects.
 
 We program and reason against the abstract interface of initial
 algebras. Hence we assume that an initial $(\mathit{ListF}~a)$-algebra
 $(\mu(\mathit{ListF}~a), \mathit{construct})$ exists, and we write
-$\fold{-}$ for the unique homomorphism induced by initiality. We now
-define $\mathit{append}$:
+$\fold{-}$ for the unique homomorphism induced by initiality. We can
+define $\mathit{append}$ in terms of $\fold{-}$ as:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{append} :: \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \\
@@ -617,13 +617,13 @@ define $\mathit{append}$:
     \end{array}
   \end{array}
 \end{displaymath}
-
 Immediately from the definition of $\mathit{append}$ we know that it
-is a $(\mathit{ListF}~a)$-algebra homomorphism. This entails the
-following two equational properties of $\mathit{append}$ that tell us
-how it operates on lists of the form $\mathit{construct}~\mathsf{Nil}$
-and $\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})$, by unfolding
-the definitions:
+is a $(\mathit{ListF}~a)$-algebra homomorphism because it is defined
+in terms of $\fold{-}$. Unfolding the definitions shows that the
+following two equational properties of $\mathit{append}$ hold. These
+tell us how it operates on lists of the form
+$\mathit{construct}~\mathsf{Nil}$ and
+$\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})$. We have:
 \begin{eqnarray}
   \label{eq:append-nil}
   \mathit{append}~(\mathit{construct}~\mathsf{Nil})~\mathit{ys} & = & \mathit{ys} \\
@@ -642,19 +642,20 @@ We now make use of these properties, and
 
 \begin{proof*}
   The function $\mathit{append}$ is defined in terms of the initial
-  algebra property of $\mu(\mathit{ListF}~a)$, so are able to
-  make use of \proofprinref{pp:initial-alg} to prove the equation:
+  algebra property of $\mu(\mathit{ListF}~a)$, we use
+  \proofprinref{pp:initial-alg} to prove the equation:
   \begin{displaymath}
     \fold{\mathit{fAlgebra}}~\mathit{xs} = \mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}
   \end{displaymath}
-  where
+  In this instantiation of \proofprinref{pp:initial-alg}, $g = \lambda
+  \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}$,
+  and:
   \begin{eqnarray}
     \label{eq:append-fAlgebra-nil}
     \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{append}~\mathit{ys}~\mathit{zs} \\
     \label{eq:append-fAlgebra-cons}
     \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})
   \end{eqnarray}
-
   Thus we need to prove that for all $x ::
   \mathit{ListF}~a~(\mu(\mathit{ListF}~a))$,
   \begin{displaymath}
@@ -669,7 +670,7 @@ We now make use of these properties, and
   \begin{displaymath}
     \begin{array}{cl}
       & \mathit{append}~(\mathit{append}~(\mathit{construct}~\mathsf{Nil})~\mathit{ys})~\mathit{zs}\\
-      =&\eqAnnotation{first property of $\mathit{append}$ (\autoref{eq:append-nil})} \\
+      =&\eqAnnotation{\autoref{eq:append-nil}} \\
       & \mathit{append}~\mathit{ys}~\mathit{zs} \\
       =&\eqAnnotation{definition of $\mathit{fAlgebra}$ (\autoref{eq:append-fAlgebra-nil})} \\
       & \mathit{fAlgebra}~\mathsf{Nil} \\
@@ -682,9 +683,9 @@ We now make use of these properties, and
   \begin{displaymath}
     \begin{array}{cl}
       & \mathit{append}~(\mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys})~\mathit{zs}\\
-      =&\eqAnnotation{second property of $\mathit{append}$ (\autoref{eq:append-cons})} \\
+      =&\eqAnnotation{\autoref{eq:append-cons}} \\
       & \mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys})))~\mathit{zs}\\
-      =&\eqAnnotation{second property of $\mathit{append}$ (\autoref{eq:append-cons})} \\
+      =&\eqAnnotation{\autoref{eq:append-cons}} \\
       & \mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}))\\
       =&\eqAnnotation{definition of $\mathit{fAlgebra}$ (\autoref{eq:append-fAlgebra-cons})} \\
       & \mathit{fAlgebra}~(\mathsf{Cons}~a~(\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}))\\
@@ -698,10 +699,11 @@ Thus the proof that $\mathit{append}$ is associative is relatively
 straightforward, using \proofprinref{pp:initial-alg}. We shall see
 below, in \autoref{sec:direct-eappend}, that attempting to use
 \proofprinref{pp:initial-alg} again to reason about lists interleaved
-with effects leads to a much more complicated proof. We then make use
+with effects leads to a more complicated proof that mingles the
+reasoning above with reasoning about monadic effects. We then make use
 of $f$-and-$m$-algebras in \autoref{sec:f-and-m-algebras} to prove the
-same property for lists interleaved with effects, and still be able to
-reuse the core of the above proof.
+same property for lists interleaved with effects, and show that we are
+able to reuse the core of the above proof.\todo{Make sure this is general}
 
 \section{Background: monadic effects and monadic recursion schemes}
 \label{sec:monads}
