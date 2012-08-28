@@ -120,21 +120,22 @@ of Programming methodology \cite{bdm97}.
 
 Programming and reasoning using higher-order recursion combinators is
 built upon the category theoretic foundation of initial $f$-algebras
-for functors $f$. In initial algebra semantics, datatypes are
-represented by carriers of initial algebras -- i.e.~least fixed points
-of functors -- and combinators such as $\mathit{foldr}$ are derived
-from the universal properties of initial algebras. The initial
-$f$-algebra methodology has been successful in unifying and clarifying
-structured functional programming and reasoning on values of recursive
-datatypes that go far beyond lists and $\mathit{foldr}$.
+for functors $f$ \cite{GoguenTW78}. In initial algebra semantics,
+datatypes are represented by carriers of initial algebras --
+i.e.~least fixed points of functors -- and combinators such as
+$\mathit{foldr}$ are derived from the universal properties of initial
+algebras. The initial $f$-algebra methodology has been successful in
+unifying and clarifying structured functional programming and
+reasoning on values of recursive datatypes that go far beyond lists
+and $\mathit{foldr}$.
 
 In this paper, we present a class of recursive datatypes where direct
-use of the initial algebra methodology does not provide the right
-level of abstraction. Specifically, we consider recursive datatypes
-that interleave pure data with effectful computation. For example,
-lists of characters that are interleaved with the effectful input
-computations that read them from some external source can be described
-by the following datatype declaration:
+use of the initial algebra methodology does \emph{not} provide the
+right level of abstraction. Specifically, we consider recursive
+datatypes that interleave pure data with effectful computation. For
+example, lists of characters that are interleaved with the effectful
+input computations that read them from some external source can be
+described by the following datatype declaration:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{List'_{io}}
@@ -275,7 +276,7 @@ primitives for performing IO on file handles:
 \end{array}
 \end{displaymath}
 By using the $\mathit{List}~\mathit{IO}~\mathit{Char}$ datatype, we
-have made the possibility of effects between every element of the list
+have made the possibility of effects between the elements of the list
 explicit. Therefore, the problems we identified above with implicit
 interleaving are solved: input/output failures are reported within the
 scope of $\mathit{IO}$ actions, and we have access to the
@@ -358,7 +359,7 @@ follows:
   this separation in \autoref{sec:f-and-m-append}, where we revisit
   the definition of list append on effectful lists, and its
   associativity property. Using initial algebra semantics for
-  $f$-and-$m$-algebras, we are able to reuse the much of the
+  $f$-and-$m$-algebras, we are able to reuse much of the
   definition and proof from the pure case in
   \autoref{sec:pure-append}, and the additional work that we need to
   carry to deal with effects is minimal.
