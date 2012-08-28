@@ -27,6 +27,7 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
 \newtheorem{proofprinciple}{Proof Principle}
 
 \newcommand{\proofprinref}[1]{\hyperref[#1]{Proof Principle \ref*{#1}}}
@@ -39,13 +40,13 @@
 
 \author[R. Atkey, P. Johann, N. Ghani, B. Jacobs]
        {ROBERT ATKEY, PATRICIA JOHANN, NEIL GHANI \\
-         University of Strathclyde, Glasgow, G1 1XH, UK\\
+         University of Strathclyde, Glasgow, G1 1XH, UK \\
+         {\footnotesize (\emph{e-mail:} \texttt{$\{$robert.atkey,patricia.johann,neil.ghani$\}$@strath.ac.uk})} \\
          \vspace{0.3cm}
          BART JACOBS \\
-         Radboud University, Nijmegen, Netherlands}
-%         \email{bart@cs.ru.nl}}
+         Radboud University, Nijmegen, Netherlands
+         \email{bart@cs.ru.nl}}
 
-%         \email{$\{$robert.atkey,patricia.johann,neil.ghani$\}$@strath.ac.uk}
 
        
 \begin{document}
@@ -388,21 +389,22 @@ follows:
 \section{Background: initial $f$-algebras}
 \label{sec:f-algebras}
 
-We now recall the concept of (initial) $f$-algebras, and describe the
-accompanying definition and proof principles. We will make use of the
-basic definitions of the polymorphic identity function $\mathit{id} =
-\lambda x.~x$ and function composition $g \circ h = \lambda
-x.~g~(h~x)$.
+Initial $f$-and-$m$-algebras build upon the basic foundation of
+initial $f$-algebras. We recall the definition of initial $f$-algebras
+in this section, derive the accompanying definitional and proof
+principles. We will make use of the basic definitions of the
+polymorphic identity function $\mathit{id} = \lambda x.~x$ and
+function composition $g \circ h = \lambda x.~g~(h~x)$.
 
 \subsection{Basic definitions}
 
 The initial $f$-algebra methodology uses functors $f$ to describe the
-individual ``layers'' of recursive datatypes. 
-%FIXME: reference ``two-level types''.
+individual ``layers'' of recursive datatypes.
+\todo{reference ``two-level types''}
 Formally, functors are defined as follows:
 \begin{definition}\label{defn:functor}
-  A functor is a pair $(f, \mathit{fmap}_f)$ of a type operator $f$
-  and a function $\mathit{fmap}_f$ of type:
+  A \emph{functor} is a pair $(f, \mathit{fmap}_f)$ of a type operator
+  $f$ and a function $\mathit{fmap}_f$ of type:
   \begin{displaymath}
     \mathit{fmap}_f :: (a \to b) \to f~a \to f~b
   \end{displaymath}
@@ -425,27 +427,27 @@ member of the $\mathit{Functor}$ typeclass:
     \quad \mathit{fmap} :: (a \to b) \to f~a \to f~b
   \end{array}
 \end{displaymath}
-The use of a typeclass to represent functors allows the programmer to
-just use $\mathit{fmap}$ and let the type checker infer which $f$'s
-associated $\mathit{fmap}$ was intended. For this article, we shall
-always use a subscript on $\mathit{fmap}$ to indicate which type
-operator is intended.
-
-% FIXME: mention that the user must verify the equations for
-% themselves
+It is left to the programmer to verify that the identity and
+composition laws are satisfied\todo{link back to this when we talk
+  about EM-algs}.  The use of typeclasses to represent functors allows
+the programmer to just write $\mathit{fmap}$ and let the type checker
+infer which $f$'s associated $\mathit{fmap}$ was intended. However, in
+the interest of clarity, we shall always use a subscript on
+$\mathit{fmap}$ to indicate which type operator is intended.
 
 An $f$-algebra for a given functor $f$ is a way of describing an
 action for each layer in an inductive data structure. Formally,
 $f$-algebras are defined as follows:
 \begin{definition}
-  An $f$-algebra is a pair $(a, \mathit{fAlgebra}_a)$ of a carrier
-  type $a$ and a function $\mathit{fAlgebra}_a :: f~a \to a$.
+  An \emph{$f$-algebra} is a pair $(a, \mathit{fAlgebra}_a)$ of a
+  \emph{carrier type} $a$ and a \emph{structure map}
+  $\mathit{fAlgebra}_a :: f~a \to a$.
 \end{definition}
 Given a pair of $f$-algebras, there is also the concept of a
 homomorphism between them:
 \begin{definition}
   Given a pair of $f$-algebras $(a,\mathit{fAlgebra}_a)$ and $(b,
-  \mathit{fAlgebra}_b)$, an $f$-algebra homomorphism between them is a
+  \mathit{fAlgebra}_b)$, an \emph{$f$-algebra homomorphism} between them is a
   function $h :: a \to b$ such that
   \begin{equation}
     \label{eq:falgebra-homomorphism}
@@ -454,17 +456,17 @@ homomorphism between them:
 \end{definition}
 
 \begin{definition}
-  An \emph{initial} $f$-algebra is an $f$-algebra $(\mu f,
-  \mathit{construct})$ such that for any other $f$-algebra $(a,
-  \mathit{fAlgebra}_a)$, there exists a \emph{unique} $f$-algebra
+  An \emph{initial $f$-algebra} is an $f$-algebra $(\mu f,
+  \mathit{construct})$ such that for any $f$-algebra $(a,
+  \mathit{fAlgebra}_a)$, there exists a unique $f$-algebra
   homomorphism $\fold{\mathit{fAlgebra}_a} :: \mu f \to a$.
 \end{definition}
 
 The requirement that an initial $f$-algebra always has an $f$-algebra
-homomorphism to any other $f$-algebra allows us to define functions on
-the carriers of initial $f$-algebras. The uniqueness requirement
-yields the following proof principle for functions defined on initial
-$f$-algebras.
+homomorphism to any $f$-algebra allows us to define functions on the
+datatypes represented by carriers $\mu f$ of initial $f$-algebras. The
+uniqueness requirement yields the following proof principle for
+functions defined on initial $f$-algebras.
 
 \begin{proofprinciple}[Initial $f$-Algebras]\label{pp:initial-alg}
   Suppose that $(\mu f, \mathit{construct})$ is an initial $f$-algebra.
@@ -480,17 +482,22 @@ $f$-algebras.
   \end{displaymath}
 \end{proofprinciple}
 
+\todo{Refer to induction?}
+
 \subsection{Examples of initial $f$-algebras}
 
-We now give two examples of initial $f$-algebras. The first example
-shows that standard recursively defined Haskell datatypes can be
-retrofitted with the initial $f$-algebra structure. The second example
-shows that it is possible, in Haskell, to construct an initial
-$f$-algebra for any functor $(f,\mathit{fmap_f})$.
+The usefulness of the initial $f$-algebra abstraction for functional
+programming lies in the fact that we can directly implement initial
+$f$-algebras in functional programming languages. We give two examples
+of implementations of initial $f$-algebras. The first example shows
+that standard recursively defined Haskell datatypes can be retrofitted
+with the initial $f$-algebra structure. The second example shows that
+it is possible, in Haskell, to construct an initial $f$-algebra for
+any functor $(f,\mathit{fmap_f})$.
 
-\begin{enumerate}
-\item The functor $\mathit{ListF}~a$ describes the individual layers
-  of a list:
+\begin{example}
+  The functor $\mathit{ListF}~a$ describes the individual layers of a
+  list:
   \begin{displaymath}
     \begin{array}{@{}l@{\hspace{3em}}l}
       \begin{array}{l}
@@ -511,7 +518,7 @@ $f$-algebra for any functor $(f,\mathit{fmap_f})$.
       \end{array}
     \end{array}
   \end{displaymath}
-  The following definitions witness the standard Haskell list datatype
+  The following definitions witness that the standard Haskell list datatype
   $[a]$ is the carrier of an initial $\mathit{ListF}~a$ algebra:
   \begin{displaymath}
     \begin{array}{l}
@@ -532,15 +539,18 @@ $f$-algebra for any functor $(f,\mathit{fmap_f})$.
       \end{array}
     \end{array}
   \end{displaymath}
-\item We can define the carrier of an initial $f$-algebra for an
-  arbitrary functor $(f, \mathit{fmap}_f)$ as a recursive datatype:
+\end{example}
+
+\begin{example}
+  We can implement the carrier of an initial $f$-algebra for an arbitrary
+  functor $(f, \mathit{fmap}_f)$ as a recursive datatype:
   \begin{displaymath}
     \kw{data}~\mathit{Mu}~f = \mathsf{In}~\{ \mathit{unIn} :: f~(\mathit{Mu}~f) \}
   \end{displaymath}
   We have used Haskell's record definition syntax to implicitly define
   a function $\mathit{unIn} :: \mathit{Mu}~f \to f~(\mathit{Mu}~f)$
   that is the inverse of the value constructor $\mathsf{In}$.  The
-  $f$-algebra structure map is defined directly in terms of the value
+  $f$-algebra structure map is defined as the value
   constructor $\mathsf{In}$:
   \begin{displaymath}
     \begin{array}{l}
@@ -550,14 +560,14 @@ $f$-algebra for any functor $(f,\mathit{fmap_f})$.
   \end{displaymath}
   and the $f$-algebra homomorphisms out of $\mathit{Mu}~f$ are defined
   in terms of the functor structure $\mathit{fmap}_f$ and Haskell's
-  general recursion.
+  general recursion:
   \begin{displaymath}
     \begin{array}{l}
       \fold{-} :: \mathit{Functor}~f \Rightarrow (f~a \to a) \to \mathit{Mu}~f \to a \\
       \fold{\mathit{fAlgebra}} = \mathit{fAlgebra} \circ \mathit{fmap}_f~\fold{\mathit{fAlgebra}} \circ \mathit{unIn}
     \end{array}
   \end{displaymath}
-\end{enumerate}
+\end{example}
 
 These two examples demonstrate that initial algebras for a given
 functor are not unique: the types $[a]$ and
@@ -566,9 +576,11 @@ initial $(\mathit{ListF}~a)$-algebras. Therefore, we regard the
 initial $f$-algebra abstraction as an interface to program against,
 rather than thinking of specific implementations such as
 $\mathit{Mu}~f$. Note that it is possible to prove that any two
-initial $f$-algebras are isomorphic, using the initial algebra
-property to define the translations, and \proofprinref{pp:initial-alg}
-to prove that they are mutually inverse.
+initial $f$-algebras are isomorphic, by using the initial algebra
+property to define the translations between, and
+\proofprinref{pp:initial-alg} to prove that the translations are
+mutually inverse. This isomorphism result is known as Lambek's lemma
+\cite{LAMBEK68}.
 
 \section{List append I: pure lists}
 \label{sec:pure-append}
@@ -1877,6 +1889,8 @@ interpretations.
   \begin{displaymath}
     \mathit{wrap}_f :: f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~a
   \end{displaymath}
+  FIXME: define natural transformation above, and also add the interaction with join
+
   such that for every monad $(m,
   \mathit{fmap}_m, \mathit{return_m}, \mathit{join}_m)$ and natural
   transformation $g :: f~a \to m~a$, there is a unique monad morphism
