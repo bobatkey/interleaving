@@ -9,6 +9,8 @@
 \def\sectionautorefname{Section}
 \def\subsectionautorefname{Section}
 
+\usepackage{todonotes}
+
 \usepackage{stmaryrd}
 
 \newcommand{\fold}[1]{\llparenthesis #1 \rrparenthesis}
@@ -105,31 +107,34 @@ higher-order function $\mathit{foldr}$, which has the type:
   \mathit{foldr} :: a \to (e \to a \to a) \to [e] \to a
 \end{displaymath}
 The benefits of expressing recursive functions in terms of combinators
-like $\mathit{foldr}$ rather than through direct use of recursion are
-twofold. Firstly, we are automatically guaranteed several desirable
-properties, such as totality (on finite input), without having to do
-any further reasoning. Secondly, functions defined using
+like $\mathit{foldr}$, rather than through direct use of recursion,
+are twofold. Firstly, we are automatically guaranteed several
+desirable properties, such as totality (on finite input), without
+having to do any further reasoning. Secondly, functions defined using
 $\mathit{foldr}$ obey a uniqueness property that allows us to easily
-derive further properties about such functions. The style of
+derive further properties about them. The style of
 programming that uses combinators such as $\mathit{foldr}$ and its
 uniqueness property has become known as ``origami programming''
 \cite{gibbons03origami}, and forms a key part of the general Algebra
 of Programming methodology \cite{bdm97}.
 
 Programming and reasoning using higher-order recursion combinators is
-built upon the category theoretic foundation of initial
-$f$-algebras. The initial $f$-algebra methodology has been successful
-in unifying and clarifying structured functional programming and
-reasoning on values of recursive datatypes that goes far beyond lists
-and $\mathit{foldr}$.
+built upon the category theoretic foundation of initial $f$-algebras
+for functors $f$. In initial algebra semantics, datatypes are
+represented by carriers of initial algebras -- i.e.~least fixed points
+of functors -- and combinators such as $\mathit{foldr}$ are derived
+from the universal properties of initial algebras. The initial
+$f$-algebra methodology has been successful in unifying and clarifying
+structured functional programming and reasoning on values of recursive
+datatypes that go far beyond lists and $\mathit{foldr}$.
 
 In this paper, we present a class of recursive datatypes where direct
-use of the initial $f$-algebra methodology does not provide the right
-level of abstraction. We consider recursive datatypes that interleave
-pure data with effectful computation. For example, lists of characters
-that are interleaved with the effectful input computations that read
-them from some external source can be described by the following
-datatype declaration:
+use of the initial algebra methodology does not provide the right
+level of abstraction. Specifically, we consider recursive datatypes
+that interleave pure data with effectful computation. For example,
+lists of characters that are interleaved with the effectful input
+computations that read them from some external source can be described
+by the following datatype declaration:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{List'_{io}}
@@ -148,33 +153,36 @@ datatype declaration:
 Using the initial $f$-algebra methology to program with and reason
 about such datatypes forces us to mingle the pure and effectful parts
 of our programs and proofs in a way that obscures their essential
-properties (we demonstrate this in \autoref{sec:direct-eappend}). By
+properties (as we demonstrate in \autoref{sec:direct-eappend}). By
 abstracting out the effectful parts, we arrive at the concept of
-initial $f$-and-$m$-algebras, where a functor $f$ describes the data,
-and a monad $m$ describes the effects. Initial $f$-and-$m$-algebras
-represent a better level of abstraction to deal with interleaved data
-and effects. The key idea is to separate the concerns of dealing with
-pure data, via $f$-algebras, and effects, via
-$m$-Eilenberg-Moore-algebras. We shall see (in
-\autoref{sec:f-and-m-append}) that this separation has the following
-benefits:
+initial $f$-and-$m$-algebras, where $f$ is a functor whose initial
+algebra that describes the datatype, and $m$ is a monad that describes
+the effects. Initial $f$-and-$m$-algebras represent a better level of
+abstraction for dealing with interleaved data and effects. The key
+idea is to separate the concerns of dealing with pure data, via
+$f$-algebras, and effects, via $m$-Eilenberg-Moore-algebras. We shall
+see in \autoref{sec:f-and-m-append} that this separation has the
+following benefits:
 \begin{itemize}
 \item \emph{Definitions} of functions on datatypes that interleave
   data and effects look very similar to their counterparts on pure
-  data. We will use the example of adapting the append function on
-  lists to the case of lists interleaved with effects. The pure part
-  of the computation remains the same, while the effectful part is
-  straightforward.
+  datatypes. We will use the example of adapting the append function
+  on lists to a datatype of lists interleaved with effects. The pure
+  part of the computation remains the same, and the effectful part is
+  straightforward. Therefore, definitions of functions on pure
+  datatypes can often be transferred directly to their effectful
+  counterparts.
 \item \emph{Proofs} about functions on interleaved datatypes also
   carry over almost unchanged from their pure counterparts. We
-  demonstrate this though the proof of associativity for list append,
-  which carries over almost unchanged from the pure case, except for
-  an additional side condition that is discharged almost trivially.
+  demonstrate this though the proof of associativity for append on
+  effectful lists, which carries over almost unchanged from the proof
+  of associativity of append for pure lists, except for an additional
+  side condition that is discharged almost trivially.
 \end{itemize}
 
 The concept of initial $f$-and-$m$-algebras is originally due to
 Filinski and St\o{}vring \cite{filinski07inductive}, and was
-subsequently extended to a general category theoretic setting by the
+subsequently extended to a general category-theoretic setting by the
 authors of the current paper \cite{atkey12fibrational}. In this paper,
 we aim to introduce the concept of initial $f$-and-$m$-algebras to a
 general functional programming audience.
@@ -182,8 +190,8 @@ general functional programming audience.
 \subsection{Interleaving data and effects}
 \label{sec:motivate-interleaving}
 
-We now motivate the consideration of interleaved data and effects by
-looking at a function in the Haskell standard library that is not as
+To motivate the consideration of interleaved data and effects, we
+consider a function in the Haskell standard library that is not as
 straightfoward as its type implies. The $\mathit{hGetContents}$
 function provides an example of \emph{implicit} interleaving of data
 with effects. This function has the following type:
@@ -194,18 +202,19 @@ Reading the type of this function, one might assume that it operates
 by reading all the available data from the file referenced by the
 given handle as an $\mathit{IO}$ action, and then returning the list
 of characters as pure data. In fact, the standard implementation of
-this function postpones the actual input effects until the list is
+this function postpones the input effects until the list is actually
 accessed by the program. The effect of reading from the file handle is
 implicitly \emph{interleaved} with any later pure computation on the
 list. This interleaving is not made apparent in the type of
-$\mathit{hGetContents}$, with the following undesirable consequences:
+$\mathit{hGetContents}$, and this has the following undesirable
+consequences:
 \begin{itemize}
-\item Input/output errors that occur during reading (e.g.~network
+\item Input/output errors that occur during reading (e.g.,~network
   failure) are reported by throwing exceptions from pure code, using
   Haskell's imprecise exceptions facility. Since the actual reading
   may occur long after the call to $\mathit{hGetContents}$ has
   apparently finished, it can be extremely difficult to determine the
-  scope in which the exception may be thrown.
+  scope in which such an exception was be thrown.
 \item Since it is difficult to predict when the read effects will
   occur, it is no longer safe for the programmer to close the file
   handle. The handle is implicitly closed when the end of the file is
@@ -223,7 +232,7 @@ $\mathit{hGetContents}$ fails to make the interleaving explicit.
 
 We can make the interleaving explicit by declaring a new type of lists
 interleaved with some effects described by a monad $m$. This
-generalises the definition of $\mathit{List_{io}}$ that we gave in the
+generalises the definition of $\mathit{List_{io}}$ from the
 introduction:
 \begin{displaymath}
   \begin{array}{ll}
@@ -240,18 +249,17 @@ introduction:
     \quad \mathsf{List}~(m~(\mathit{List'}~m~a))
   \end{array}
 \end{displaymath}
-A value of type $\mathit{List}~m~a$ consists of an effect described
-by $m$, then either a $\mathsf{Nil_m}$ to indicate the end of the
-list, or a $\mathsf{Cons_m}$ with a value of type $a$ and more
-list. Thus this type describes lists of values of type $a$ interleaved
-with effects from the monad $m$.
+A value of type $\mathit{List}~m~a$ consists of an effect described by
+$m$, then either a $\mathsf{Nil_m}$ to indicate the end of the list,
+or a $\mathsf{Cons_m}$ with a value of type $a$ and more list. Thus
+this datatype describes lists of values of type $a$ interleaved with
+effects from the monad $m$.
 
 We can re-implement $\mathit{hGetContents}$ to generate values of type
 $\mathit{List}~\mathit{IO}~\mathit{Char}$, which makes the
-interleaving of effects and $\mathit{IO}$ actions explicit. A
-(inefficient due to lack of buffering) implementation can be given in
-terms of the standard Haskell primitives for performing IO on file
-handles:
+interleaving of effects and $\mathit{IO}$ actions explicit. An
+implementation can be given in terms of the standard Haskell
+primitives for performing IO on file handles:
 \begin{displaymath}
   \begin{array}{l}
   \mathit{hGetContents} :: \mathit{Handle} \to \mathit{List}~\mathit{IO}~\mathit{Char} \\
@@ -266,8 +274,14 @@ handles:
   \end{array}
 \end{array}
 \end{displaymath}
+By using the $\mathit{List}~\mathit{IO}~\mathit{Char}$ datatype, we
+have made the possibility of effects between every element of the list
+explicit. Therefore, the problems we identified above with implicit
+interleaving are solved: input/output failures are reported within the
+scope of $\mathit{IO}$ actions, and we have access to the
+$\mathit{IO}$ monad to explicitly close the file.
 
-The Haskell community has also defined many other datatypes that
+The Haskell community\todo{link to Hackage} has also defined many other datatypes that
 capture the interleaving of effects with pure data, in order to make
 explicit the interleaving implicit in the $\mathit{hGetContents}$
 function. One of the earliest was Kiselyov's Iteratees
@@ -292,24 +306,18 @@ as the $\mathit{List}~m~a$ datatype declaration:
   \end{array}
 \end{displaymath}
 A value of type $\mathit{Reader}~m~a~b$ is some effect described by
-the monad $m$, yielding either a result $\mathsf{Yield}~b$, or a
-request for input. As Kiselyov demonstrates, the fact that values of
-type $\mathit{Reader}~m~a~b$ leave the source of the data that they
-abstract is extremely powerful: different constructions allow readers
-to be chained together, or connected to actual input/output devices,
-while retaining the ability to perform concrete effects in the monad
-$m$.  Kiselyov treats the $\mathit{Reader}~m~a~b$ type in
-isolation. In this paper, we show that it can be regarded as an
-instance of the general construction of the coproduct of a free monad
-and an arbitrary monad, building on the general foundation of initial
+the monad $m$, yielding either a result of type $b$, or a request for
+input. As Kiselyov demonstrates, the fact that values of type
+$\mathit{Reader}~m~a~b$ abstract the source of the data that they read
+is extremely powerful: different constructions allow values of type
+$\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
+input/output devices, all while retaining the ability to perform
+concrete effects in the monad $m$.  Kiselyov treats the
+$\mathit{Reader}~m~a~b$ type in isolation. In this article, we show
+that it can be regarded as an instance of the general construction of
+the coproduct of a free monad and an arbitrary monad. This
+construction builds on the general foundation of initial
 $f$-and-$m$-algebras.
-
-% The $\mathit{List}~m~a$ and $\mathit{Reader}~m~a~b$ datatypes follow
-% similar patterns of interleaving pure data with computational
-% effects. As we shall see in the rest of this paper, the abstraction of
-% $f$-and-$m$-algebras provides us with a convenient interface for
-% programming with and reasoning about datatypes with interleaved
-% effects.
 
 \subsection{The content of this paper}
 
@@ -321,35 +329,37 @@ follows:
 \item In \autoref{sec:f-algebras}, we recall the standard definitions
   of $f$-algebra and initial $f$-algebras, in a functional programming
   context. We highlight the proof principle associated with initial
-  $f$-algebras (\proofprinref{pp:initial-alg}), and demonstrate the
+  $f$-algebras (\proofprinref{pp:initial-alg}), and demonstrate that the
   initial $f$-algebra abstraction can be thought of as an abstract
-  interface for programming and reasoning against.
-\item We initiate our main running example of list append and its
+  interface for programming and reasoning against.\todo{think about use of `against'}
+\item We introduce our main running example of list append and its
   associativity property in \autoref{sec:pure-append}. In this
-  section, we make use of the initial $f$-algebra methodology to
-  define list append, and also to show how
-  \proofprinref{pp:initial-alg} is used to prove the associativity
+  section, we make use of the initial $f$-algebra methodology for pure
+  datatypes to define list append, and also to show how
+  \proofprinref{pp:initial-alg} is used to prove its associativity
   property.
 \item In \autoref{sec:monads}, we recall the definition of monads, and
-  briefly discuss the work of Fokkinga and Pardo on recursion schemes
-  in the presence of effects. As we note there, their work covers the
-  case of effectful computations on pure data, whereas we wish to
-  consider computations on effectful data.
+  briefly discuss the work of Fokkinga \cite{fokkinga94monadic} and
+  Pardo \cite{pardo04combining} on recursion schemes in the presence
+  of effects. As we note there, their work covers the case of
+  effectful computations on pure data, whereas we wish to consider
+  computations on effectful data.
 \item To motivate the use of $f$-and-$m$-algebras, in
   \autoref{sec:direct-eappend} we attempt to define and prove
-  associative the append function for lists with interleaved effects
-  directly from the relevant initial algebra property. This turns out
-  to be very difficult and loses the direct simplicity of the proof in
-  the pure case.
+  associative the append function for effectful lists directly from
+  \proofprinref{pp:initial-alg}. This turns out to be unnecessarily
+  complicated and loses the direct simplicity of the proof in the pure
+  case.
 \item In \autoref{sec:f-and-m-algebras}, we present the definition of
   $f$-and-$m$-algebras, and highlight the associated proof principle
   (\proofprinref{pp:initial-f-m-alg}). Initial $f$-and-$m$-algebras
   raise our level of abstraction by separating the concerns of pure
   data and effectful computation. We demonstrate the usefulness of
   this separation in \autoref{sec:f-and-m-append}, where we revisit
-  the definition of list append on lists interleaved with effects, and
-  its associativity property. This time, we are able to reuse the much
-  of the definition and proof from the pure case in
+  the definition of list append on effectful lists, and its
+  associativity property. Using initial algebra semantics for
+  $f$-and-$m$-algebras, we are able to reuse the much of the
+  definition and proof from the pure case in
   \autoref{sec:pure-append}, and the additional work that we need to
   carry to deal with effects is minimal.
 \item In \autoref{sec:impl-f-and-m}, we show that the construction of
@@ -362,7 +372,7 @@ follows:
   $f$-and-$m$-algebras. We reconstruct a result of Hyland, Plotkin and
   Power on the construction of coproducts of free monads with
   arbitrary monads, using $f$-and-$m$-algebras. This construction has
-  practical interest in that it provides a general construction of
+  practical interest, in that it provides a general construction of
   monads that interleave abstract and concrete commands, as seen in
   the $\mathit{Reader}~m~a~b$ monad in the previous section. The monad
   coproduct structure further highlights the central theme of this
