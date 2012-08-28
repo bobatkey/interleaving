@@ -55,18 +55,42 @@
 \begin{abstract}
   The study of programming with and reasoning about inductive
   datatypes such as lists and trees has benefited from the simple
-  categorical principle of initial $f$-algebras. From this simple
-  principle, definitional and proof principles can be easily derived,
-  and the technique has been expanded to a whole methodology of
-  structured functional programming, usually called origami
-  programming.
+  categorical principle of initial algebras. In initial algebra
+  semantics, each inductive datatype is represented by an initial
+  $f$-algebra for an appropriate functor $f$. The initial algebra
+  principle then supports the straightforward derivation of
+  definitional and proof principles for these datatypes.  This
+  technique has been expanded to a whole methodology of structured
+  functional programming, often called origami programming.
 
-  In this article, we examine the setting of inductive data
-  interleaved with computational effects. For example, lists can be
-  interleaved with input/output actions. We demonstrate that the
-  abstraction of initial $f$-and-$m$-algebras, originally due to
-  Filinski and St\o{}vring, is the appropriate way to reason about
-  such interleaved pure and effectful data.
+  In this article, we show how to extend initial algebra semantics
+  from pure inductive datatypes to inductive datatypes interleaved
+  with computational effects. Inductive datatypes interleaved with
+  effects arise naturally in many computational settings. For example,
+  incrementally reading characters from a file generates a list of
+  characters interleaved with input/output actions. Straightforward
+  application of initial algebra techniques to effectful datatypes
+  leads to unnecessarily complicated reasoning, because the pure and
+  effectful concerns must be considered simultaneously. We show how
+  these concerns can be separated using Filinski and St\o{}vring's
+  abstraction of initial $f$-and-$m$-algebras, where the functor $f$
+  describes the pure part of a datatype, and the monad $m$ describes
+  the interleaved effects. Because initial $f$-and-$m$-algebras are
+  the analogue for the effectful setting of initial $f$-algebras, they
+  support the extension of the standard definitional and proof
+  principles to the effectful setting. Because initial
+  $f$-and-$m$-algebras separate pure and effectful concerns, they
+  support the direct transfer of definitions and proofs from the pure
+  setting to the effectful setting.
+
+
+
+
+% the running example of lists can be
+%   interleaved with input/output actions. We demonstrate that the
+%   abstraction of initial $f$-and-$m$-algebras, where $f$ is a functor and $m$ is a monad, originally due to
+%   Filinski and St\o{}vring, is the appropriate way to reason about
+%   such interleaved pure and effectful data.
 \end{abstract}
 
 \section{Introduction}
