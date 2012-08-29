@@ -793,19 +793,18 @@ to construct the coproduct of two monads in
 
 The initial $f$-algebra methodology has been extended to effectful
 computation on pure data by Fokkinga \cite{fokkinga94monadic} and
-Pardo \cite{pardo04combining}. Fokkinga's and Pardo's generic recursion
-combinator for effectful recursive computations has the following
-type:
+Pardo \cite{pardo04combining}. The generic recursion combinator they
+use for effectful recursive computations has the following type:
 \begin{displaymath}
   \fold{-}_m : (f~a \to m~a) \to \mu f \to m~a
 \end{displaymath}
-where we also make the implicit assumption that there is a
+where they also make the implicit assumption that there is a
 \emph{distributive law} $d :: f~(m~a) \to m~(f~a)$ that describes how
-effects percolate through pure data. Thus Fokkinga and Pardo
-separately derive theories and proof principles for effectful
-structural recursion over \emph{pure} data. By contrast, in this paper
-we wish to explore computation and reasoning with \emph{effectful}
-data, where data and effects are interleaved.
+effects percolate through pure data. Fokkinga and Pardo separately
+derive theories and proof principles for effectful structural
+recursion over \emph{pure} data. By contrast, in this paper we wish to
+explore computation and reasoning with \emph{effectful} data, where
+data and effects are interleaved.
 
 % We have already noted that are several benefits to defining functions
 % in terms of higher-order recursion combinators like
@@ -823,9 +822,9 @@ about programs that operate on pure datatypes, it seems reasonable
 that they might extend to programming and reasoning about programs
 that operate on effectful datatypes like $\mathit{List}~m~a$ and
 $\mathit{Reader}~m~a~b$. As we shall see, it is possible to use
-initial $f$-algebras reasoning about programs on effectful datatypes,
-but the proofs become unnecessarily complicated. We demonstrate this
-through an extension of the list append example from
+initial $f$-algebras for reasoning about programs on effectful
+datatypes, but the proofs become unnecessarily complicated. We
+demonstrate this through an extension of the list append example from
 \autoref{sec:pure-append} to the case of lists with interleaved
 effects.
 
@@ -1039,7 +1038,7 @@ We identify the following problems with this proof:
   $\mathsf{Cons}$ case, we were only able to apply
   \autoref{eq:eappend-direct-cons} once, unlike in the proof of
   \thmref{thm:append-assoc} where the analogous equation was applied
-  twice, we also had to expand $\mathit{eAppend}$ again in order to
+  twice. We also had to expand $\mathit{eAppend}$ again in order to
   rewrite the occurences of $\mathit{join_m}$ and $\mathit{fmap_m}$.
 \end{itemize}
 The definition and proof that we have given in this section
@@ -1150,7 +1149,7 @@ carrier $\mathit{IO}~a$ as follows:
 \end{displaymath}
 The function $\mathit{throw}$ and the constructor $\mathsf{ErrorCall}$
 are part of the standard $\mathit{Control.Exception}$ module. This
-$\mathit{mAlgebra}$ propagates normal $\mathit{IO}$ actions on, and
+$\mathit{mAlgebra}$ propagates normal $\mathit{IO}$ actions, and
 interprets errors using the exception throwing facilities of the
 Haskell $\mathit{IO}$ monad.
 
@@ -1162,37 +1161,41 @@ $m~(m'~a) \to m'~a$, for all $a$, capture the fact that the monad $m'$
 can perform all the effects that the monad $m$ can, so we can say that
 $m'$ is layered over $m$.
 
-If we step back from considering specific monads, there are three
-generic ways of making Eilenberg-Moore algebras for a given monad $m$:
-\begin{enumerate}
-\item The \emph{free} Eilenberg-Moore algebra for an arbitrary type
-  $a$ is given by $(m~a, \mathit{join}_m)$. In terms of layered
-  monads, this just states that the monad $m$ can be layered over
-  itself. We will make use of this construction below in the proof of
-  \thmref{thm:make-initial-f-and-m-alg} below.
-\item Given an $m$-Eilenberg-Moore-algebra $(a, \mathit{mAlgebra}_a)$
-  and an arbitrary type $b$, we can construct the \emph{exponential}
-  $m$-Eilenberg-Moore algebra with carrier $b \to a$ and:
-  \begin{displaymath}
-    \begin{array}{l}
-      \mathit{mAlgebra}_{b \to a} :: m~(b \to a) \to (b \to a) \\
-      \mathit{mAlgebra}_{b \to a}~x~b = \mathit{mAlgebra}_a~(\mathit{fmap}_m~(\lambda f.~f~b)~x)
-    \end{array}
-  \end{displaymath}
-  % FIXME: forward ref here if we use it
-\item Given a pair of $m$-Eilenberg-Moore-algebras $(a,
-  \mathit{mAlgebra}_a)$ and $(b, \mathit{mAlgebra}_b)$, we can form
-  the \emph{product} $m$-Eilenberg-Moore-algebra with carrier $(a,b)$
-  and:
-  \begin{displaymath}
-    \begin{array}{l}
-      \mathit{mAlgebra}_{(a,b)} :: m~(a,b) \to (a,b) \\
-      \mathit{mAlgebra}_{(a,b)}~\mathit{ab} = (\mathit{mAlgebra}_a~(\mathit{fmap}_m~\mathit{fst}~\mathit{ab}), \mathit{mAlgebra}_b~(\mathit{fmap}_m~\mathit{snd}~\mathit{ab}))
-    \end{array}
-  \end{displaymath}
-  where $\mathit{fst}$ and $\mathit{snd}$ are the first and second
-  projections from the tuple type, respectively.
-\end{enumerate}
+A particularly useful class of Eilenberg-Moore algebras for a given
+monad $m$ is the class of \emph{free}
+$m$-Eilenberg-Moore-algebras. The \emph{free} Eilenberg-Moore algebra
+for an arbitrary type $a$ is given by $(m~a, \mathit{join}_m)$. In
+terms of layered monads, this just states that the monad $m$ can be
+layered over itself. We will make use of this construction below in
+the proof of \thmref{thm:make-initial-f-and-m-alg} below.
+
+% If we step back from considering specific monads, there are three
+% generic ways of making Eilenberg-Moore algebras for a given monad $m$:
+% \begin{enumerate}
+% \item 
+% \item Given an $m$-Eilenberg-Moore-algebra $(a, \mathit{mAlgebra}_a)$
+%   and an arbitrary type $b$, we can construct the \emph{exponential}
+%   $m$-Eilenberg-Moore algebra with carrier $b \to a$ and:
+%   \begin{displaymath}
+%     \begin{array}{l}
+%       \mathit{mAlgebra}_{b \to a} :: m~(b \to a) \to (b \to a) \\
+%       \mathit{mAlgebra}_{b \to a}~x~b = \mathit{mAlgebra}_a~(\mathit{fmap}_m~(\lambda f.~f~b)~x)
+%     \end{array}
+%   \end{displaymath}
+%   % FIXME: forward ref here if we use it
+% \item Given a pair of $m$-Eilenberg-Moore-algebras $(a,
+%   \mathit{mAlgebra}_a)$ and $(b, \mathit{mAlgebra}_b)$, we can form
+%   the \emph{product} $m$-Eilenberg-Moore-algebra with carrier $(a,b)$
+%   and:
+%   \begin{displaymath}
+%     \begin{array}{l}
+%       \mathit{mAlgebra}_{(a,b)} :: m~(a,b) \to (a,b) \\
+%       \mathit{mAlgebra}_{(a,b)}~\mathit{ab} = (\mathit{mAlgebra}_a~(\mathit{fmap}_m~\mathit{fst}~\mathit{ab}), \mathit{mAlgebra}_b~(\mathit{fmap}_m~\mathit{snd}~\mathit{ab}))
+%     \end{array}
+%   \end{displaymath}
+%   where $\mathit{fst}$ and $\mathit{snd}$ are the first and second
+%   projections from the tuple type, respectively.
+% \end{enumerate}
 
 Finally in this short introduction to Eilenberg-Moore algebras, we
 define homomorphisms between $m$-Eilenberg-Moore-algebras. These are
@@ -1218,9 +1221,9 @@ $f$-algebra and an $m$-Eilenberg-Moore-algebra with the same
 carrier. Intuitively, the $f$-algebra part deals with the pure parts
 of the structure, and the $m$-Eilenberg-Moore-algebra part deals with
 the effectful parts. We require the extra structure of an
-\emph{Eilenberg-Moore} algebra in order to account for the potential
-merging of the effects that are present between the layers of the
-inductive datatype.
+Eilenberg-Moore algebra in order to account for the potential merging
+of the effects that are present between the layers of the inductive
+datatype.
 
 \begin{definition}
   An \emph{$f$-and-$m$-algebra} consists of a triple
@@ -1281,7 +1284,7 @@ yields the following proof principle for functions defined on initial
 $f$-and-$m$-algebras. It follows the same basic form as
 \proofprinref{pp:initial-alg} for initial $f$-algebras, but also
 includes an obligation to prove that the right-hand side of the
-equation to be shown is also an $m$-Eilenberg-Moore-algebra
+equation to be shown is an $m$-Eilenberg-Moore-algebra
 homomorphism.
 
 \begin{proofprinciple}[Initial $f$-and-$m$-Algebras]
@@ -1358,7 +1361,7 @@ We will give a general construction of initial $f$-and-$m$-algebras in
 \autoref{sec:f-and-m-alg-impl} that builds on the generic definition
 of initial $f$-algebras from \autoref{sec:f-algebras}. The key result
 is that the existence of initial $f$-and-$m$-algebras can be reduced
-to the existence of initial $f$-algebras: this is
+to the existence of initial $(f \circ m)$-algebras: this is
 \thmref{thm:make-initial-f-and-m-alg} below.
 
 \section{List append III: lists with interleaved effects, via $f$-and-$m$-algebras}
@@ -1367,13 +1370,13 @@ to the existence of initial $f$-algebras: this is
 We now revisit the problem of defining and proving associativity for
 append on lists interleaved with effects that we examined in
 \autoref{sec:direct-eappend}. We use the abstraction of (initial)
-$f$-and-$m$-algebras. Firstly to simplify the implementation of
-$\mathit{eAppend}$ from \autoref{sec:direct-eappend}. Secondly to
+$f$-and-$m$-algebras, firstly to simplify the implementation of
+$\mathit{eAppend}$ from \autoref{sec:direct-eappend}, and secondly to
 simplify the proof of associativity. We shall see that both the
 definition and proof mirror the definition and proof from the
 pure case we presented in \autoref{sec:pure-append}.
 
-By its separation of the pure and effectful parts of the proof,
+By separating the pure and effectful parts of the proof,
 \proofprinref{pp:initial-f-m-alg} allows us to reuse proofs from the
 pure case. Therefore, it makes sense to ask when the additional
 condition (\autoref{eq:fm-falg}) that it imposes fails. We examine an
@@ -1453,7 +1456,7 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
 \begin{proof*}
   The function $\mathit{eAppend}$ is defined in terms of the initial
   algebra property of $\mu(\mathit{ListF}~a|m)$, so we can apply
-  \proofprinref{pp:initial-f-m-alg}. Thus must prove
+  \proofprinref{pp:initial-f-m-alg}. Thus we must prove
   \autoref{eq:fm-falg} and \autoref{eq:fm-malg}. Firstly, for all $x
   :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m))$, we must show that
   \autoref{eq:fm-falg} holds, i.e. that:
@@ -1572,13 +1575,40 @@ equation:
 \end{displaymath}
 Then the pure part of the proof goes through straightforwardly. We are
 left with proving that the right hand side of this equation is an
-Eilenberg-Moore algebra homomorphism in its second
-argument. Certainly, $\mathit{eReverse}$ is an Eilenberg-Moore algebra
+Eilenberg-Moore-algebra homomorphism in its second
+argument. Certainly, $\mathit{eReverse}$ is an Eilenberg-Moore-algebra
 homomorphism by its construction via the initial $f$-and-$m$-algebra
 property. However, $\mathit{eAppend}$ is not an Eilenberg-Moore
-algebra homomorphism in its \emph{second} argument. Thus the proof
-fails. This is the formal rendering of the intuition for the failure
-given at the start of this subsection.
+algebra homomorphism in its \emph{second} argument, as the following
+counterexample shows. If we let the monad $m$ be the $\mathit{ErrorM}$
+monad we defined in \autoref{sec:eilenberg-moore-algebras}, then if
+$\mathit{eAppend}$ were an Eilenberg-Moore-algebra homomorphism in its
+second argument the following equation would hold:
+\begin{equation}\label{eq:purported-em}
+  \begin{array}{cl}
+    &\mathit{eAppend}~(\mathit{construct}_f~(\mathsf{Cons}~a~(\mathit{construct}_f~\mathsf{Nil})))~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})) \\
+    =&\mathit{construct}_{\mathit{ErrorM}}~\\
+    & \hspace{1cm}(\mathit{fmap}_{\mathit{ErrorM}}~(\lambda ys.~\mathit{eAppend}~(\mathit{construct}_f~(\mathsf{Cons}~a~(\mathit{construct}_f~\mathsf{Nil}))))~\\
+    & \hspace{1.5cm}(\mathsf{Error}~\texttt{"msg"}))
+  \end{array}
+\end{equation}
+However, starting from the left-hand side, we calculate as follows:
+\begin{displaymath}
+  \begin{array}{cl}
+    & \mathit{eAppend}~(\mathit{construct}_f~(\mathsf{Cons}~a~(\mathit{construct}_f~\mathsf{Nil})))~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})) \\
+    =&\eqAnnotation{\autoref{eq:eAppend-cons}} \\
+    & \mathit{construct}_f~(\mathit{Cons}~a~(\mathit{eAppend}~(\mathit{construct}_f~\mathsf{Nil})~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})))) \\
+    =&\eqAnnotation{\autoref{eq:eAppend-nil}} \\
+    & \mathit{construct}_f~(\mathit{Cons}~a~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})))
+  \end{array}
+\end{displaymath}
+while the right hand side of \autoref{eq:purported-em} reduces by the
+definition of $\mathit{fmap}_{\mathit{ErrorM}}$ to simply:
+\begin{displaymath}
+  \mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})
+\end{displaymath}
+Thus the proof fails. This is the formal rendering of the intuition
+for the failure given at the start of this subsection.
 
 % As a consequence, the involution property:
 % \begin{displaymath}
