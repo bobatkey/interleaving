@@ -1046,17 +1046,18 @@ non-effectful case (\autoref{sec:pure-append}), and our equational
 reasoning repeatedly broke layers of abstraction: we were forced to
 unfold the definition $\mathit{eAppend}$ several times in the proof of
 \thmref{thm:direct-eappend-assoc} in order to perform further
-rewriting steps.
+calculation.
 
-In this section, we define the concept of $f$-and-$m$-algebras,
-originally introduced by Filinski and St\o{}vring
-\cite{filinski07inductive}, and generalised to arbitrary functors $f$
-by the current authors \cite{atkey12fibrational}. As the name may
-imply, $f$-and-$m$-algebras are simultaneously $f$-algebras and
-$m$-algebras. A twist is that the $m$-algebra component must be an
-Eilenberg-Moore algebra. Eilenberg-Moore algebra structure for a type
-$a$ is a way of describing how to incorporate the effects of the monad
-$m$ into values of type $a$.
+To solve the problems we have identified with the direct use of
+$f$-algebras, we use the concept of $f$-and-$m$-algebras, originally
+introduced by Filinski and St\o{}vring \cite{filinski07inductive}, and
+generalised to arbitrary functors by the current authors
+\cite{atkey12fibrational}. As the name may imply, $f$-and-$m$-algebras
+are simultaneously $f$-algebras and $m$-algebras. A twist is that the
+$m$-algebra component must be an Eilenberg-Moore
+algebra. Eilenberg-Moore algebra structure for a type $a$ describes
+how to incorporate the effects of the monad $m$ into values of type
+$a$.
 
 \subsection{Eilenberg-Moore algebras}
 \label{sec:eilenberg-moore-algebras}
@@ -1067,7 +1068,7 @@ $m$-Eilenberg-Moore-algebra is an $m$-algebra that also interacts well
 with the structure of the monad:
 
 \begin{definition}
-  An $m$-Eilenberg-Moore algebra consists of a pair
+  An \emph{$m$-Eilenberg-Moore algebra} consists of a pair
   $(a,\mathit{mAlgebra}_a)$ of a type $a$ and a function
   \begin{displaymath}
     \mathit{mAlgebra}_a :: m~a \to a
@@ -1083,16 +1084,16 @@ with the structure of the monad:
 
 Eilenberg-Moore algebras form a key piece of the theory of monads,
 especially in their application to universal algebra. For a monad that
-represents an algebraic theory (e.g.~abelian groups), the collection
+represents an algebraic theory (e.g.,~abelian groups), the collection
 of all Eilenberg-Moore algebras for that monad are exactly the
 structures supporting that algebraic theory. Mac Lane's book
-\cite{maclane98} goes into further depth with this view of
+\cite{maclane98} goes into further depth on this view of
 Eilenberg-Moore algebras.
 
 In terms of computational effects, an $m$-Eilenberg-Moore-algebra $(a,
 \mathit{mAlgebra})$ represents a way of ``performing'' the effects of
-the monad $m$ in the type $a$. For example, if we let the monad $m$ be
-the error monad $\mathit{ErrorM}$:
+the monad $m$ in the type $a$. For example, if we let the monad $m$ be the
+error monad $\mathit{ErrorM}$:
 \begin{displaymath}
   \begin{array}{ll}
     \begin{array}[t]{l}
@@ -1120,7 +1121,7 @@ the error monad $\mathit{ErrorM}$:
     \end{array}
   \end{array}
 \end{displaymath}
-We can define an $\mathit{ErrorM}$-Eilenberg-Moore-algebra with
+then we can define an $\mathit{ErrorM}$-Eilenberg-Moore-algebra with
 carrier $\mathit{IO}~a$ as follows:
 \begin{displaymath}
   \begin{array}{l}
@@ -1131,19 +1132,19 @@ carrier $\mathit{IO}~a$ as follows:
     \end{array}
   \end{array}
 \end{displaymath}
-Thus this $\mathit{mAlgebra}$ passes normal $\mathit{IO}$ actions on,
-and interprets errors by using the exception throwing facilities of
-the Haskell $\mathit{IO}$ monad. (The function $\mathit{throw}$ and
-the constructor $\mathsf{ErrorCall}$ are part of the standard
-$\mathit{Control.Exception}$ module.)
+The function $\mathit{throw}$ and the constructor $\mathsf{ErrorCall}$
+are part of the standard $\mathit{Control.Exception}$ module. This
+$\mathit{mAlgebra}$ propagates normal $\mathit{IO}$ actions on, and
+interprets errors using the exception throwing facilities of the
+Haskell $\mathit{IO}$ monad.
 
 The general pattern of $m$-Eilenberg-Moore-algebras with carriers that
-are themselves constructed from monads has been extensively studied by
-Filinski under the name ``layered monads''
-\cite{filinski99representing}. The idea is that the presence of
-$m$-Eilenberg-Moore-algebras of the form $m~(m'~a) \to m'~a$, for all
-$a$, capture the fact that the monad $m'$ can perform all the effects
-that the monad $m$ can, so we can say that $m'$ is layered over $m$.
+are themselves constructed from monads has been studied by Filinski
+under the name ``layered monads'' \cite{filinski99representing}. The
+idea is that the presence of $m$-Eilenberg-Moore-algebras of the form
+$m~(m'~a) \to m'~a$, for all $a$, capture the fact that the monad $m'$
+can perform all the effects that the monad $m$ can, so we can say that
+$m'$ is layered over $m$.
 
 If we step back from considering specific monads, there are three
 generic ways of making Eilenberg-Moore algebras for a given monad $m$:
@@ -1152,7 +1153,7 @@ generic ways of making Eilenberg-Moore algebras for a given monad $m$:
   $a$ is given by $(m~a, \mathit{join}_m)$. In terms of layered
   monads, this just states that the monad $m$ can be layered over
   itself. We will make use of this construction below in the proof of
-  \thmref{thm:make-initial-f-and-m-alg}.
+  \thmref{thm:make-initial-f-and-m-alg} below.
 \item Given an $m$-Eilenberg-Moore-algebra $(a, \mathit{mAlgebra}_a)$
   and an arbitrary type $b$, we can construct the \emph{exponential}
   $m$-Eilenberg-Moore algebra with carrier $b \to a$ and:
@@ -1183,7 +1184,7 @@ exactly the same as homomorphisms between $f$-algebras that we defined
 in \autoref{sec:f-algebras}.
 
 \begin{definition}
-  An $m$-Eilenberg-Moore-algebra homomorphism
+  An \emph{$m$-Eilenberg-Moore-algebra homomorphism}
   \begin{displaymath}
     h :: (a, \mathit{mAlgebra}_a) \to (b, \mathit{mAlgebra}_b)
   \end{displaymath}
@@ -1201,12 +1202,13 @@ $f$-algebra and an $m$-Eilenberg-Moore-algebra with the same
 carrier. Intuitively, the $f$-algebra part deals with the pure parts
 of the structure, and the $m$-Eilenberg-Moore-algebra part deals with
 the effectful parts. We require the extra structure of an
-\emph{Eilenberg-Moore} algebra in order to deal with the additional
-structure present in the monad $m$, as opposed to the plain functor
-$f$.
+\emph{Eilenberg-Moore} algebra in order to account for the potential
+merging of the effects that are present between the layers of the
+inductive datatype.
 
 \begin{definition}
-  An $f$-and-$m$-algebra consists of a triple of an object $a$ and two
+  An \emph{$f$-and-$m$-algebra} consists of a triple
+  $(a,\mathit{fAlgebra},\mathit{mAlgebra})$ of an object $a$ and two
   functions:
   \begin{displaymath}
     \programmath
@@ -1223,12 +1225,12 @@ simultaneously $f$-algebra homomorphisms and
 $m$-Eilenberg-Moore-algebra homomorphisms:
 
 \begin{definition}
-  An $f$-and-$m$-algebra homomorphism
+  An \emph{$f$-and-$m$-algebra homomorphism}
   \begin{displaymath}
     h :: (a, \mathit{fAlgebra}_a, \mathit{mAlgebra}_a) \to (b, \mathit{fAlgebra}_b, \mathit{mAlgebra}_b)
   \end{displaymath}
-  between two $f$-and-$m$ algebras is a function $h :: a \to b$ that
-  satisfies the following two equations:
+  between two $f$-and-$m$ algebras is a function $h :: a \to b$ such
+  that:
   \begin{displaymath}
     \begin{array}{rcl}
       h \circ \mathit{fAlgebra}_a & = & \mathit{fAlgebra}_b \circ \mathit{fmap}_f~h \\
@@ -1243,16 +1245,16 @@ structure as for initial $f$-algebras. Abstractly, an initial
 $f$-and-$m$-algebra is an initial object in the category of
 $f$-and-$m$-algebras and $f$-and-$m$-algebra homomorphisms. We use the
 notation $\mu(f|m)$ for carriers initial $f$-and-$m$-algebras to
-indicate the interleaving of pure data ($f$) and effects ($m$).
+indicate the interleaving of pure data (represented by $f$) and
+effects (represented by $m$).
 
 \begin{definition}
-  An \emph{initial} $f$-and-$m$-algebra is an $f$-and-$m$-algebra
+  An \emph{initial $f$-and-$m$-algebra} is an $f$-and-$m$-algebra
   $(\mu(f|m), \mathit{construct}_f, \mathit{construct}_m)$ such that
-  for any other $f$-and-$m$-algebra $(a, \mathit{fAlgebra}_a,
-  \mathit{mAlgebra}_a)$, there exists a \emph{unique}
-  $f$-and-$m$-algebra homomorphism
-  $\eFold{\mathit{fAlgebra}_a}{\mathit{mAlgebra}_a} :: \mu(f|m) \to
-  a$.
+  for any $f$-and-$m$-algebra $(a, \mathit{fAlgebra}_a,
+  \mathit{mAlgebra}_a)$, there exists a unique $f$-and-$m$-algebra
+  homomorphism $\eFold{\mathit{fAlgebra}_a}{\mathit{mAlgebra}_a} ::
+  \mu(f|m) \to a$.
 \end{definition}
 
 As for initial $f$-algebras, the requirement that an initial
@@ -1268,11 +1270,9 @@ homomorphism.
 
 \begin{proofprinciple}[Initial $f$-and-$m$-Algebras]
   \label{pp:initial-f-m-alg}
-  Suppose that $(\mu(f|m), \mathit{construct}_f,
-  \mathit{construct}_m)$ is an initial $f$-and-$m$-algebra.
-
-  Let $(a, \mathit{fAlgebra}, \mathit{mAlgebra})$ be some
-  $f$-and-$m$-algebra, and let
+  Let $(\mu(f|m), \mathit{construct}_f, \mathit{construct}_m)$ be an
+  initial $f$-and-$m$-algebra, let $(a, \mathit{fAlgebra},
+  \mathit{mAlgebra})$ be some $f$-and-$m$-algebra, and let
   $\eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}}$ denote the induced
   function of type $\mu(f,m) \to a$. For any function $g :: \mu(f,m)
   \to a$, we can prove the equation:
@@ -1297,48 +1297,51 @@ unlike the direct reasoning we carried out in
 \autoref{sec:direct-eappend}. We shall see this separation in action
 for our list append running example in the next section.
 
-The $\mathit{List}~m~a$ datatype that we defined in the introduction
-can be presented as the carrier of an initial $(\mathit{ListF}~a)$-and-$m$-algebra. The
-$\mathit{construct_f}$ function is defined as follows:
-\begin{displaymath}
-  \begin{array}{l}
-    \mathit{construct_f} :: \mathit{ListF}~a~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
-    \begin{array}{@{}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
-      \mathit{construct_f}~\mathsf{Nil}&=&\mathsf{List}~(\mathit{return_m}~\mathsf{Nil_m}) \\
-      \mathit{construct_f}~(\mathsf{Cons}~a~\mathit{xs})&=&\mathsf{List}~(\mathit{return_m}~(\mathsf{Cons_m}~a~\mathit{xs})) \\
+\begin{example}
+  The $\mathit{List}~m~a$ datatype that we defined in the introduction
+  can be presented as the carrier of an initial
+  $(\mathit{ListF}~a)$-and-$m$-algebra. The $\mathit{construct_f}$
+  function is defined as follows:
+  \begin{displaymath}
+    \begin{array}{l}
+      \mathit{construct_f} :: \mathit{ListF}~a~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
+      \begin{array}{@{}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
+        \mathit{construct_f}~\mathsf{Nil}&=&\mathsf{List}~(\mathit{return_m}~\mathsf{Nil_m}) \\
+        \mathit{construct_f}~(\mathsf{Cons}~a~\mathit{xs})&=&\mathsf{List}~(\mathit{return_m}~(\mathsf{Cons_m}~a~\mathit{xs})) \\
+      \end{array}
     \end{array}
-  \end{array}
-\end{displaymath}
-The $\mathit{construct_m}$ component is slightly complicated by the
-presence of the $\mathsf{List}$ constructor. We use Haskell's
-$\kw{do}$ notation for convenience:
-\begin{displaymath}
-  \begin{array}{l}
-    \mathit{construct_m} :: m~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
-    \mathit{construct_m}~\mathit{ml} = \mathsf{List}~(\kw{do}~\{ \mathsf{List}~x \leftarrow \mathit{ml}; x \})
-  \end{array}
-\end{displaymath}
-Finally, we define the induced homomorphism to any other
-$(\mathit{ListF}~a)$-and-$m$-algebra as a pair of mutually recursive
-functions, following the structure of the datatype definition:
-\begin{displaymath}
-  \begin{array}{l}
-    \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{List}~m~a \to a \\
-    \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = \mathit{loop} \\
-    \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \kw{where} & \mathit{loop}~(\mathsf{List}~x) &=& \mathit{mAlgebra}~(\mathit{fmap}_m~\mathit{loop'}~x) \\
-      & \mathit{loop'}~\mathsf{Nil_m}& = & \mathit{fAlgebra}~\mathsf{Nil} \\
-      & \mathit{loop'}~(\mathsf{Cons_m}~a~\mathit{xs}) &=& \mathit{fAlgebra}~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
+  \end{displaymath}
+  The $\mathit{construct_m}$ component is slightly complicated by the
+  presence of the $\mathsf{List}$ constructor. We use Haskell's
+  $\kw{do}$ notation for convenience:
+  \begin{displaymath}
+    \begin{array}{l}
+      \mathit{construct_m} :: m~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
+      \mathit{construct_m}~\mathit{ml} = \mathsf{List}~(\kw{do}~\{ \mathsf{List}~x \leftarrow \mathit{ml}; x \})
     \end{array}
-  \end{array}
-\end{displaymath}
-
+  \end{displaymath}
+  Finally, we define the induced homomorphism to any other
+  $(\mathit{ListF}~a)$-and-$m$-algebra as a pair of mutually recursive
+  functions, following the structure of the declaration of
+  $\mathit{List}~m~a$:
+  \begin{displaymath}
+    \begin{array}{l}
+      \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{List}~m~a \to a \\
+      \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = \mathit{loop} \\
+      \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+        \kw{where} & \mathit{loop}~(\mathsf{List}~x) &=& \mathit{mAlgebra}~(\mathit{fmap}_m~\mathit{loop'}~x) \\
+        & \mathit{loop'}~\mathsf{Nil_m}& = & \mathit{fAlgebra}~\mathsf{Nil} \\
+        & \mathit{loop'}~(\mathsf{Cons_m}~a~\mathit{xs}) &=& \mathit{fAlgebra}~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
+      \end{array}
+    \end{array}
+  \end{displaymath}
+\end{example}
 We will give a general construction of initial $f$-and-$m$-algebras in
-\autoref{sec:f-and-m-alg-impl} that builds upon the generic definition
-of initial $f$-algebras we gave in \autoref{sec:f-algebras}. The key
-result is that the existence of initial $f$-and-$m$-algebras can be
-reduced to the existence of initial $f$-algebras: this is
-\thmref{thm:make-initial-f-and-m-alg}, below.
+\autoref{sec:f-and-m-alg-impl} that builds on the generic definition
+of initial $f$-algebras from \autoref{sec:f-algebras}. The key result
+is that the existence of initial $f$-and-$m$-algebras can be reduced
+to the existence of initial $f$-algebras: this is
+\thmref{thm:make-initial-f-and-m-alg} below.
 
 \section{List append III: lists with interleaved effects, via $f$-and-$m$-algebras}
 \label{sec:f-and-m-append}
