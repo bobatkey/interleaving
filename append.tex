@@ -513,7 +513,7 @@ any functor $(f,\mathit{fmap_f})$.
       &
       \begin{array}{l}
         \mathit{fmap}_{\mathit{ListF}~a} :: (x \to y) \to \mathit{ListF}~a~x \to \mathit{ListF}~a~y \\
-        \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}lcl}
+        \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
           \mathit{fmap}_{\mathit{ListF}~a}&g&\mathsf{Nil} &=& \mathsf{Nil} \\
           \mathit{fmap}_{\mathit{ListF}~a}&g&(\mathsf{Cons}~a~x) &=& \mathsf{Cons}~a~(g~x)
         \end{array}
@@ -715,8 +715,8 @@ As is standard in Haskell programming, we describe effectful
 computations in terms of monads \cite{moggi91notions,
   peytonjones93imperative}. In order to keep this article self
 contained, we recall the definition of monad here. We also briefly
-examine prior work by Fokkinga, and by Pardo, on the effectful
-recursive programs on pure data.
+examine prior work by Fokkinga, and by Pardo, on effectful recursive
+programs on pure data.
 
 \subsection{Monadic Effects}
 
@@ -993,19 +993,30 @@ the definition of $\mathit{eAppend}$ too early.
       =&\eqAnnotation{\autoref{eq:eappend-direct-cons}} \\
       & \mathit{return_m}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs}))) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
       =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
       =&\eqAnnotation{monad law: $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap}_m~\mathit{join_m}$ (\autoref{eq:monad-join-join})} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{fmap}_m~\mathit{join_m}~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\mathit{join_m}~\\
+      & \hspace{1.5cm}(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
       =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-      & \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{fmap}_m~(\mathit{join_m} \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}} \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})))) \\
+      & \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~(\mathit{join_m} \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}} \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})))) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      & \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})))) \\
+      & \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})))) \\
       =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
       &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})) \\
+    \end{array}
+  \end{displaymath}
+  \begin{displaymath}
+    \begin{array}{cl}
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
-      &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}}))~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox
+      &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\\
+      & \hspace{1cm}(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}}))~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox
     \end{array}
   \end{displaymath}
 \end{proof*}
@@ -1273,9 +1284,11 @@ homomorphism.
 
 \begin{proofprinciple}[Initial $f$-and-$m$-Algebras]
   \label{pp:initial-f-m-alg}
-  Let $(\mu(f|m), \mathit{construct}_f, \mathit{construct}_m)$ be an
-  initial $f$-and-$m$-algebra, let $(a, \mathit{fAlgebra},
-  \mathit{mAlgebra})$ be some $f$-and-$m$-algebra, and let
+  Suppose that $(\mu(f|m), \mathit{construct}_f, \mathit{construct}_m)$ is an
+  initial $f$-and-$m$-algebra. 
+
+  Let $(a, \mathit{fAlgebra}, \mathit{mAlgebra})$ be some
+  $f$-and-$m$-algebra, and let
   $\eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}}$ denote the induced
   function of type $\mu(f,m) \to a$. For any function $g :: \mu(f,m)
   \to a$, we can prove the equation:
@@ -1287,9 +1300,9 @@ homomorphism.
     g \circ \mathit{construct}_f = \mathit{fAlgebra} \circ \mathit{fmap}_f
   \end{equation}
   and
-  \begin{displaymath}\label{eq:fm-malg}
+  \begin{equation}\label{eq:fm-malg}
     g \circ \mathit{construct}_m = \mathit{mAlgebra} \circ \mathit{fmap}_m
-  \end{displaymath}
+  \end{equation}
 \end{proofprinciple}
 
 The key feature of \proofprinref{pp:initial-f-m-alg} is that it
@@ -1660,7 +1673,8 @@ that have to do with interleaved data and effects.
         =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an $m$-Eilenberg-Moore-algebra (\autoref{eq:em-alg-return})} \\
          &\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
         =&\eqAnnotation{$\fold{-}$ is an $(f \circ m)$-algebra homomorphism (\autoref{eq:falgebra-homomorphism})} \\
-         &\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+         &\mathit{fAlgebra}_a \circ \\
+         & \hspace{1cm}\mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
         =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
          &\mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
         =&\eqAnnotation{definition of $h$} \\
@@ -1677,7 +1691,8 @@ that have to do with interleaved data and effects.
         =&\eqAnnotation{naturality of $\mathit{join}_m$ (\autoref{eq:monad-join-natural})} \\
          &\mathit{mAlgebra}_a \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
         =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+         &\mathit{mAlgebra}_a \circ \\
+         &\hspace{1cm}\mathit{fmap}_m~\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
         =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
          &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
         =&\eqAnnotation{definition of $h$} \\
@@ -1687,26 +1702,26 @@ that have to do with interleaved data and effects.
   \item The function $h$ is the unique such $f$-and-$m$-algebra. Let
     us assume that there exists another $f$-and-$m$-algebra
     homomorphism $h' :: m~(\mu(f \circ m)) \to a$. We aim to show that
-    $h = h'$. We first observe that the function:
+    $h = h'$. We first observe that the following function defined by composition:
     \begin{displaymath}
       h' \circ \mathit{return}_m :: \mu(f \circ m) \to a
     \end{displaymath}
-    obtained by composition is an $(f \circ m)$-algebra homomorphism
+    is an $(f \circ m)$-algebra homomorphism
     from $(\mu(f \circ m), \mathit{construct})$ to $(a, \mathit{fAlgebra}_a
     \circ \mathit{fmap}_f~\mathit{mAlgebra}_a)$, as verified by the
     following steps:
     \begin{displaymath}
       \begin{array}{cl}
         & h' \circ \mathit{return}_m \circ \mathit{construct} \\
-        =&\eqAnnotation{definition of $\mathit{construct}_f$} \\
+        =&\eqAnnotationS{definition of $\mathit{construct}_f$} \\
         & h' \circ \mathit{construct}_f \\
-        =&\eqAnnotation{$h'$ is an $f$-and-$m$-algebra homomorphism} \\
+        =&\eqAnnotationS{$h'$ is an $f$-and-$m$-algebra homomorphism} \\
         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h' \\
-        =&\eqAnnotation{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$ (\autoref{eq:monad-join-fmap-return})} \\
+        =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$ (\autoref{eq:monad-join-fmap-return})} \\
         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m) \\
-        =&\eqAnnotation{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
+        =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h' \circ \mathit{fmap}_m~\mathit{return}_m) \\
-        =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
+        =&\eqAnnotationS{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~(h' \circ \mathit{return}_m))
       \end{array}
     \end{displaymath}
@@ -1720,15 +1735,15 @@ that have to do with interleaved data and effects.
     \begin{displaymath}
       \begin{array}{cl}
         & h \\
-        =&\eqAnnotation{definition of $h$} \\
+        =&\eqAnnotationS{definition of $h$} \\
         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \\
-        =&\eqAnnotation{\autoref{eq:h'-prop}} \\
+        =&\eqAnnotationS{\autoref{eq:h'-prop}} \\
         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(h' \circ \mathit{return}_m) \\
-        =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
+        =&\eqAnnotationS{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~{h'} \circ \mathit{fmap}_m~\mathit{return}_m \\
-        =&\eqAnnotation{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
+        =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
         &h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m \\
-        =&\eqAnnotation{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$} \\
+        =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$} \\
         &h'
       \end{array}
     \end{displaymath}
