@@ -15,7 +15,7 @@
 
 \newcommand{\fold}[1]{\llparenthesis #1 \rrparenthesis}
 \newcommand{\eFold}[2]{\llparenthesis #1|#2 \rrparenthesis}
-\newcommand{\fmext}[1]{\langle\langle #1 \rangle\rangle}
+\newcommand{\fmext}[1]{\langle\kern-0.25em\langle #1 \rangle\kern-0.25em\rangle}
 \newcommand{\construct}{\mathsf{in}}
 \newcommand{\mbind}{\mathrel{>\kern-0.45em>\kern-0.45em=}}
 
@@ -400,7 +400,6 @@ function composition $g \circ h = \lambda x.~g~(h~x)$.
 
 The initial $f$-algebra methodology uses functors $f$ to describe the
 individual ``layers'' of recursive datatypes.
-%\todo{reference ``two-level types''}
 Formally, functors are defined as follows:
 \begin{definition}\label{defn:functor}
   A \emph{functor} is a pair $(f, \mathit{fmap}_f)$ of a type operator
@@ -569,6 +568,9 @@ any functor $(f,\mathit{fmap_f})$.
       \fold{\mathit{fAlgebra}} = \mathit{fAlgebra} \circ \mathit{fmap}_f~\fold{\mathit{fAlgebra}} \circ \mathit{unIn}
     \end{array}
   \end{displaymath}
+  This construction has been called ``two-level types''
+  \cite{sheard04twolevel}, due to the separation between the functor
+  $f$ and the recursive datatype $\mathit{Mu}$.
 \end{example}
 
 These two examples demonstrate that initial algebras for a given
@@ -1937,26 +1939,64 @@ interface, and give a brief example showing how free monads provide a
 powerful way of writing effectful programs that have multiple
 interpretations.
 
-\begin{definition}[Free Monad]
+\begin{definition}\label{defn:freemonad}
   Let $(f, \mathit{fmap}_f)$ be a functor. A \emph{free monad} on
   $(f,\mathit{fmap}_f)$ is a monad
   \begin{displaymath}
     (\mathit{FreeM}~f, \mathit{fmap}_{\mathit{FreeM}~f}, \mathit{return}_{\mathit{FreeM}~f}, \mathit{join}_{\mathit{FreeM}~f})
   \end{displaymath}
-  equipped with a natural transformation:
+  equipped with a function:
   \begin{displaymath}
     \mathit{wrap}_f :: f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~a
   \end{displaymath}
-  %FIXME: define natural transformation above, and also add the interaction with join
-
-  such that for every monad $(m,
-  \mathit{fmap}_m, \mathit{return_m}, \mathit{join}_m)$ and natural
-  transformation $g :: f~a \to m~a$, there is a unique monad morphism
-  $\fmext{g} :: \mathit{FreeM}~f~a \to m~a$ such that:
+  that satisfies:
+  \begin{align}
+    \label{eq:wrap-natural}
+    \mathit{wrap}_f \circ \mathit{fmap}_f~(\mathit{fmap}_{\mathit{FreeM}~f}~g) &= \mathit{fmap}_{\mathit{FreeM}~f}~g \circ \mathit{wrap}_f \\
+    \label{eq:wrap-join}
+    \mathit{wrap}_f \circ \mathit{fmap}_f~\mathit{join}_{\mathit{FreeM}~f} &= \mathit{join}_{\mathit{FreeM}~f} \circ \mathit{wrap}_f
+  \end{align}
+  and such that for every monad $(m, \mathit{fmap}_m,
+  \mathit{return_m}, \mathit{join}_m)$ and $g :: f~a \to m~a$, such
+  that $g$ is natural:
+  \begin{displaymath}
+    g \circ \mathit{fmap}_f~k = \mathit{fmap}_m~k \circ g
+  \end{displaymath}
+  there is a unique monad morphism $\fmext{g} :: \mathit{FreeM}~f~a
+  \to m~a$ such that:
   \begin{displaymath}
     \mathit{join}_m \circ \mathit{fmap}_m~\fmext{g} \circ g = \fmext{g} \circ \mathit{wrap}_f
   \end{displaymath}
 \end{definition}
+
+An alternative but equivalent definition of free monad, which is
+slightly more standard from a categorical point of view, has the type
+of $\mathit{wrap}_f$ as $f~a \to \mathit{FreeM}~f~a$. We choose the
+form in \defref{defn:freemonad} because it is more convenient for
+programming.
+
+The following lemma is an immediate consequence of the definition of
+free monad, and can be taken as another alternative definition in
+terms of isomorphisms of collections of morphisms. It will be useful
+when we come to define the coproduct of free monads with arbitrary
+monads in terms of $f$-and-$m$-algebras in
+\autoref{sec:construct-coproducts} below.
+
+\begin{lemma}
+  If $(\mathit{FreeM}~f, \mathit{fmap}_{\mathit{FreeM}~f},
+  \mathit{return}_{\mathit{FreeM}~f},
+  \mathit{join}_{\mathit{FreeM}~f})$ is a free monad for a functor
+  $(f, \mathit{fmap}_f)$, then the operation $\fmext{-} :: (\forall
+  a.~f~a \to m~a) \to (\forall a.~\mathit{FreeM}~f~a \to m~a)$ is a
+  bijection between natural transformations and monad morphisms. The
+  inverse operation can be defined as follows:
+  \begin{displaymath}
+    \begin{array}{l}
+      \fmext{-}^{-1} :: (\forall a.~\mathit{FreeM}~f~a \to m~a) \to (\forall a.~f~a \to m~a) \\
+      \fmext{h}^{-1} = h \circ \mathit{wrap}_f \circ \mathit{fmap}_f~\mathit{return}_{\mathit{FreeM}~f}
+    \end{array}
+  \end{displaymath}
+\end{lemma}
 
 One way of explaining the free monad abstraction is in terms of
 expressions with variables, and substitution. Under this reading, the
@@ -2015,7 +2055,7 @@ them as a pair in the opposite order.
 The free monad interface gives us considerable flexibility in how we
 actually interpret the $\mathit{read}$ commands. For example, we can
 interpret each $\mathit{read}$ command as reading a line from the
-terminal by defining a natural transformation from
+terminal by defining a transformation from
 $\mathit{ReaderF}~\mathit{String}$ to $\mathit{IO}$, using the
 standard Haskell function $\mathit{getLine}$ to do the actual reading:
 \begin{displaymath}
@@ -2205,13 +2245,25 @@ morphisms. The following definition sets out the precise conditions:
 
 In \autoref{sec:free-monads}, we demonstrated how the free monad over
 a functor describing read commands allowed us to provide multiple
-interpretations of ``reading''. We now show how we can use the
-coproduct interface to describe computations that interleave abstract
-read operations with concrete $\mathit{IO}$ effects. The
-$\mathit{inj_1}$ and $\mathit{inj_2}$ components of the monad
-interface allow us to lift effectful computations from the free monad
-and the arbitrary monad respectively, as the following example
-demonstrates:
+interpretations of ``reading''. 
+% We now show how we can use the
+% coproduct interface to describe computations that interleave abstract
+% read operations with concrete $\mathit{IO}$ effects. 
+The monad coproduct
+$\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}}$
+freely combines the abstract read commands described by the functor
+$\mathit{ReaderF}~\mathit{String}$ with the concrete input/output
+actions of the $\mathit{IO}$ monad. We view
+$\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}}$
+as the modular reconstruction of the Iteratee monad
+$\mathit{Reader}~m~a$ we presented in
+\autoref{sec:motivate-interleaving}.
+
+The following example extends the $\mathit{swapRead}$ example from
+\autoref{sec:free-monads} to perform an input/output effect as well as
+two abstract read effects.  The $\mathit{inj_1}$ and $\mathit{inj_2}$
+components of the coproduct monad interface allow us to lift effectful
+computations from the free monad and the $\mathit{IO}$ monad respectively:
 \begin{displaymath}
   \begin{array}{@{}l}
     \mathit{swapRead2} :: (\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}})~() \\
@@ -2229,12 +2281,12 @@ executes a concrete $\mathit{IO}$ action to print the two strings in
 reverse order to the terminal.
 
 We can provide an interpretation for the abstract $\mathit{read}$
-operations, by combining the coproduct interface with the free monad
+operations by combining the coproduct interface with the free monad
 interface. For example, to interpret the read commands as reading from
 the terminal, we use the $\mathit{useGetLine}$ interpretation from
 \autoref{sec:free-monads}:
 \begin{displaymath}
-  [\fmext{\mathit{useGetLine}}, \mathit{id}] :: (\cprd{(\mathit{FreeM}~f)}{\mathit{IO}})~a \to \mathit{IO}~a
+  [\fmext{\mathit{useGetLine}}, \mathit{id}] :: (\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}})~a \to \mathit{IO}~a
 \end{displaymath}
 
 Alternatively, we can interpret the abstract $\mathit{read}$ commands
@@ -2251,7 +2303,7 @@ extend this interpretation of individual abstract $\mathit{read}$
 commands to all sequences of $\mathit{read}$ commands interleaved with
 arbitrary $\mathit{IO}$ actions:
 \begin{displaymath}
-  [\fmext{\mathit{useFileHandle}}, \mathit{id}] :: (\cprd{(\mathit{FreeM}~f)}{\mathit{IO}})~a \to \mathit{IO}~a
+  \lambda h.~[\fmext{\mathit{useFileHandle}~h}, \mathit{id}] :: \mathit{Handle} \to (\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}})~a \to \mathit{IO}~a
 \end{displaymath}
 
 \subsection{Constructing coproducts with free monads via $f$-and-$m$-algebras}
@@ -2297,7 +2349,7 @@ arbitrary $\mathit{IO}$ actions:
         {}[g_1,g_2] = \eFold{\mathit{caseAlgebra}}{\mathit{join}_{m'} \circ g_2} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
           \kw{where} & \mathit{caseAlgebra}~(\mathsf{Var}~a) &=& \mathit{return}_{m'}~a \\
-          & \mathit{caseAlgebra}~(\mathsf{Term}~x) &=& \mathit{join}_{m'}~([g_1]~x)
+          & \mathit{caseAlgebra}~(\mathsf{Term}~x) &=& \mathit{join}_{m'}~(\fmext{g_1}^{-1}~x)
         \end{array}
       \end{array}
     \end{array}
