@@ -485,6 +485,7 @@ functions defined on initial $f$-algebras.
 \todo{Refer to induction?}
 
 \subsection{Examples of initial $f$-algebras}
+\label{sec:example-initial-f}
 
 The usefulness of the initial $f$-algebra abstraction for functional
 programming lies in the fact that we can directly implement initial
@@ -1280,11 +1281,11 @@ homomorphism.
     \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = g
   \end{displaymath}
   by demonstrating that
-  \begin{displaymath}
+  \begin{equation}\label{eq:fm-falg}
     g \circ \mathit{construct}_f = \mathit{fAlgebra} \circ \mathit{fmap}_f
-  \end{displaymath}
+  \end{equation}
   and
-  \begin{displaymath}
+  \begin{displaymath}\label{eq:fm-malg}
     g \circ \mathit{construct}_m = \mathit{mAlgebra} \circ \mathit{fmap}_m
   \end{displaymath}
 \end{proofprinciple}
@@ -1349,17 +1350,19 @@ to the existence of initial $f$-algebras: this is
 We now revisit the problem of defining and proving associativity for
 append on lists interleaved with effects that we examined in
 \autoref{sec:direct-eappend}. We use the abstraction of (initial)
-$f$-and-$m$-algebras, first to simplify the implementation of
-$\mathit{eAppend}$, and second to simplify the proof of
-associativity. We shall see that both the definition and proof mirror
-the definition and proof from the non-effectful case we presented in
-\autoref{sec:pure-append}.
+$f$-and-$m$-algebras. Firstly to simplify the implementation of
+$\mathit{eAppend}$ from \autoref{sec:direct-eappend}. Secondly to
+simplify the proof of associativity. We shall see that both the
+definition and proof mirror the definition and proof from the
+pure case we presented in \autoref{sec:pure-append}.
 
-Since \proofprinref{pp:initial-f-m-alg} allows us to reuse proofs from
-the pure case it makes sense to ask when the additional condition it
-imposes fails. We examine an instance of this in
-\autoref{sec:reverse}, where a standard property of list reverse fails
-to carry over to the case of lists with interleaved effects.
+By its separation of the pure and effectful parts of the proof,
+\proofprinref{pp:initial-f-m-alg} allows us to reuse proofs from the
+pure case. Therefore, it makes sense to ask when the additional
+condition (\autoref{eq:fm-falg}) that it imposes fails. We examine an
+instance of this in \autoref{sec:reverse}, where a standard property
+of list reverse fails to carry over to the case of lists with
+interleaved effects.
 
 \subsection{Append for lists with interleaved effects}
 
@@ -1369,8 +1372,9 @@ defined in the previous section. Hence we assume that an initial
 $(\mathit{ListF}~a)$-and-$m$-algebra $(\mu(\mathit{ListF}~a|m),
 \mathit{construct}_{\mathit{ListF}~a}, \mathit{construct}_m)$ exists,
 and we denote the unique $(\mathit{ListF}~a)$-and-$m$-algebra
-homomorphism using the notation $\eFold{-}{-}$. We now define the
-function $\mathit{eAppend}$:
+homomorphism using the notation $\eFold{-}{-}$. We can define the
+function $\mathit{eAppend}$ in terms of initial $f$-and-$m$-algebras
+as:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{eAppend} :: \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \\
@@ -1384,18 +1388,19 @@ function $\mathit{eAppend}$:
 Note that, unlike the direct definition of $\mathit{eAppend}$ that we
 made in \autoref{sec:direct-eappend}, this definition is almost
 identical to the definition of the function $\mathit{append}$ from
-\autoref{sec:pure-append}, except for the additional
+\autoref{sec:pure-append}. The only differences are the additional
 $m$-Eilenberg-Moore-algebra argument to $\eFold{-}{-}$ and the
 different type of $\mathit{construct}_{\mathit{ListF}~a}$. The fact
-that the ``pure'' part of definition (i.e.~the function
-$\mathit{fAlgebra}$) is almost identical is a result of the separation
-of pure and effectful concerns that the abstraction of
+that the pure part of definition (i.e.,~the function
+$\mathit{fAlgebra}$) is almost identical to the $\mathit{fAlgebra}$ in
+the definition of $\mathit{append}$ is a result of the separation of
+pure and effectful concerns that the abstraction of
 $f$-and-$m$-algebras affords.
 
 Just as in the case of $\mathit{append}$, we can immediately read off
-two properties of $\mathit{eAppend}$ from the fact that it is a
-$(\mathit{ListF}~a)$-algebra homomorphism by construction. We have a
-property for each of the constructors of the type constructor
+two properties of $\mathit{eAppend}$ from the fact that it constructed
+as a $(\mathit{ListF}~a)$-algebra homomorphism. We have one property
+for each of the constructors of the type constructor
 $\mathit{ListF}~a$:
 \begin{eqnarray}
   \label{eq:eAppend-nil}
@@ -1403,21 +1408,21 @@ $\mathit{ListF}~a$:
   \label{eq:eAppend-cons}
   \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = & \mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))
 \end{eqnarray}
-In addition, we also know that $\mathit{eAppend}$ is an
-$m$-Eilenberg-Moore-algebra homomorphism, again by construction. Hence
-we have the following property of $\mathit{eAppend}$ for free. For all
-$x :: m~(\mu(\mathit{ListF}~a|m))$:
+Again by construction, we also know that $\mathit{eAppend}$ is an
+$m$-Eilenberg-Moore-algebra homomorphism. Hence we have the following
+property of $\mathit{eAppend}$ for free. For all $x ::
+m~(\mu(\mathit{ListF}~a|m))$:
 \begin{equation}\label{eq:eappend-em}
   \mathit{eAppend}~(\mathit{construct}_m~\mathit{x})~\mathit{ys} = \mathit{construct}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{x})
 \end{equation}
 
-We now make use of these three properties of $\mathit{eAppend}$ to
-prove that it is associative. We use
-\proofprinref{pp:initial-f-m-alg}, which splits the proof into the
-pure and effectful parts. As we shall see, the pure part of the proof,
-where the real work happens, is identical to the proof steps we took
-in the proof of \thmref{thm:append-assoc}. The effectful parts of the
-proof are straightforward, following directly from the fact that
+With these three properties of $\mathit{eAppend}$ in hand we can prove
+that it is associative. We use \proofprinref{pp:initial-f-m-alg},
+which splits the proof into the pure and effectful parts. As we shall
+see, the pure part of the proof, where the real work happens, is
+identical to the proof steps we took in the proof of
+\thmref{thm:append-assoc}. The effectful parts of the proof are
+straightforward, following directly from the fact that
 $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
 (\autoref{eq:eappend-em}).
 
@@ -1428,12 +1433,13 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   \end{displaymath}
 \end{theorem}
 
-\begin{proof}
+\begin{proof*}
   The function $\mathit{eAppend}$ is defined in terms of the initial
   algebra property of $\mu(\mathit{ListF}~a|m)$, so we can apply
-  \proofprinref{pp:initial-f-m-alg}. Thus we have two equations to
-  prove. Firstly, for all $x ::
-  \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m))$, we must show that:
+  \proofprinref{pp:initial-f-m-alg}. Thus must prove
+  \autoref{eq:fm-falg} and \autoref{eq:fm-malg}. Firstly, for all $x
+  :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m))$, we must show that
+  \autoref{eq:fm-falg} holds, i.e. that:
   \begin{displaymath}
     \begin{array}{cl}
       &\mathit{eAppend}~(\mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~x)~\mathit{ys})~\mathit{zs}\\
@@ -1450,13 +1456,13 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   This equation is, up to renaming, \emph{exactly the same} as the
   equation we had to show in proof of
   \thmref{thm:append-assoc}. Therefore, we use the same reasoning
-  steps to show this equation, relying on the first two properties of
-  $\mathit{eAppend}$ that we stated above (\autoref{eq:eAppend-nil}
-  and \autoref{eq:eAppend-cons}).
+  steps to show this equation, relying on the properties of
+  $\mathit{eAppend}$ captured above in \autoref{eq:eAppend-nil} and
+  \autoref{eq:eAppend-cons}.
 
   Secondly, we must show that the right-hand side of the equation to
-  be proved is an $m$-Eilenberg-Moore-algebra homomorphism. That is,
-  we must show:
+  be proved is an $m$-Eilenberg-Moore-algebra homomorphism, i.e., the
+  \autoref{eq:fm-malg} holds:
   \begin{displaymath}
     \begin{array}{cl}
       &\mathit{eAppend}~(\mathit{eAppend}~(\mathit{construct}_m~x)~\mathit{ys})~\mathit{zs} \\
@@ -1465,26 +1471,26 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   \end{displaymath}
   This follows straightforwardly from the fact that $\mathit{eAppend}$
   is itself an $m$-Eilenberg-Moore-algebra homomorphism, as we noted
-  above, and that such homomorphisms are closed under composition:
+  above in \autoref{eq:eappend-em}, and that such homomorphisms are closed under composition:
   \begin{displaymath}
     \begin{array}{cl}
       & \mathit{eAppend}~(\mathit{eAppend}~(\mathit{construct}_m~x)~\mathit{ys})~\mathit{zs} \\
-      =&\eqAnnotationS{$\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:eappend-em})} \\
+      =&\eqAnnotationS{\autoref{eq:eappend-em}} \\
       & \mathit{eAppend}~(\mathit{construct}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~x))~\mathit{zs} \\
-      =&\eqAnnotationS{$\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:eappend-em})} \\
+      =&\eqAnnotationS{\autoref{eq:eappend-em}} \\
       & \mathit{construct_m}~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{zs})~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~x)) \\
       =&\eqAnnotationS{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-      & \mathit{construct_m}~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
+      & \mathit{construct_m}~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x) \mathproofbox
     \end{array}
   \end{displaymath}
-  Thus we have shown that $\mathit{eAppend}$ is associative.
-\end{proof}
+\end{proof*}
 As promised, the proof that $\mathit{eAppend}$ is associative, using
 \proofprinref{pp:initial-f-m-alg}, is much simpler than the direct
 $f$-algebra proof we attempted in \autoref{sec:direct-eappend}. In
-particular, the separation of pure and effectful parts has meant that
-we were able to reuse the proof of the pure case from
-\autoref{sec:pure-append}.
+addition, the separation of pure and effectful parts has meant that we
+were able to reuse the proof of the pure case from
+\autoref{sec:pure-append}, and so need only to establish the side
+condition for effects.
 
 \subsection{Reverse for lists with interleaved effects?}
 \label{sec:reverse}
@@ -1496,9 +1502,9 @@ approach fails. Clearly, it cannot be the case that all properties
 true for pure lists carry over to effectful lists. One example of a
 property that fails to carry over is the following property of the
 reverse function:
-\begin{displaymath}
+\begin{equation}\label{eq:reverse-append}
   \mathit{reverse}~(\mathit{append}~\mathit{xs}~\mathit{ys}) = \mathit{append}~(\mathit{reverse}~\mathit{ys})~(\mathit{reverse}~\mathit{xs})
-\end{displaymath}
+\end{equation}
 Intuitively, this property cannot possibly hold for a reverse function
 on lists interleaved with effects, since in order to reverse a list,
 all of the effects inside it must be executed in order to reach the
@@ -1506,9 +1512,9 @@ last element and place it at the head of the new list. Thus the left
 hand side of the equation above will execute all the effects of
 $\mathit{xs}$ and then $\mathit{ys}$ in order, whereas the right hand
 side will execute all the effects of $\mathit{ys}$ first, and then
-$\mathit{xs}$. We now try to prove this property using
-\proofprinref{pp:initial-f-m-alg}, and we shall see that we are unable
-to prove the second requirement: that the right-hand side must be an
+$\mathit{xs}$. If we try to prove this property using
+\proofprinref{pp:initial-f-m-alg}, we see that we are unable to prove
+\autoref{eq:fm-malg}, namely that the right-hand side must be an
 Eilenberg-Moore-algebra homomorphism.
 
 We can define a reverse function on effectful lists as follows. This
@@ -1525,7 +1531,7 @@ function we defined above.
     \end{array}
   \end{array}
 \end{displaymath}
-The ``proof'' of the property above requires a little extra step
+Verifying the effectful analogue of \autoref{eq:reverse-append} requires a little extra step
 before we can apply \proofprinref{pp:initial-f-m-alg}, because the
 left-hand side of the equation is constructed from a composite of two
 functions of the form $\eFold{-}{-}$. However, it is
@@ -1540,20 +1546,22 @@ $\eFold{\mathit{alg}}{\mathit{construct}_m}$, where
     \end{array}
   \end{array}
 \end{displaymath}
-(This same extra step is required in the non-interleaved case as
-well.) We attempt to apply \proofprinref{pp:initial-f-m-alg} to the
-equation
+This same extra step is required in the case for pure datatypes as
+well, so this is not where the problem with interleaved effects
+lies. If we attempt to apply \proofprinref{pp:initial-f-m-alg} to the
+equation:
 \begin{displaymath}
   \eFold{\mathit{alg}}{\mathit{construct}_m}~\mathit{xs} = \mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})
 \end{displaymath}
-The pure part of the proof goes through straightforwardly. We are left
-with proving that the right hand side of this equation is an
+Then the pure part of the proof goes through straightforwardly. We are
+left with proving that the right hand side of this equation is an
 Eilenberg-Moore algebra homomorphism in its second
 argument. Certainly, $\mathit{eReverse}$ is an Eilenberg-Moore algebra
 homomorphism by its construction via the initial $f$-and-$m$-algebra
 property. However, $\mathit{eAppend}$ is not an Eilenberg-Moore
 algebra homomorphism in its \emph{second} argument. Thus the proof
-fails.
+fails. This is the formal rendering of the intuition for the failure
+given at the start of this subsection.
 
 % As a consequence, the involution property:
 % \begin{displaymath}
@@ -1568,19 +1576,29 @@ fails.
 \section{Generic implementation of initial $f$-and-$m$-algebras}
 \label{sec:impl-f-and-m}
 
+We have seen that existing datatypes such as $\mathit{List}~m~a$ can
+be given the structure of initial $f$-and-$m$-algebras. In this
+section, we show that, in Haskell, we can implement an initial
+$f$-and-$m$-algebra for and functor $f$ and monad $m$. We build on the
+generic implementation of initial $f$-algebras we presented in
+\autoref{sec:example-initial-f}. The key construction is to show that
+if we have an initial $(f \circ m)$-algebra, then we can construct an
+initial $f$-and-$m$-algebra.
+
+
 \subsection{From initial $(f \circ m)$-algebras to initial $f$-and-$m$-algebras}
 
-We now show that initial $f$-and-$m$-algebras can be constructed from
-initial $(f \circ m)$-algebras. If the type $\mu(f \circ m)$ the
-carrier of an initial $(f \circ m)$-algebra, then the initial
-$f$-and-$m$-algebra that we construct has carrier $m~(\mu (f \circ
-m))$. One way of looking at the proof of the following theorem is that
-it contains all the additional parts of the definition and proof steps
-we carried out in the direct initial $f$-algebra proof of
-associativity in \autoref{sec:direct-eappend} that were missing in the
-initial $f$-and-$m$-algebra approach in the previous section. Thus we
-have abstracted out parts that are common to all definitions and
-proofs to do with interleaved data and effects.
+Initial $f$-and-$m$-algebras can be constructed from initial $(f \circ
+m)$-algebras. If the type $\mu(f \circ m)$ is the carrier of an
+initial $(f \circ m)$-algebra, then the initial $f$-and-$m$-algebra
+that we construct has carrier $m~(\mu (f \circ m))$. One way of
+looking at the proof of the following theorem is as containing all the
+additional parts of the definition and proof steps we carried out in
+the direct initial $f$-algebra proof of associativity in
+\autoref{sec:direct-eappend} that were missing in the initial
+$f$-and-$m$-algebra approach in the previous section. Thus we have
+abstracted out parts that are common to all definitions and proofs
+that have to do with interleaved data and effects.
 
 \begin{theorem}\label{thm:make-initial-f-and-m-alg}
   Let $(f, \mathit{fmap}_f)$ be a functor, and $(m, \mathit{fmap}_m,
@@ -1593,7 +1611,7 @@ proofs to do with interleaved data and effects.
 \begin{proof*}
   The $f$-algebra and $m$-Eilenberg-Moore-algebra structure are
   constructed from the $(f \circ m)$-algebra structure map
-  $\mathit{construct}$, and the structure of the monad $m$.  For the
+  $\mathit{construct}$ and the structure of the monad $m$.  For the
   $f$-algebra component, we use the composite:
   \begin{displaymath}
     \mathit{construct}_f = \mathit{return}_m \circ \mathit{construct} :: f~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
@@ -1617,6 +1635,13 @@ proofs to do with interleaved data and effects.
   \begin{displaymath}
     h = \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} :: m~(\mu(f \circ m)) \to a
   \end{displaymath}
+  Close inspection of $h$ reveals that it has the same structure as
+  the definition of $\mathit{eAppend}$ in terms of initial
+  $f$-algebras we gave in \autoref{sec:direct-eappend}. Therefore, as
+  we noted in the introduction to this subsection, the construction we
+  are buliding here abstracts out the common parts of proofs and
+  definitions on effectful datatypes.
+
   To complete our proof, we now need to demonstrate that $h$ is an
   $f$-and-$m$-algebra homomorphism, and that it is the unique such. We
   split this task into three steps:
@@ -1694,7 +1719,7 @@ proofs to do with interleaved data and effects.
       \begin{array}{cl}
         & h \\
         =&\eqAnnotation{definition of $h$} \\
-        &\mathit{mAlgebra}_m \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \\
+        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \\
         =&\eqAnnotation{\autoref{eq:h'-prop}} \\
         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(h' \circ \mathit{return}_m) \\
         =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
@@ -1753,14 +1778,14 @@ $\mathit{fmap}_f$ and $\mathit{fmap}_g$:
 \thmref{thm:make-initial-f-and-m-alg} states that if $\mu(f \circ m)$
 is the carrier of an initial $(f \circ m)$-algebra, then $m~(\mu(f
 \circ m))$ is the carrier of an initial
-$f$-and-$m$-algebra. Therefore, we make this definition:
+$f$-and-$m$-algebra. Therefore, we define:
 \begin{displaymath}
   \kw{type}~\mathit{MuFM}~f~m = m~(\mathit{Mu}~(f \fcompose m))
 \end{displaymath}
 with the $f$-algebra and $m$-Eilenberg-Moore-algebra structure maps
 defined following the construction in
 \thmref{thm:make-initial-f-and-m-alg}, augmented with a use of the
-value constructor $\mathsf{C}$ in order to satisfy the type checker:
+value constructor $\mathsf{C}$ to satisfy the type checker:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{construct}_f :: f~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
