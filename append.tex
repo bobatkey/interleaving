@@ -1,4 +1,7 @@
+\RequirePackage{amsmath}
 \documentclass{jfp1}
+
+\usepackage{stmaryrd}
 
 \usepackage[usenames]{color}
 \usepackage{hyperref}
@@ -9,9 +12,6 @@
 \def\sectionautorefname{Section}
 \def\subsectionautorefname{Section}
 
-\usepackage{todonotes}
-
-\usepackage{stmaryrd}
 
 \newcommand{\fold}[1]{\llparenthesis #1 \rrparenthesis}
 \newcommand{\eFold}[2]{\llparenthesis #1|#2 \rrparenthesis}
@@ -41,11 +41,10 @@
 \author[R. Atkey, P. Johann, N. Ghani, B. Jacobs]
        {ROBERT ATKEY, PATRICIA JOHANN, NEIL GHANI \\
          University of Strathclyde, Glasgow, G1 1XH, UK \\
-         {\footnotesize (\emph{e-mail:} \texttt{$\{$robert.atkey,patricia.johann,neil.ghani$\}$@strath.ac.uk})} \\
          \vspace{0.3cm}
          BART JACOBS \\
          Radboud University, Nijmegen, Netherlands
-         \email{bart@cs.ru.nl}}
+         \email{$\{$robert.atkey,patricia.johann,neil.ghani$\}$@strath.ac.uk, bart@cs.ru.nl}}
 
 
        
@@ -137,7 +136,7 @@ datatypes that interleave pure data with effectful computation. For
 example, lists of characters that are interleaved with the effectful
 input computations that read them from some external source can be
 described by the following datatype declaration:
-\begin{displaymath}
+\begin{displaymath}\label{defn:listio}
   \begin{array}{ll}
     \kw{data}~\mathit{List'_{io}}
     &
@@ -234,8 +233,8 @@ $\mathit{hGetContents}$ fails to make the interleaving explicit.
 
 We can make the interleaving explicit by declaring a new type of lists
 interleaved with some effects described by a monad $m$. This
-generalises the definition of $\mathit{List_{io}}$ from the
-introduction:
+generalises the definition of $\mathit{List_{io}}$ from
+\hyperref[defn:listio]{Page \pageref*{defn:listio}}:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{List'}~m~a
@@ -258,10 +257,9 @@ this datatype describes lists of values of type $a$ interleaved with
 effects from the monad $m$.
 
 We can re-implement $\mathit{hGetContents}$ to generate values of type
-$\mathit{List}~\mathit{IO}~\mathit{Char}$, which makes the
-interleaving of effects and $\mathit{IO}$ actions explicit. An
-implementation can be given in terms of the standard Haskell
-primitives for performing IO on file handles:
+$\mathit{List}~\mathit{IO}~\mathit{Char}$. An simple implementation
+can be given in terms of the standard Haskell primitives for
+performing IO on file handles:
 \begin{displaymath}
   \begin{array}{l}
   \mathit{hGetContents} :: \mathit{Handle} \to \mathit{List}~\mathit{IO}~\mathit{Char} \\
@@ -412,12 +410,12 @@ Formally, functors are defined as follows:
   \end{displaymath}
   such that $\mathit{fmap}_f$ preserves the identity function and
   composition:
-  \begin{eqnarray}
+  \begin{align}
     \label{eq:fmap-id}
-    \mathit{fmap}_f~\mathit{id} & = & \mathit{id} \\
+    \mathit{fmap}_f~\mathit{id} & = \mathit{id} \\
     \label{eq:fmap-comp}
-    \mathit{fmap}_f~(g \circ h) & = & \mathit{fmap}_f~g \circ \mathit{fmap}_f~h
-  \end{eqnarray}
+    \mathit{fmap}_f~(g \circ h) & = \mathit{fmap}_f~g \circ \mathit{fmap}_f~h
+  \end{align}
 \end{definition}
 
 In Haskell, the fact that a type operator $f$ has an associated
@@ -628,12 +626,12 @@ following two equational properties of $\mathit{append}$ hold. These
 tell us how it operates on lists of the form
 $\mathit{construct}~\mathsf{Nil}$ and
 $\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})$. We have:
-\begin{eqnarray}
+\begin{align}
   \label{eq:append-nil}
-  \mathit{append}~(\mathit{construct}~\mathsf{Nil})~\mathit{ys} & = & \mathit{ys} \\
+  \mathit{append}~(\mathit{construct}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
   \label{eq:append-cons}
-  \mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = & \mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys}))
-\end{eqnarray}
+  \mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys}))
+\end{align}
 We now make use of these properties, and
 \proofprinref{pp:initial-alg}, to prove associativity:
 
@@ -654,12 +652,12 @@ We now make use of these properties, and
   In this instantiation of \proofprinref{pp:initial-alg}, $g = \lambda
   \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}$,
   and:
-  \begin{eqnarray}
+  \begin{align}
     \label{eq:append-fAlgebra-nil}
-    \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{append}~\mathit{ys}~\mathit{zs} \\
+    \mathit{fAlgebra}~\mathsf{Nil} &= \mathit{append}~\mathit{ys}~\mathit{zs} \\
     \label{eq:append-fAlgebra-cons}
-    \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})
-  \end{eqnarray}
+    \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &= \mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})
+  \end{align}
   Thus we need to prove that for all $x ::
   \mathit{ListF}~a~(\mu(\mathit{ListF}~a))$,
   \begin{displaymath}
@@ -735,7 +733,7 @@ between the two presentations.
   A monad is a quadruple $(m, \mathit{fmap}_m, \mathit{return}_m,
   \mathit{join}_m)$ of a type constructor $m$, and three functions:
   \begin{displaymath}
-    \begin{array}{rcl}
+    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
       \mathit{fmap}_m   & :: & (a \to b) \to m~a \to m~b \\
       \mathit{return}_m & :: & a \to m~a \\
       \mathit{join}_m   & :: & m~(m~a) \to m~a
@@ -743,21 +741,21 @@ between the two presentations.
   \end{displaymath}
   such that the pair $(m, \mathit{fmap}_m)$ is a functor
   (\defref{defn:functor}), and the following properties are satisfied:
-  \begin{eqnarray}
+  \begin{align}
     \label{eq:monad-join-return}
-    \mathit{join}_m \circ \mathit{return}_m & = & \mathit{id} \\
+    \mathit{join}_m \circ \mathit{return}_m & = \mathit{id} \\
     \label{eq:monad-join-fmap-return}
-    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m & = & \mathit{id} \\
+    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m & = \mathit{id} \\
     \label{eq:monad-join-join}
-    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{join}_m & = & \mathit{join}_m \circ \mathit{join}_m
-  \end{eqnarray}
+    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{join}_m & = \mathit{join}_m \circ \mathit{join}_m
+  \end{align}
   and also the naturality laws:
-  \begin{eqnarray}
+  \begin{align}
     \label{eq:monad-return-natural}
-    \mathit{return}_m \circ f & = & \mathit{fmap}_m~f \circ \mathit{return}_m \\
+    \mathit{return}_m \circ f & = \mathit{fmap}_m~f \circ \mathit{return}_m \\
     \label{eq:monad-join-natural}
-    \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~f) & = & \mathit{fmap}_m~f \circ \mathit{join}_m
-  \end{eqnarray}
+    \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~f) & = \mathit{fmap}_m~f \circ \mathit{join}_m
+  \end{align}
 \end{definition}
 
 As with functors, monads in Haskell are usually represented in terms of
@@ -779,14 +777,14 @@ to construct the coproduct of two monads in
   \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A
   \emph{monad morphism} between them is a function $h :: m_1~a \to
   m_2~a$ such that:
-  \begin{eqnarray}
+  \begin{align}
     \label{eq:monad-mor-natural}
-    h \circ \mathit{fmap}_{m_1}~g & = & \mathit{fmap}_{m_2}~g \circ h \\
+    h \circ \mathit{fmap}_{m_1}~g & = \mathit{fmap}_{m_2}~g \circ h \\
     \label{eq:monad-mor-return}
-    h \circ \mathit{return}_{m_1} & = & \mathit{return}_{m_2} \\
+    h \circ \mathit{return}_{m_1} & = \mathit{return}_{m_2} \\
     \label{eq:monad-mor-join}
-    h \circ \mathit{join}_{m_1} & = & \mathit{join}_{m_2} \circ h \circ \mathit{fmap}_{m_1}~h
-  \end{eqnarray}
+    h \circ \mathit{join}_{m_1} & = \mathit{join}_{m_2} \circ h \circ \mathit{fmap}_{m_1}~h
+  \end{align}
 \end{definition}
 
 \subsection{Monadic Recursion Schemes}
@@ -1079,17 +1077,17 @@ with the structure of the monad:
     \mathit{mAlgebra}_a :: m~a \to a
   \end{displaymath}
   such that the following two equations are satisfied:
-  \begin{eqnarray}
+  \begin{align}
     \label{eq:em-alg-return}
-    \mathit{mAlgebra}_a \circ \mathit{return}_m & = & \mathit{id} \\
+    \mathit{mAlgebra}_a \circ \mathit{return}_m & = \mathit{id} \\
     \label{eq:em-alg-join}
-    \mathit{mAlgebra}_a \circ \mathit{join}_m & = & \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\mathit{mAlgebra}_a
-  \end{eqnarray}
+    \mathit{mAlgebra}_a \circ \mathit{join}_m & = \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\mathit{mAlgebra}_a
+  \end{align}
 \end{definition}
 
 Eilenberg-Moore algebras form a key piece of the theory of monads,
 especially in their application to universal algebra. For a monad that
-represents an algebraic theory (e.g.,~abelian groups), the collection
+represents an algebraic theory (e.g., abelian groups), the collection
 of all Eilenberg-Moore algebras for that monad are exactly the
 structures supporting that algebraic theory. Mac Lane's book
 \cite{maclane98} goes into further depth on this view of
@@ -1406,12 +1404,12 @@ two properties of $\mathit{eAppend}$ from the fact that it constructed
 as a $(\mathit{ListF}~a)$-algebra homomorphism. We have one property
 for each of the constructors of the type constructor
 $\mathit{ListF}~a$:
-\begin{eqnarray}
+\begin{align}
   \label{eq:eAppend-nil}
-  \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~\mathsf{Nil})~\mathit{ys} & = & \mathit{ys} \\
+  \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
   \label{eq:eAppend-cons}
-  \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = & \mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))
-\end{eqnarray}
+  \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))
+\end{align}
 Again by construction, we also know that $\mathit{eAppend}$ is an
 $m$-Eilenberg-Moore-algebra homomorphism. Hence we have the following
 property of $\mathit{eAppend}$ for free. For all $x ::
