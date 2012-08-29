@@ -813,22 +813,28 @@ data, where data and effects are interleaved.
 \section{List append II: lists with interleaved effects, via $f$-algebras}
 \label{sec:direct-eappend}
 
-We now present our first attempt at adapting our list append example
-from \autoref{sec:pure-append} to handle lists with interleaved
-effects. Our presentation is parameteric in the kind of effects that
+Given the success of initial $f$-algebras for defining and reasoning
+about programs that operate on pure datatypes, it seems reasonable
+that they might extend to programming and reasoning about programs
+that operate on effectful datatypes like $\mathit{List}~m~a$ and
+$\mathit{Reader}~m~a~b$. As we shall see, it is possible to use
+initial $f$-algebras reasoning about programs on effectful datatypes,
+but the proofs become unnecessarily complicated. We demonstrate this
+through an extension of the list append example from
+\autoref{sec:pure-append} to the case of lists with interleaved
+effects.
+
+Our presentation is parameteric in the kind of effects that
 are interleaved with the list. We merely assume that they can be
 described by some monad $(m, \mathit{fmap_m}, \mathit{return_m},
 \mathit{join_m})$.
 
-The obvious approach to defining functions on datatypes with
-interleaved effects, such as $\mathit{List}~m~a$ and
-$\mathit{Reader}~m~a~b$, is to look directly to the initial
-$f$-algebra methodology. By inspecting the auxillary declarations of
-$\mathit{List'}~m~a$ and $\mathit{Reader'}~m~a~b$, and comparing them
-to the examples of initial $f$-algebras that we presented in the
+By inspecting the auxillary declarations of $\mathit{List'}~m~a$ and
+$\mathit{Reader'}~m~a~b$, and comparing them to the examples of
+initial $f$-algebras that we presented in the
 \autoref{sec:f-algebras}, we can see that they are themselves carriers
 of initial $(f \circ m)$-algebras, where $f$ is an appropriate functor
-and $\circ$ denotes functor composition. So, for example,
+and $\circ$ denotes functor composition. For example,
 $\mathit{List}~m~a$ is isomorphic to $m~(\mu (\mathit{ListF}~a \circ
 m))$, where $\mu (\mathit{ListF}~a \circ m)$ is the carrier of some
 initial $(\mathit{ListF}~a \circ m)$-algebra.
@@ -841,7 +847,7 @@ interface of initial algebras. We assume that an initial
 $(\mathit{ListF}~a \circ m)$-algebra $(\mu(\mathit{ListF}~a \circ m),
 \mathit{construct})$ exists, and we write $\fold{-}$ for the unique
 homomorphism induced by initiality. We now define $\mathit{eAppend}$
-(``$\mathit{e}$'' for effectful):
+(``$\mathit{e}$'' for effectful) by:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{eAppend} :: m~(\mu (\mathit{ListF}~a \circ m)) \to m~(\mu (\mathit{ListF}~a \circ m)) \to m~(\mu (\mathit{ListF}~a \circ m)) \\
@@ -860,7 +866,8 @@ intermingle the effectful parts of the definition with the pure
 parts. This is a result of the fact that the initial $f$-algebra
 abstraction is unaware of the presence of effects.
 
-As we did for $\mathit{append}$ above, we can derive two properties of
+As we did for $\mathit{append}$ in \autoref{eq:append-nil} and
+\autoref{eq:append-cons} above, we can derive two properties of
 $\mathit{eAppend}$ that tell us how it acts on the two list
 constructors:
 \begin{equation}
@@ -874,7 +881,7 @@ and
     =&\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})))
   \end{array}
 \end{equation}
-We note that the derivations of these equations involves more work
+We note that the derivations of these equations involve more work
 than their counterparts for $\mathit{append}$. In particular, we are
 forced to spend time shuffling the $\mathit{return_m}$,
 $\mathit{join_m}$ and $\mathit{fmap_m}$ around in order to apply the
@@ -919,7 +926,9 @@ the definition of $\mathit{eAppend}$ too early.
       &\mathit{join}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_{\mathit{ys}}}~\mathit{xs}))) \\
       =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
       &\mathit{join}_m~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs}))) \\
-      =&\eqAnnotation{monad law: $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\mathit{join_m}$ (\autoref{eq:monad-join-join})} \\
+      =&\eqAnnotation{monad law: 
+%$\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\mathit{join_m}$ 
+\autoref{eq:monad-join-join}} \\
       &\mathit{join_m}~(\mathit{fmap_m}~\mathit{join_m}~(\mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs}))) \\
       =&\eqAnnotation{$\mathit{fmap_m}$ preserves composition (\autoref{eq:fmap-comp})} \\
       &\mathit{join_m}~(\mathit{fmap_m}~(\mathit{join_m} \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}} \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs}) \\
@@ -943,10 +952,13 @@ the definition of $\mathit{eAppend}$ too early.
   \end{displaymath}
   There are two cases to consider, depending on whether $x =
   \mathsf{Nil}$ or $x = \mathsf{Cons}~a~\mathit{xs}$. In the first
-  case, we reason as follows. Note that we are unable to apply
-  \autoref{eq:eappend-direct-nil} ($\mathit{eAppend}$ on
-  $\mathsf{Nil}$), because we have had to unfold the definition of
-  $\mathit{eAppend}$ in order to apply \proofprinref{pp:initial-alg}.
+  case, we reason as follows. Note that, we are unable to directly
+  apply our knowledge of the effect of $\mathit{eAppend}$ on
+  $\mathsf{Nil}$ (\autoref{eq:eappend-direct-nil}), unlike in the
+  proof of \thmref{thm:append-assoc} where we could use
+  \autoref{eq:append-nil}. This is because we had to unfold the
+  definition of $\mathit{eAppend}$ in order to apply
+  \proofprinref{pp:initial-alg}.
   \begin{displaymath}
     \begin{array}{cl}
       &\mathit{eAppend}~(\fold{\mathit{fAlgebra_{ys}}}~(\mathit{construct}~\mathsf{Nil}))~\mathit{zs} \\
@@ -975,7 +987,7 @@ the definition of $\mathit{eAppend}$ too early.
       & \mathit{eAppend}~(\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))~\mathit{zs} \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
       & \mathit{eAppend}~(\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))))~\mathit{zs} \\
-      =&\eqAnnotation{second property of $\mathit{eAppend}$ (\autoref{eq:eappend-direct-cons})} \\
+      =&\eqAnnotation{\autoref{eq:eappend-direct-cons}} \\
       & \mathit{return_m}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs}))) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
       &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join_m}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
@@ -997,20 +1009,21 @@ the definition of $\mathit{eAppend}$ too early.
 
 We identify the following problems with this proof:
 \begin{itemize}
-\item We had to perform a non-trivial amount of rewriting in order to
-  get ourselves to into a position in which we can apply
+\item We had to perform a non-trivial number of rewriting steps in
+  order to get ourselves to into a position in which we can apply
   \proofprinref{pp:initial-alg}. These steps are not specific to the
   $\mathit{eAppend}$ function, and will have to be re-done whenever we
-  wish to prove a property of a function on data interleaved with
-  effects with \proofprinref{pp:initial-alg}.
-\item We were forced multiple times to unfold the definition of
-  $\mathit{eAppend}$ in order to proceed. We have already noted that
-  this prevented us from applying \autoref{eq:eappend-direct-nil} and
-  instead we had to perform some of the same reasoning again. For the
-  same reason, in the $\mathsf{Cons}$ case, we were only able to apply
+  wish to use \proofprinref{pp:initial-alg} to prove a property of a
+  function on data interleaved with effects.
+\item We were forced to unfold the definition of $\mathit{eAppend}$
+  multiple times in order to proceed with the calculation. As we noted
+  during the proof, this unfolding prevented us from applying
+  \autoref{eq:eappend-direct-nil} and instead we had to perform some
+  of the same calculation steps again. For the same reason, in the
+  $\mathsf{Cons}$ case, we were only able to apply
   \autoref{eq:eappend-direct-cons} once, unlike in the proof of
   \thmref{thm:append-assoc} where the analogous equation was applied
-  twice, and we had to expand $\mathit{eAppend}$ again in order to
+  twice, we also had to expand $\mathit{eAppend}$ again in order to
   rewrite the occurences of $\mathit{join_m}$ and $\mathit{fmap_m}$.
 \end{itemize}
 The definition and proof that we have given in this section
