@@ -708,18 +708,17 @@ able to reuse the core of the above proof.\todo{Make sure this is general}
 \section{Background: monadic effects and monadic recursion schemes}
 \label{sec:monads}
 
-We now recall the formal definition of monad, and also the work of
-Fokkinga and Pardo on extending the initial $f$-algebra methodology to
-deal with monadic computations. Fokkinga and Pardo's theory allows for
-the definition of effectful recursive programs on pure data.
+As is standard in Haskell programming, we describe effectful
+computations in terms of monads \cite{moggi91notions,
+  peytonjones93imperative}. In order to keep this article self
+contained, we recall the definition of monad here. We also briefly
+examine prior work by Fokkinga, and by Pardo, on the effectful
+recursive programs on pure data.
 
 \subsection{Monadic Effects}
 
-As is standard in Haskell programming, we describe effectful
-computations in terms of monads \cite{moggi91notions,
-  peytonjones93imperative}. Formally, monads are defined as follows.
 We have opted to use the ``categorical'' definition of monad in terms
-of a $\mathit{join}$ (or multiplication) operation, rather than the
+of a $\mathit{join}$ (or \emph{multiplication}) operation, rather than the
 Kleisli-triple presentation with a bind operation ($\mbind$) that is
 more standard in Haskell programming. For our purposes, the
 categorical definition is more convenient for equational
@@ -756,7 +755,7 @@ between the two presentations.
   \end{eqnarray}
 \end{definition}
 
-As for functors, monads in Haskell are usually represented in terms of
+As with functors, monads in Haskell are usually represented in terms of
 the $\textit{Monad}$ typeclass. Again, for this article, we will
 always use subscripts on $\mathit{return}_m$ and $\mathit{join}_m$ to
 disambiguate which monad is being referred to, instead of leaving it
@@ -769,12 +768,12 @@ morphisms in our extended example of the use of $f$-and-$m$-algebras
 to construct the coproduct of two monads in
 \autoref{sec:coproducts-with-free-monads}.
 
-\begin{definition}[Monad morphism]
+\begin{definition}
   Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
   \mathit{join_{m_1}})$ and $(m_2, \mathit{fmap_{m_1}},
   \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A
-  \emph{monad morphism} between them is a polymorphic function $h ::
-  m_1~a \to m_2~a$ that satifies the following three properties:
+  \emph{monad morphism} between them is a function $h :: m_1~a \to
+  m_2~a$ such that:
   \begin{eqnarray}
     \label{eq:monad-mor-natural}
     h \circ \mathit{fmap}_{m_1}~g & = & \mathit{fmap}_{m_2}~g \circ h \\
@@ -789,7 +788,7 @@ to construct the coproduct of two monads in
 
 The initial $f$-algebra methodology has been extended to effectful
 computation on pure data by Fokkinga \cite{fokkinga94monadic} and
-Pardo \cite{pardo04combining}. Fokkinga and Pardo's generic recursion
+Pardo \cite{pardo04combining}. Fokkinga's and Pardo's generic recursion
 combinator for effectful recursive computations has the following
 type:
 \begin{displaymath}
@@ -797,11 +796,11 @@ type:
 \end{displaymath}
 where we also make the implicit assumption that there is a
 \emph{distributive law} $d :: f~(m~a) \to m~(f~a)$ that describes how
-effects percolate through pure data. Thus Fokkinga and Pardo derive a
-theory and proof principles for effectful structural recursion over
-\emph{pure} data. By contrast, in this paper we wish to explore
-computation and reasoning with \emph{effectful} data, where data and
-effects are interleaved.
+effects percolate through pure data. Thus Fokkinga and Pardo
+separately derive theories and proof principles for effectful
+structural recursion over \emph{pure} data. By contrast, in this paper
+we wish to explore computation and reasoning with \emph{effectful}
+data, where data and effects are interleaved.
 
 % We have already noted that are several benefits to defining functions
 % in terms of higher-order recursion combinators like
