@@ -74,7 +74,7 @@
   application of initial algebra techniques to effectful datatypes
   leads to unnecessarily complicated reasoning, because the pure and
   effectful concerns must be considered simultaneously. We show how
-  these concerns can be separated using Filinski and St\o{}vring's
+  these concerns can be separated the
   abstraction of initial $f$-and-$m$-algebras, where the functor $f$
   describes the pure part of a datatype, and the monad $m$ describes
   the interleaved effects. Because initial $f$-and-$m$-algebras are
@@ -84,6 +84,12 @@
   $f$-and-$m$-algebras separate pure and effectful concerns, they
   support the direct transfer of definitions and proofs from the pure
   setting to the effectful setting.
+
+  Initial $f$-and-$m$-algebras are originally due to Filinski and
+  St\o{}vring, and were subsequently generalised to arbitrary
+  categories by the authors of this article. In this article, we aim
+  to introduce the concept of initial $f$-and-$m$-algebras to a
+  general functional programming audience.
 \end{abstract}
 
 \section{Introduction}
@@ -120,7 +126,7 @@ unifying and clarifying structured functional programming and
 reasoning on values of recursive datatypes that go far beyond lists
 and $\mathit{foldr}$.
 
-In this paper, we present a class of recursive datatypes where direct
+In this article, we present a class of recursive datatypes where direct
 use of the initial algebra methodology does \emph{not} provide the
 right level of abstraction. Specifically, we consider recursive
 datatypes that interleave pure data with effectful computation. For
@@ -175,11 +181,12 @@ benefits:
 
 The concept of initial $f$-and-$m$-algebras is originally due to
 Filinski and St\o{}vring \cite{filinski07inductive}, and was
-subsequently extended to a general category-theoretic setting by the
-authors of the current paper \cite{atkey12fibrational}. In this paper,
-we aim to introduce the concept of initial $f$-and-$m$-algebras to a
-general functional programming audience, without the heavy
-category-theoretic prerequisites of our previous work.
+subsequently extended to a general category-theoretic setting for
+arbitrary functors $f$ by the authors of the current article
+\cite{atkey12fibrational}. In this article, we aim to introduce the
+concept of initial $f$-and-$m$-algebras to a general functional
+programming audience, without the heavy category-theoretic
+prerequisites of our previous work.
 
 \subsection{Interleaving data and effects}
 \label{sec:motivate-interleaving}
@@ -276,10 +283,16 @@ $\mathit{IO}$ monad to explicitly close the file.
 
 The Haskell community
 %\todo{link to Hackage}
-has also defined many other datatypes that
-capture the interleaving of effects with pure data, in order to make
-explicit the interleaving implicit in the $\mathit{hGetContents}$
-function. One of the earliest was Kiselyov's Iteratees
+has also defined many other datatypes that capture the interleaving of
+effects with pure data\footnote{For example, the \texttt{iteratees},
+  \texttt{iterIO}, \texttt{conduits}, \texttt{enumerators}, and
+  \texttt{pipes} Haskell libraries all make use of interleaved data
+  and effects. These libraries are all available from the Hackage
+  archive of Haskell libraries
+  (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
+to make explicit the interleaving implicit in the
+$\mathit{hGetContents}$ function. One of the earliest was Kiselyov's
+Iteratees, later described in a conference publication
 \cite{kiselyov12iteratees}. In essence, Iteratees are descriptions of
 functions that alternate reading from some input with effects in some
 monad, eventually yielding some output. This can be described by the
@@ -314,11 +327,11 @@ interleaved data and effects: the general construction of the
 coproduct of a free monad and an arbitrary monad. This construction
 builds on the general foundation of initial $f$-and-$m$-algebras.
 
-\subsection{The content of this paper}
+\subsection{The content of this article}
 
-We aim to make this paper relatively self-contained, so we include the
+We aim to make this article relatively self-contained, so we include the
 necessary background to enable the reader to follow our proofs and
-definitions. The structure of the remainder of the paper is as
+definitions. The structure of the remainder of the article is as
 follows:
 \begin{itemize}
 \item In \autoref{sec:f-algebras}, we recall the standard definitions
@@ -371,7 +384,7 @@ follows:
   monads that interleave abstract and concrete commands, as seen in
   the $\mathit{Reader}~m~a~b$ monad in the previous section. The monad
   coproduct structure further highlights the central theme of this
-  paper: the separation of concerns of dealing with pure data and
+  article: the separation of concerns of dealing with pure data and
   effects.
 \end{itemize}
 
@@ -807,11 +820,6 @@ the case of effectful structural recursion over \emph{pure} data,
 where all the effects are pushed to the ``outside''. By contrast, we
 wish to deal with structural recursion over \emph{effectful} data,
 where data and effects are interleaved.
-
-% Fokkinga and Pardo separately derive theories and proof principles for
-% effectful structural recursion over \emph{pure} data. By contrast, in
-% this paper we wish to explore computation and reasoning with
-% \emph{effectful} data, where data and effects are interleaved.
 
 \section{List append II: lists with interleaved effects, via \texorpdfstring{$f$}{f}-algebras}
 \label{sec:direct-eappend}
