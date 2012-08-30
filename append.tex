@@ -379,7 +379,7 @@ follows:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background: initial $f$-algebras}
+\section{Background: initial \texorpdfstring{$f$}{f}-algebras}
 \label{sec:f-algebras}
 
 Initial $f$-and-$m$-algebras build upon the basic foundation of
@@ -482,7 +482,7 @@ Rutten \cite{JacobsR11} further develop the use of
 \proofprinref{pp:initial-alg} (and its dual notion for final
 coalgebras) for reasoning about recursive programs on pure data.
 
-\subsection{Examples of initial $f$-algebras}
+\subsection{Examples of initial \texorpdfstring{$f$}{f}-algebras}
 \label{sec:example-initial-f}
 
 The usefulness of the initial $f$-algebra abstraction for functional
@@ -813,7 +813,7 @@ where data and effects are interleaved.
 % this paper we wish to explore computation and reasoning with
 % \emph{effectful} data, where data and effects are interleaved.
 
-\section{List append II: lists with interleaved effects, via $f$-algebras}
+\section{List append II: lists with interleaved effects, via \texorpdfstring{$f$}{f}-algebras}
 \label{sec:direct-eappend}
 
 Given the success of initial $f$-algebras for defining and reasoning
@@ -1049,7 +1049,7 @@ interleave data and effects.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Separating data and effects with $f$-and-$m$-algebras}
+\section{Separating data and effects with \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 \label{sec:f-and-m-algebras}
 
 As we saw in the previous section, directly defining and proving
@@ -1214,7 +1214,7 @@ in \autoref{sec:f-algebras}.
   \end{equation}
 \end{definition}
 
-\subsection{Definition of $f$-and-$m$-algebras}
+\subsection{Definition of \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 
 As we indicated above, an $f$-and-$m$-algebra is consists of an
 $f$-algebra and an $m$-Eilenberg-Moore-algebra with the same
@@ -1232,7 +1232,6 @@ $\mathit{return}$).
   $(a,\mathit{fAlgebra},\mathit{mAlgebra})$ of an object $a$ and two
   functions:
   \begin{displaymath}
-    \programmath
     \begin{array}{rcl}
       \mathit{fAlgebra} & :: & f~a \to a \\
       \mathit{mAlgebra} & :: & m~a \to a
@@ -1366,7 +1365,7 @@ is that the existence of initial $f$-and-$m$-algebras can be reduced
 to the existence of initial $(f \circ m)$-algebras: this is
 \thmref{thm:make-initial-f-and-m-alg} below.
 
-\section{List append III: lists with interleaved effects, via $f$-and-$m$-algebras}
+\section{List append III: lists with interleaved effects, via \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 \label{sec:f-and-m-append}
 
 We now revisit the problem of defining and proving associativity for
@@ -1622,7 +1621,7 @@ for the failure given at the start of this subsection.
 % $\mathit{eReverse}$ traverses the list, while the right-hand side
 % leaves the effects interspersed between the elements.
 
-\section{Generic implementation of initial $f$-and-$m$-algebras}
+\section{Generic implementation of initial \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 \label{sec:impl-f-and-m}
 
 We have seen that existing datatypes such as $\mathit{List}~m~a$ can
@@ -1635,7 +1634,7 @@ if we have an initial $(f \circ m)$-algebra, then we can construct an
 initial $f$-and-$m$-algebra.
 
 
-\subsection{From initial $(f \circ m)$-algebras to initial $f$-and-$m$-algebras}
+\subsection{From initial \texorpdfstring{$(f \circ m)$}{(f . m)}-algebras to initial \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 
 Initial $f$-and-$m$-algebras can be constructed from initial $(f \circ
 m)$-algebras. If the type $\mu(f \circ m)$ is the carrier of an
@@ -1800,7 +1799,7 @@ $f$-and-$m$-algebra.
 
 % FIXME: mention Filinski and Støvring's construction?
 
-\subsection{Implementation of initial $f$-and-$m$-algebras in Haskell}
+\subsection{Implementation of initial \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras in Haskell}
 \label{sec:f-and-m-alg-impl}
 
 \newcommand{\fcompose}{\mathop{\mathord:\circ\mathord:}}
@@ -2158,7 +2157,7 @@ demonstrate how monad coproducts cleanly combine abstract effects with
 concrete effects. Before that, in the next section, we demonstrate how
 to construct free monads from initial $f$-algebras.
 
-\subsection{Constructing free monads, via $f$-algebras}
+\subsection{Constructing free monads, via \texorpdfstring{$f$}{f}-algebras}
 \label{sec:construct-free-monads}
 
 \begin{figure}
@@ -2346,7 +2345,7 @@ arbitrary $\mathit{IO}$ actions:
   \lambda h.~[\fmext{\mathit{useFileHandle}~h}, \mathit{id}] :: \mathit{Handle} \to (\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}})~a \to \mathit{IO}~a
 \end{displaymath}
 
-\subsection{Constructing coproducts with free monads via $f$-and-$m$-algebras}
+\subsection{Constructing coproducts with free monads via \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 \label{sec:construct-coproducts}
 
 \begin{figure}
