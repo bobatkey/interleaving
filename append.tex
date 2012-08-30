@@ -1268,7 +1268,7 @@ $f$-and-$m$-algebras is straightforward, and follows the same
 structure as for initial $f$-algebras. Abstractly, an initial
 $f$-and-$m$-algebra is an initial object in the category of
 $f$-and-$m$-algebras and $f$-and-$m$-algebra homomorphisms. We use the
-notation $\mu(f|m)$ for carriers initial $f$-and-$m$-algebras to
+notation $\mu(f|m)$ for carriers of initial $f$-and-$m$-algebras to
 indicate the interleaving of pure data (represented by $f$) and
 effects (represented by $m$).
 
@@ -1832,14 +1832,17 @@ $\mathit{fmap}_f$ and $\mathit{fmap}_g$:
 \thmref{thm:make-initial-f-and-m-alg} states that if $\mu(f \circ m)$
 is the carrier of an initial $(f \circ m)$-algebra, then $m~(\mu(f
 \circ m))$ is the carrier of an initial
-$f$-and-$m$-algebra. Therefore, we define:
+$f$-and-$m$-algebra. Therefore, we can define an implementation of the
+initial $f$-and-$m$-algebra by setting $\mu (f|m)$ to be the type
+$\mathit{MuFM}~f~m$, which is defined as:
 \begin{displaymath}
   \kw{type}~\mathit{MuFM}~f~m = m~(\mathit{Mu}~(f \fcompose m))
 \end{displaymath}
-with the $f$-algebra and $m$-Eilenberg-Moore-algebra structure maps
-defined following the construction in
-\thmref{thm:make-initial-f-and-m-alg}, augmented with a use of the
-value constructor $\mathsf{C}$ to satisfy the type checker:
+The $f$-algebra and $m$-Eilenberg-Moore-algebra structure maps
+$\mathit{construct_f}$ and $\mathit{construct_m}$ are defined
+following the construction in \thmref{thm:make-initial-f-and-m-alg},
+augmented with a use of the value constructor $\mathsf{C}$ to satisfy
+the type checker:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{construct}_f :: f~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
@@ -1895,7 +1898,7 @@ programming with and reasoning about datatypes with interleaved
 effects, we reconstruct a result originally due to Hyland, Plotkin and
 Power \cite{hyland06combining} on the construction of coproducts of
 free monads with arbitrary monads. This example highlights the
-advantages that $f$-and-$m$-algebra's separation of pure data and
+advantages that $f$-and-$m$-algebras' separation of pure data and
 effects provides, and also has theoretical and practical interest. We
 now give a brief explanation of the relevant concepts.
 
@@ -1907,22 +1910,24 @@ coproduct of two monads as the ``least commitment'' combination. The
 coproduct of two monads is able to describe any effects that its
 constituents describes, but imposes no interaction between
 them. Unfortunately, the coproduct of two arbitrary monads is not
-always guaranteed to exist. Monad coproducts are guaranteed to exist
-in certain special cases. For example, ideal monads
-\cite{ghani04coproducts}, or when working in the category of Sets
-\cite{adamek12coproducts}, or if the monads are constructed from
-algebraic theories \cite{hyland06combining}. One particular special
-case is when one of the constituent monads is \emph{free}.
+always guaranteed to exist, but is known to exist in certain special
+cases. For example, monad coproducts are guaranteed to exist when the
+monads in question are ideal monads \cite{ghani04coproducts}, or when
+working in the category of Sets \cite{adamek12coproducts}, or if the
+monads are constructed from algebraic theories
+\cite{hyland06combining}. One particular special case is when one of
+the constituent monads is \emph{free}.
 
-A \emph{Free monad} for a functor $(f, \mathit{fmap}_f)$ is the
-``least commitment'' way of extending the functor $f$ to become a
-monad. A useful application of free monads is as a way of describing
-effectful computations over a set of commands, where the commands are described by the
-functor $f$, and no commitment is made as to their interpretations. Swierstra and Altenkirch \cite{swierstra07beauty} have
-developed this idea to provide a straightforward way of reasoning
-about programs that perform input/output. We briefly describe this
-view of free monads after we give the formal definition in
-\autoref{sec:free-monads}.
+A \emph{free monad} for a functor $(f, \mathit{fmap}_f)$ is a way of
+extending $f$ to be a monad while, intuitively, adding no additional
+constraints. A useful application of free monads is as a way of
+describing effectful computations over a set of commands, where the
+commands are described by the functor $f$, and no commitment is made
+as to their interpretations. Swierstra and Altenkirch
+\cite{swierstra07beauty} have developed this idea to provide a
+straightforward way of reasoning about programs that perform
+input/output. We briefly describe this view of free monads after we
+give the formal definition in \autoref{sec:free-monads}.
 
 Coproducts of free monads with arbitrary monads arise when considering
 certain kinds of datatypes interleaved with effects, such as the
@@ -2102,7 +2107,7 @@ standard Haskell function $\mathit{getLine}$ to do the actual reading:
 The free monad interface now provides a way to extend this
 interpretation of individual commands to sequences of commmands:
 \begin{displaymath}
-  \fmext{\mathit{useGetLine}} :: \mathit{FreeM}~(\mathit{ReaderF}~a)~a \to \mathit{IO}~a
+  \fmext{\mathit{useGetLine}} :: \mathit{FreeM}~(\mathit{ReaderF}~\mathit{String})~a \to \mathit{IO}~a
 \end{displaymath}
 Applying $\fmext{\mathit{useGetLine}}$ to $\mathit{swapRead}$ results
 in the following interaction, where the second and third lines are
@@ -2145,9 +2150,9 @@ concrete effects. As we have observed in the case of list append in
 \autoref{sec:direct-eappend}, the mingling of such concerns can lead
 to unnecessarily complicated reasoning. Fortunately, a conceptually
 simpler solution is available: we take the coproduct of the free monad
-for the funcor $f$ that describes our abstract effects with the monad
+for the functor $f$ that describes our abstract effects with the monad
 $m$ that describes our concrete effects. We define the coproduct of
-two monads in \autoref{sec:coproducts-of-monads}, below, and
+two monads in \autoref{sec:coproducts-of-monads} below, and
 demonstrate how monad coproducts cleanly combine abstract effects with
 concrete effects. Before that, in the next section, we demonstrate how
 to construct free monads from initial $f$-algebras.
@@ -2239,7 +2244,7 @@ property of $\mu (\mathit{FreeMF}~f~a)$. Each of the properties
 required of free monads is proved by making use of
 \proofprinref{pp:initial-alg}. When we construct the coproduct of a
 free monad with an arbitrary monad in
-\autoref{sec:construct-coproducts} we will be able to reuse much of
+\autoref{sec:construct-coproducts} we will be able to reuse many of
 the definitions in \autoref{fig:construct-free-monads}.
 
 \subsection{Coproducts of monads}
@@ -2250,7 +2255,7 @@ the definitions in \autoref{fig:construct-free-monads}.
 In the introduction to this section, we intuitively described monad
 coproducts as the ``least commitment'' combination of a pair of
 monads. Formally, this least commitment aspect is realised as the
-existence of a \emph{unique} monad morphism out of a coproduct, for
+existence of a \emph{unique} monad morphism out of a coproduct for
 every way of interpreting its consistuent parts. Coproducts of monads
 are precisely coproducts in the category of monads and monad
 morphisms. The following definition sets out the precise conditions:
@@ -2310,10 +2315,9 @@ computations from the free monad and the $\mathit{IO}$ monad respectively:
     \end{array}
   \end{array}
 \end{displaymath}
-This program executes two read commands, which we have not yet
-provided an interpretation for, to read a pair of strings, and then
-executes a concrete $\mathit{IO}$ action to print the two strings in
-reverse order to the terminal.
+This program executes two abstract read commands to read a pair of
+strings, and then executes a concrete $\mathit{IO}$ action to print
+the two strings in reverse order to the terminal.
 
 We can provide an interpretation for the abstract $\mathit{read}$
 operations by combining the coproduct interface with the free monad
@@ -2398,7 +2402,7 @@ coproduct of a free monad with an arbitrary monad $m$ in terms of
 initial $f$-and-$m$-algebras. We program against the abstract
 interface of initial $f$-and-$m$-algebras, rather relying on any
 particular implementation. If we take the implementation that we
-presented in \autoref{sec:impl-f-and-m}, then the definition of
+presented in \autoref{sec:f-and-m-alg-impl}, then the definition of
 $(\cprd{(\mathit{FreeM}~f)}{m})~a$ unfolds to be
 $m~(\mathit{Mu}~(\mathit{FreeMF}~f~a \fcompose m))$, which is exactly
 the Haskell translation of the construction that Hyland \emph{et al.}
