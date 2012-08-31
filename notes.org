@@ -1,0 +1,5 @@
+- http://www.reddit.com/r/haskell/comments/uav9d/pipes_20_vs_pipescore/
+- http://www.reddit.com/r/haskell/comments/tm7ur/reasoning_about_stream_processing_with_effects/
+- http://www.reddit.com/r/haskell/comments/u8fe6/response_to_conduit_bugs/
+- http://www.reddit.com/r/haskell/comments/u7vyx/conduit_bugs/
+

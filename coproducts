@@ -1,0 +1,402 @@
+\newpage
+\appendix
+
+\section{Coproducts with Free Monads}
+
+Reproduce the result of Hyland \emph{et al.}
+
+\begin{enumerate}
+\item Define what the free monad is for all functors $f$
+\item Prove that it really is a monad
+\item Define what the sum of two monads is
+\item Show that the initial $(f + a)$-and-$m$-algebra is the sum of
+  the free $f$-monad and $m$
+\end{enumerate}
+
+\subsection{Free Monads}
+
+\begin{definition}[Free Monad]
+  Let $(f, \mathit{fmap}_f)$ be a functor. A free monad on
+  $(f,\mathit{fmap}_f)$ is a monad
+  \begin{displaymath}
+    (\mathit{FreeM}~f, \mathit{return}_{\mathit{FreeM}~f}, \mbind_{\mathit{FreeM}~f})
+  \end{displaymath}
+  such that for every monad $(m, \mathit{return_m}, \mbind_m)$ and
+  natural transformation $g :: f~a \to m~a$, there is a unique monad
+  morphism $h :: \mathit{FreeM}~f~a \to m~a$.
+\end{definition}
+
+Let $f$ be a functor, and define:
+\begin{displaymath}
+  \begin{array}{l}
+    \kw{data}~\mathit{FreeMF}~f~a~x \\
+    \quad\begin{array}{cl}
+      = & \mathsf{Var}~a \\
+      | & \mathsf{Term}~(f~x)
+    \end{array} \\
+    \\
+    \mathit{fmap}_{\mathit{FreeMF}} :: (x \to y) \to \mathit{FreeMF}~f~a~x \to \mathit{FreeMF}~f~a~y \\
+    \begin{array}{@{}l@{\hspace{0.4em}}l@{\hspace{0.4em}}lcl}
+      \mathit{fmap}_{\mathit{FreeMF}} & g & (\mathsf{Var}~a) & = & \mathsf{Var}~a \\
+      \mathit{fmap}_{\mathit{FreeMF}} & g & (\mathsf{Term}~\mathit{fx}) & = & \mathsf{Term}~(\mathit{fmap}_f~g~\mathit{fx})
+    \end{array}
+  \end{array}
+\end{displaymath}
+
+\begin{theorem}
+  Let $(f, \mathit{fmap}_f)$ be a functor, and suppose that an initial
+  $(\mathit{FreeMF}~f~a)$-algebra $(\mu (\mathit{FreeMF}~f~a),
+  \mathit{construct})$ exists for all $a$. Let:
+  \begin{displaymath}
+    \kw{type}~\mathit{FreeM}~f~a = \mu (\mathit{FreeMF}~f~a)
+  \end{displaymath}
+  Then the following definitions witness $\mathit{FreeF}~f$ as a monad:
+  \begin{displaymath}
+    \begin{array}{l}
+      \mathit{return}_{\mathit{FreeM}~f} :: a \to \mathit{FreeM}~f~a \\
+      \mathit{return}_{\mathit{FreeM}~f}~a = \mathit{construct}~(\mathsf{Var}~a) \\
+      \\
+      \mbind_{\mathit{FreeM}~f} :: \mathit{FreeM}~f~a \to (a \to \mathit{FreeM}~f~b) \to \mathit{FreeM}~f~b \\
+      c \mbind_{\mathit{FreeM}~f} g = \fold{\mathit{fAlgebra}}~c\\
+      \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+        \kw{where} & \mathit{fAlgebra}~(\mathsf{Var}~a) &=& g~a \\
+        & \mathit{fAlgebra}~(\mathsf{Term}~x)&=&\mathit{construct}~(\mathsf{Term}~x)
+      \end{array}
+    \end{array}
+  \end{displaymath}
+  Moreover, $\mathit{FreeM}~f$ is the free monad on the functor $f$.
+\end{theorem}
+
+Before we embark on the proof of this theorem, we first observe two
+properties of $\mbind_{\mathit{FreeM}~f}$ that follow directly from
+its definition in terms of an initial algebra:
+\begin{displaymath}
+  \begin{array}{rcl}
+    \mathit{construct}~(\mathsf{Var}~a) \mbind_{\mathit{FreeM}~f} g & = & g~a \\
+    \mathit{construct}~(\mathsf{Term}~\mathit{fx}) \mbind_{\mathit{FreeM}~f} g & = & \construct~(\mathsf{Term}~(\mathit{fmap}_f~(\lambda c.~c\mbind_{\mathit{FreeM}~f}g)~\mathit{fx})
+  \end{array}
+\end{displaymath}
+
+\begin{proof}
+  We first demonstrate that $\mathit{FreeF}~f$ is a monad with the
+  given definitions of $\mathit{return}$ and $\mbind$, by checking the
+  three required properties (FIXME: from defn X):
+  \begin{enumerate}
+  \item The first property---that $\mathit{return}_{\mathit{FreeM}~f}$
+    is a left unit---is a direct consequence of the first property of
+    $\mbind_{\mathit{FreeM}~f}$ that we noted above:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & \mathit{return}_{\mathit{FreeM}~f}~a \mbind_{\mathit{FreeM}~f} g \\
+        =&\eqAnnotation{definition of $\mathit{return}_{\mathit{FreeM}~f}$} \\
+        & \mathit{construct}~(\mathsf{Var}~a) \mbind_{\mathit{FreeM}~f} g \\
+        =&\eqAnnotation{first property of $\mbind_{\mathit{FreeM}~f}$} \\
+        & g~a
+      \end{array}
+    \end{displaymath}
+  \item The second property---that
+    $\mathit{return}_{\mathit{FreeM}~f}$ is a right unit---is stated
+    as follows:
+    \begin{displaymath}
+      c \mbind_{\mathit{FreeM}~f} \mathit{return} = c
+    \end{displaymath}
+    Unfolding the definition of $\mbind_{\mathit{FreeM}~f}$ yields:
+    \begin{displaymath}
+      \fold{\mathit{fAlgebra_{return}}}~c = c
+    \end{displaymath}
+    Following \proofprinref{pp:initial-alg}, we can show this equation
+    by proving, for all $x ::
+    \mathit{FreeMF}~f~a~(\mathit{FreeM}~f~a)$, the following:
+    \begin{displaymath}
+      \mathit{construct}~x = \mathit{fAlgebra_{return}}~x
+    \end{displaymath}
+    This task splits into two cases, depending on whether $x =
+    \mathsf{Var}~a$ or $x =\mathsf{Term}~\mathit{fx}$. In the former
+    case we reason as follows (from right to left):
+    \begin{displaymath}
+      \begin{array}{cl}
+        & \mathit{fAlgebra_{return}}~(\mathsf{Var}~a) \\
+        =&\eqAnnotation{definition of $\mathit{fAlgebra_{return}}$} \\
+        & \mathit{return}_{\mathit{FreeM}~f}~a \\
+        =&\eqAnnotation{definition of $\mathit{return}_{\mathit{FreeM}~f}$} \\
+        & \mathit{construct}~(\mathsf{Var}~a)
+      \end{array}
+    \end{displaymath}
+    In the latter case, when $x = \mathsf{Term}~\mathit{fx}$, the
+    equation to prove follows directly from the definition of
+    $\mathit{fAlgebra_{return}}$:
+    \begin{displaymath}
+      \mathit{fAlgebra}_{\mathit{return}}~(\mathsf{Term}~\mathit{fx}) = \mathit{construct}~(\mathsf{Term}~\mathit{fx})
+    \end{displaymath}
+
+  \item Finally, we prove the associativity property of
+    $\mbind_{\mathit{FreeM}~f}$:
+    \begin{displaymath}
+      c \mbind_{\mathit{FreeM}~f} (\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2) = (c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2
+    \end{displaymath}
+    Unfolding the leftmost occurrence of $\mbind_{\mathit{FreeM}~f}$
+    yields the following equation to be proved:
+    \begin{displaymath}
+      \fold{\mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}}~c = (c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2
+    \end{displaymath}
+    We now apply \proofprinref{pp:initial-alg}. Thus we need to show
+    the following equation for all $x ::
+    \mathit{FreeMF}~f~a~(\mathit{FreeM}~f~a)$:
+    \begin{displaymath}
+      \begin{array}{cl}
+        &(\mathit{construct}~x \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2\\
+        = &\mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathit{fmap}_{\mathit{FreeMF}~f~a}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~x)
+      \end{array}
+    \end{displaymath}
+    As above, this task splits into two, depending on whether $x =
+    \mathsf{Var}~a$ or $x = \mathsf{Term}~\mathit{fx}$. In the former
+    case, we reason as follows:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & (\mathit{construct}~(\mathsf{Var}~a) \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2\\
+        =&\eqAnnotation{first property of $\mbind_{\mathit{FreeM}~f}$} \\
+        & g_1~a \mbind_{\mathit{FreeM}~f} g_2 \\
+        =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}$}\\
+        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathsf{Var}~a) \\
+        =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{FreeMF}~f}$} \\
+        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathit{fmap}_{\mathit{FreeMF}~f}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~(\mathsf{Var}~a))
+      \end{array}
+    \end{displaymath}
+    In the latter case, when $x = \mathsf{Term}~\mathit{fx}$, we
+    reason as follows:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & (\mathit{construct}~(\mathsf{Term}~\mathit{fx}) \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2\\
+        =&\eqAnnotation{second property of $\mbind_{\mathit{FreeM}~f}$} \\
+        & \mathit{construct}~(\mathsf{Term}~(\mathit{fmap}_f~(\lambda c.~c \mbind_{\mathit{FreeM}~f} g_1)~\mathit{fx})) \mbind_{\mathit{FreeM}~f} g_2 \\
+        =&\eqAnnotation{second property of $\mbind_{\mathit{FreeM}~f}$} \\
+        & \mathit{construct}~(\mathsf{Term}~(\mathit{fmap_f}~(\lambda c.~c \mbind_{\mathit{FreeM}~f} g_2)~(\mathit{fmap_f}~(\lambda c.~c \mbind_{\mathit{FreeM}~f} g_1)~\mathit{fx}))) \\
+        =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition} \\
+        & \mathit{construct}~(\mathsf{Term}~(\mathit{fmap_f}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~\mathit{fx})) \\
+        =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\lambda x.~(g_1~x \mbind_{\mathit{FreeM}~f} g_1)}$} \\
+        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathsf{Term}~(\mathit{fmap_f}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~\mathit{fx})) \\
+        =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{FreeMF}~f~a}$} \\
+        & \mathit{fAlgebra}_{\lambda x.~g_1~x \mbind_{\mathit{FreeM}~f} g_2}~(\mathit{fmap}_{\mathit{FreeMF}~f~a}~(\lambda c.~(c \mbind_{\mathit{FreeM}~f} g_1) \mbind_{\mathit{FreeM}~f} g_2)~(\mathsf{Term}~\mathit{fx}))
+      \end{array}
+    \end{displaymath}
+  \end{enumerate}
+  We now demonstrate the free monad property. Let $g :: f~a \to m~a$
+  be a natural transformation. We define:
+  \begin{displaymath}
+    \begin{array}{l}
+      h :: \mathit{FreeM}~f~a \to m~a \\
+      h = \fold{alg} where alg (var a) = return a, alg (term fx) = join (g fx)
+    \end{array}
+  \end{displaymath}
+
+  \begin{enumerate}
+  \item $h$ is a monad morphism
+  \item 
+  \end{enumerate}
+\end{proof}
+
+\subsection{Coproducts of Monads}
+
+
+\subsection{Coproduct of a Free Monad with an Arbitrary Monad}
+
+The coproduct of $\mathit{FreeM}~f$ and $m$ is the initial
+$\mathit{FreeMF}~f~a$-and-$m$-algebra (FIXME: pointwise, indexed blah).
+
+Define $\mathit{CoprodM}~f~m~a$
+
+Define:
+\begin{displaymath}
+  \begin{array}{l}
+  \mathit{inj_1} :: \mathit{FreeM}~f~a \to \mathit{CoprodM}~f~m~a \\
+  \mathit{inj_1}~c = \fold{\mathit{fAlgebra}}~c \\
+  \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \kw{where}&\mathit{fAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}~(\mathsf{Var}~a) \\
+    &\mathit{fAlgebra}~(\mathsf{Term}~\mathit{fx}) &=& \mathit{construct}~(\mathsf{Term}~\mathit{fx})
+  \end{array}
+\end{array}
+\end{displaymath}
+
+FIXME: $\mathit{inj}_2$
+
+% WRONG
+% \begin{displaymath}
+%   \begin{array}{l}
+%     {}[-,-] :: (\forall a.~\mathit{FreeM}~f~a \to m'~a) \to (\forall a.~m~a \to m'~a) \to \mathit{CoprodM}~f~m~a \to m'~a \\
+%     {}[g_1,g_2] = \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}}\\
+%     \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+%       \kw{where}&\mathit{fAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}~(\mathsf{Var}~a) \\
+%       &\mathit{fAlgebra}~(\mathsf{Term}~\mathit{fx}) &=& \mathit{construct}~(\mathsf{Term}~\mathit{fx})
+%     \end{array}
+%   \end{array}
+% \end{displaymath}
+
+To prove:
+\begin{enumerate}
+\item $\mathit{CoprodM}~f~m$ with the above stuff is actually a monad:
+  this should go through exactly as for the non-interleaved case.
+\item $\mathit{inj}_1$ is a monad morphism
+\item $\mathit{inj}_2$ is a monad morphism
+\item The universal map exists, is a monad morphism, and is unique
+\end{enumerate}
+
+% \section{Streams, Transformers and Readers}
+
+% Longer worked example, and on-the-way develop the theory of effectful
+% paramorphisms.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% The arrow $\eFold{f}{g} : T(\mu FT) \to A$ satisfies the following two
+% properties:
+% \begin{displaymath}
+%   \begin{array}{c@{\hspace{3em}}c}
+%     \xymatrix{
+%       {F(T(\mu FT))}
+%       \ar[r]^(.6){F\eFold{f}{g}}
+%       \ar[d]_{\eta \circ \construct}
+%       &
+%       {FA}
+%       \ar[d]^{f}
+%       \\
+%       {T(\mu FT)}
+%       \ar[r]^(.6){\eFold{f}{g}}
+%       &
+%       {A}
+%     }
+%     &
+%     \xymatrix{
+%       {T(T(\mu FT))}
+%       \ar[r]^(.6){T\eFold{f}{g}}
+%       \ar[d]_\mu
+%       &
+%       {TA}
+%       \ar[d]^{g}
+%       \\
+%       {T(\mu FT)}
+%       \ar[r]^(.6){\eFold{f}{g}}
+%       &
+%       {A}
+%     }
+%   \end{array}
+% \end{displaymath}
+% and is the unique arrow to do so.
+
+% \section{Some Examples}
+
+% \paragraph{Non-effectful Lists}
+
+% Do a proof of the associativity of append for normal (finite) lists,
+% for the purposes of comparison to the proof for effectful lists.
+
+% \paragraph{Effectful Lists}
+
+% Let $FX = 1 + A \times X$. We define a function $\mathit{append} :
+% T(\mu FT) \times T(\mu FT) \to T(\mu FT)$ as follows:
+% \begin{displaymath}
+%   \begin{array}{l}
+%     \mathit{append}\ (\mathit{xs}, \mathit{ys}) = \eFold{f}{\mu}\ \mathit{xs} \\
+%     \quad \mathbf{where} \\
+%     \quad\quad f\ \mathsf{Nil} = \mathit{ys} \\
+%     \quad\quad f\ (\mathsf{Cons}\ a\ l) = \eta\ (\construct\ (\mathsf{Cons}\ a\ l))
+%   \end{array}
+% \end{displaymath}
+
+% Directly from the definition of $\mathit{append}$, we have the
+% following two equational properties, derived directly from the first
+% property of our effectful recursion scheme $\eFold{-}{-}$:
+% \begin{displaymath}
+%   \begin{array}{rcl}
+%     \mathit{append}\ (\eta\ (\construct\ \mathsf{Nil}), \mathit{ys}) &=& \mathit{ys} \\
+%     \mathit{append}\ (\eta\ (\construct\ (\mathsf{Cons}\ a\ \mathit{xs})), \mathit{ys}) &=& \eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}))))
+%   \end{array}
+% \end{displaymath}
+% We also have the following property, derived directly from the second
+% property of our effectful recursion scheme:
+% \begin{displaymath}
+%   \begin{array}{rcl}
+%     \mathit{append}\ (\mu\ \mathit{x}, \mathit{ys}) &=& \mu\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{ys}))\ \mathit{x})
+%   \end{array}
+% \end{displaymath}
+% We will use these three properties to prove the following lemma:
+
+% \begin{lemma}
+%   For all $\mathit{xs}, \mathit{ys}, \mathit{zs} : T(\mu FT)$,
+%   \begin{displaymath}
+%     \mathit{append}\ (\mathit{xs}, \mathit{append}\ (\mathit{ys}, \mathit{zs})) = \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs})
+%   \end{displaymath}
+% \end{lemma}
+
+% \begin{proof}
+%   We make use of the uniqueness of functions defined using the
+%   effectful recursion scheme... FIXME
+
+%   Need to prove that the right-hand side satisfies the two
+%   properties. The first property is:
+%   \begin{displaymath}
+%     \mathit{append}\ (\mathit{append}\ (\eta\ (\construct\ x), \mathit{ys}), \mathit{zs}) = f_1\ (F\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ x)
+%   \end{displaymath}
+%   where
+%   \begin{displaymath}
+%     \begin{array}{l}
+%       f_1\ \mathsf{Nil} = \mathit{append}\ (\mathit{xs}, \mathit{ys}) \\
+%       f_1\ (\mathsf{Cons}\ a\ l) = \eta\ (\construct\ (\mathsf{Cons}\ a\ l))
+%     \end{array}
+%   \end{displaymath}
+
+%   Case $x = \mathsf{Nil}$. The left hand side of the equation is:
+%   \begin{displaymath}
+%     \begin{array}{cl}
+%       & \mathit{append}\ (\mathit{append}\ (\eta\ (\construct\ \mathsf{Nil}), \mathit{ys}), \mathit{zs}) \\
+%       =&\mathit{append}\ (\mathit{ys}, \mathit{zs})
+%     \end{array}
+%   \end{displaymath}
+%   and the right hand side of the equation is:
+%   \begin{displaymath}
+%     \begin{array}{cl}
+%       & f_1\ (F\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ \mathsf{Nil}) \\
+%       =&f_1\ \mathsf{Nil} \\
+%       =&\mathit{append}\ (\mathit{xs}, \mathit{ys})
+%     \end{array}
+%   \end{displaymath}
+%   as required.
+
+%   Case $x = \mathsf{Cons}\ a\ \mathit{xs}$. The left hand side of the equation is:
+%   \begin{displaymath}
+%     \begin{array}{cl}
+%       & \mathit{append}\ (\mathit{append}\ (\eta\ (\construct\ (\mathsf{Cons}\ a\ \mathit{xs})), \mathit{ys}), \mathit{zs}) \\
+%       =&\mathit{append}\ (\eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{xs}, \mathit{ys})))), \mathit{zs}) \\
+%       =&\eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))))
+%     \end{array}
+%   \end{displaymath}
+%   and the right hand side of the equation to be proved is:
+%   \begin{displaymath}
+%     \begin{array}{cl}
+%       & f_1\ (F\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ (\mathsf{Cons}\ a\ \mathit{xs})) \\
+%       =&f_1\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))) \\
+%       =&\eta\ (\construct\ (\mathsf{Cons}\ a\ (\mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))))
+%     \end{array}
+%   \end{displaymath}
+%   as required.
+
+%   The second property is:
+%   \begin{displaymath}
+%     \mathit{append}\ (\mathit{append}\ (\mu\ x, \mathit{ys}), \mathit{zs})
+%     = \mu\ (T\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{append}\ \mathit{xs}, \mathit{ys}), \mathit{zs})\ x)
+%   \end{displaymath}
+%   We reason as follows, using the Eilenberg-Moore algebra homomorphism
+%   property of $\mathit{append}$, and the fact that functors preserve
+%   composition:
+%   \begin{displaymath}
+%     \begin{array}{cl}
+%       & \mathit{append}\ (\mathit{append}\ (\mu\ x, \mathit{ys}), \mathit{zs}) \\
+%       =&\mathit{append}\ (\mu\ (T\ (\lambda \mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{ys}))\ x), \mathit{zs}) \\
+%       =&\mu\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{zs}))\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{xs}, \mathit{ys}))\ \mathit{x})) \\
+%       =&\mu\ (T\ (\lambda\mathit{xs}.\ \mathit{append}\ (\mathit{append}\ (\mathit{xs}, \mathit{ys}), \mathit{zs}))\ \mathit{x})
+%     \end{array}
+%   \end{displaymath}
+%   as required. Thus the property is proved.
+% \end{proof}

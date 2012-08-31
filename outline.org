@@ -1,0 +1,139 @@
+title: Interleaving data and effects
+
+Goal is to demonstrate the effectiveness of f-and-m-algebras as a tool
+for defining recursive functions on inductive datatypes that
+interleave data and effects, and also for proving things about those
+functions. The idea is to keep the style very elementary, using
+relatively simple equational reasoning throughout, in the style of the
+Oxford-style algebra of programming papers.
+
+* Introduction
+
+  - The purpose of the introduction is to motivate the idea of
+    considering datatypes of the form "m (Mu (f . m))", where 'm' is a
+    monad, and 'f' is a functor.
+
+  - We use two examples
+
+** List processing with the possibility of errors
+
+   - Example of a simple lexer that takes a string of characters and
+     generates a list of tokens
+
+   - note that with this setup it is not possible to report a lexing
+     error without making use of Haskell's impure features
+
+   - Use interleaved data and effects to interleave the list of tokens
+     with the possibility of errors
+
+   - note that we have effectively defined a new list type, and which
+     brings the problem of having to redefine all the functions that
+     operate on lists, and also restate and prove their properties
+
+   - Later on, we will see how to conveniently program with
+     interleaved data and effects
+
+** List processing with the possibility of input/output
+
+   - Consider the problem of generating a list of characters from the
+     input
+
+   - Standard Haskell solution is to use unsafe interleaved IO, which
+     pretends that the input can be read 'lazily', but this violates
+     the purity of Haskell.
+
+   - Using interleaved data and effects, one can formally interleave
+     the use of IO with the pure data.
+
+   - But again, we have defined a new list type, and we will need to
+     restate and reprove all the associated functions and properties.
+
+** Common Generalisation
+
+   - Look back at the two example above and note the common structure
+     'm (Mu (f . m))'.
+
+   - Sketch the contents of the rest of the paper
+
+* Background
+
+  - Short survey of related work, including our FOSSACS paper, the
+    original Filinski and Støvring paper, and recent work by Gibbons
+    and Piroj.
+
+* Functors, algebras and folds
+
+  - Short introduction to the connection between initial algebras and
+    inductive datatypes
+
+  - Highlight the use of uniqueness of homomorphisms out of initial
+    algebras to prove properties of functions.
+
+  - Give the proof of associativity of append, which we will use as a
+    running example.
+
+* Direct reasoning about interleaved data and effects
+
+  - Set up notation and properties of monads
+
+  - attempt to use the initial algebra reasoning principle directly to
+    prove that append on interleaved pure and effectful lists is
+    associative, and note that the proof is long and unwieldy, and not
+    at all similar to the proof for pure lists.
+
+* Separating data and effects
+
+** Eilenberg Moore Algebras
+
+   - defined eilenberg-moore algebras, and give some examples
+
+   - especially the free, exponential and product examples
+
+** F-and-M-algebras
+
+   - describe F+S's concept of f-and-m algebra
+
+   - define what an initial f-and-m-algebra is
+
+   - state the associated proof principle derived from the uniqueness
+     property
+
+** Proof of associativity of append on effectful lists
+
+   - give the proof of associativity for append on effectful lists,
+     defined using f-and-m-algebras, noting that it is almost
+     identical to the case for non-effectful lists, in contrast to the
+     direct attempt.
+
+** Effectful list reverse?
+
+   - To show that not all properties translate directly over,
+     demonstrate that we no longer have the property that list reverse
+     is involutive on effectful lists.
+
+** When not to use f-and-m-algebras
+
+   - f-and-m-algebras are not always the most convenient way to define
+     recursive functions. give an example
+
+** From initial fm-algebras to initial f-and-m-algebras
+
+   - Show that if we have an initial fm-algebras, we can derived an
+     initial f-and-m-algebra. Do this directly, using equational
+     reasoning, rather than demonstrating the existence of an
+     adjunction as in the FOSSACS paper.
+
+** Implementation in Haskell
+
+   - Demonstrate how to implement the initial f-and-m-algebra in
+     Haskell using general recursion.
+
+* Extended example: Coproducts with Free Monads
+
+  - Do an extended example recreating the proof of Hyland et al. about
+    the structure of the coproduct of a free monad and an arbitrary
+    monad. Use the concept of (initial) f-and-m-algebra to simplify the
+    proofs.
+
+  - Explicitly cover the case of stream readers, linking back to the
+    IO example in the introduction.
