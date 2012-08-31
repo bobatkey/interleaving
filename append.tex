@@ -324,8 +324,11 @@ concrete effects in the monad $m$.  Kiselyov treats the
 $\mathit{Reader}~m~a~b$ type in isolation. In this article, we show
 that it can be regarded as an instance of an application of
 interleaved data and effects: the general construction of the
-coproduct of a free monad and an arbitrary monad. This construction
-builds on the general foundation of initial $f$-and-$m$-algebras.
+coproduct of a free monad and an arbitrary monad. Monad coproducts
+provide a general and canonical way of specifying the combination of
+two monads \cite{luth02composing}. The construction of the coproduct
+of a free monad and an arbitrary monad builds on the general
+foundation of initial $f$-and-$m$-algebras.
 
 \subsection{The content of this article}
 
@@ -339,7 +342,7 @@ follows:
   context. We highlight the proof principle associated with initial
   $f$-algebras (\proofprinref{pp:initial-alg}), and demonstrate that the
   initial $f$-algebra abstraction can be thought of as an abstract
-  interface for programming and reasoning against.
+  interface for programming and reasoning.
 \item We introduce our main running example of list append and its
   associativity property in \autoref{sec:pure-append}. In this
   section, we make use of the initial $f$-algebra methodology for pure
@@ -384,8 +387,7 @@ follows:
   monads that interleave abstract and concrete commands, as seen in
   the $\mathit{Reader}~m~a~b$ monad in the previous section. The monad
   coproduct structure further highlights the central theme of this
-  article: the separation of concerns of dealing with pure data and
-  effects.
+  article: the separation of concerns of pure data and effects.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -543,7 +545,7 @@ any functor $(f,\mathit{fmap_f})$.
   \end{displaymath}
   and
   \begin{displaymath}
-    \begin{array}{l}
+    \begin{array}[t]{l}
       \fold{-} :: (\mathit{ListF}~a~b \to b) \to [a] \to b \\
       \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
         \fold{\mathit{fAlgebra}}&[~]&=&\mathit{fAlgebra}~\mathsf{Nil} \\
@@ -589,7 +591,7 @@ functor are not unique: the types $[a]$ and
 $\mathit{Mu}~(\mathit{ListF}~a)$ are not equal, but they are both
 initial $(\mathit{ListF}~a)$-algebras. Therefore, we regard the
 initial $f$-algebra abstraction as an interface to program against,
-rather than thinking of specific implementations such as
+rather than thinking in terms of specific implementations such as
 $\mathit{Mu}~f$. Note that it is possible to prove that any two
 initial $f$-algebras are isomorphic, by using the initial algebra
 property to define the translations between, and
@@ -1003,13 +1005,13 @@ the definition of $\mathit{eAppend}$ too early.
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
       &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
+      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
     \end{array}
   \end{displaymath}
   \begin{displaymath}
     \begin{array}{cl}
-      =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
-      & \hspace{1cm}(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
       =&\eqAnnotation{monad law: $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap}_m~\mathit{join_m}$ (\autoref{eq:monad-join-join})} \\
       &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\mathit{join_m}~\\
@@ -1224,7 +1226,7 @@ in \autoref{sec:f-algebras}.
 
 \subsection{Definition of \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 
-As we indicated above, an $f$-and-$m$-algebra is consists of an
+As we indicated above, an $f$-and-$m$-algebra consists of an
 $f$-algebra and an $m$-Eilenberg-Moore-algebra with the same
 carrier. Intuitively, the $f$-algebra part deals with the pure parts
 of the structure, and the $m$-Eilenberg-Moore-algebra part deals with
@@ -1304,7 +1306,7 @@ homomorphism.
   Let $(a, \mathit{fAlgebra}, \mathit{mAlgebra})$ be some
   $f$-and-$m$-algebra, and let
   $\eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}}$ denote the induced
-  function of type $\mu(f,m) \to a$. For any function $g :: \mu(f,m)
+  function of type $\mu(f|m) \to a$. For any function $g :: \mu(f|m)
   \to a$, we can prove the equation:
   \begin{displaymath}
     \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = g
