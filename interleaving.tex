@@ -145,6 +145,10 @@ described by the following datatype declaration:
     \quad \mathsf{List_{io}}~(\mathit{IO}~\mathit{List'_{io}})
   \end{array}
 \end{displaymath}
+Similarly, as we shall see in \autoref{sec:motivate-interleaving},
+Haskell's lazy datatypes can thought of as pure data interleaved with
+the possibility of non-termination.
+
 Using the initial $f$-algebra methology to program with and reason
 about such datatypes forces us to mingle the pure and effectful parts
 of our programs and proofs in a way that obscures their essential
@@ -176,6 +180,8 @@ benefits:
   side condition that is discharged almost trivially.
 \end{itemize}
 
+% FIXME: side benefit of making things explicit?
+
 The concept of initial $f$-and-$m$-algebras is originally due to
 Filinski and St\o{}vring \cite{filinski07inductive}, and was
 subsequently extended to a general category-theoretic setting for
@@ -188,23 +194,32 @@ prerequisites of our previous work.
 \subsection{Interleaving data and effects}
 \label{sec:motivate-interleaving}
 
-To motivate the consideration of interleaved data and effects, we
-consider a function in the Haskell standard library that is not as
-straightfoward as its type implies. The $\mathit{hGetContents}$
-function provides an example of \emph{implicit} interleaving of data
-with effects. This function has the following type:
+To motivate our consideration of interleaved data and effects, we give
+in this section two scenarios where Haskell \emph{implicitly}
+interleaves effects with pure data. By making this implicit
+interleaving explicit, we will see in the main body of this article
+how the $f$-and-$m$-algebra formalism allows for the implicit
+assumptions made when reasoning about Haskell datatypes using initial
+$f$-algebras can also be made explicit.
+
+\paragraph{I/O Effects}
+
+The $\mathit{hGetContents}$ function from the Haskell standard library
+provides an example of implicit interleaving of data with input/output
+(I/O) effects. The $\mathit{hGetContents}$ function has the following
+type:
 \begin{displaymath}
   \mathit{hGetContents} :: \mathit{Handle} \to \mathit{IO}~[\mathit{Char}]
 \end{displaymath}
 Reading the type of this function, one might assume that it operates
 by reading all the available data from the file referenced by the
-given handle as an $\mathit{IO}$ action, and then returning the list
-of characters as pure data. In fact, the standard implementation of
-this function postpones the input effects until the list is actually
-accessed by the program. The effect of reading from the file handle is
-implicitly \emph{interleaved} with any later pure computation on the
-list. This interleaving is not made apparent in the type of
-$\mathit{hGetContents}$, and this has the following undesirable
+given handle as an $\mathit{IO}$ action, and then returns the list of
+characters as pure data. In fact, the standard implementation of this
+function postpones the reading of data from the handle until the list
+is actually accessed by the program. The effect of reading from the
+file handle is implicitly \emph{interleaved} with any later pure
+computation on the list. This interleaving is not made apparent in the
+type of $\mathit{hGetContents}$, with the following undesirable
 consequences:
 \begin{itemize}
 \item Input/output errors that occur during reading (e.g.,~network
@@ -228,10 +243,105 @@ file being read may be larger than the available memory, so reading it
 all into a buffer may not be possible. However, the type of
 $\mathit{hGetContents}$ fails to make the interleaving explicit.
 
-We can make the interleaving explicit by declaring a new type of lists
-interleaved with some effects described by a monad $m$. This
-generalises the definition of $\mathit{List_{io}}$ from
-\hyperref[defn:listio]{Page \pageref*{defn:listio}}:
+Using the $\mathit{List_{io}}$ types defined on
+\hyperref[defn:listio]{Page \pageref*{defn:listio}}, we can give an
+implementation of $\mathit{hGetContents}$ whose type makes explicit
+the interleaving of data and effects. A simple implementation can be
+given in terms of the standard Haskell primitives for performing IO on
+file handles:
+\begin{displaymath}
+  \begin{array}{l}
+  \mathit{hGetContents} :: \mathit{Handle} \to \mathit{List_{io}}~\mathit{Char} \\
+  \begin{array}{@{}l@{\hspace{0.2em}}l}
+    \mathit{hGetContents}~h = \mathsf{List_{io}}~(\kw{do} & \mathit{isEOF} \leftarrow \mathit{hIsEOF}~h \\
+    & \kw{if}~\mathit{isEOF}~\kw{then}~\mathit{return}~\mathsf{Nil}_{\mathit{io}} \\
+    & \kw{else}~\kw{do}~
+    \begin{array}[t]{@{}l}
+      c \leftarrow \mathit{hGetChar}~h \\
+      \mathit{return}~(\mathsf{Cons}_{\mathit{io}}~c~(\mathit{hGetContents}~h)))
+    \end{array}
+  \end{array}
+\end{array}
+\end{displaymath}
+By using the $\mathit{List_{io}}~\mathit{Char}$ datatype, we
+have made the possibility of effects between the elements of the list
+explicit. Therefore, the problems we identified above with implicit
+interleaving are solved: input/output failures are reported within the
+scope of $\mathit{IO}$ actions, and we have access to the
+$\mathit{IO}$ monad to explicitly close the file.
+
+FIXME: forward reference to discussion of iteratees etc.
+
+\paragraph{Non-termination} Our second example of implicitly
+interleaved effects is built in to every Haskell type: the possibility
+of non-termination while inspecting a pure value. Haskell dictates a
+lazy evaluation strategy where the computation of a value is only
+invoked if the value is actually used. For the purposes of reasoning
+about Haskell programs, we can model the possibility of
+non-termination by using the \emph{lifting} or \emph{non-termination}
+monad, $(-)_\bot$, which adds a bottom element $\bot$ to a type,
+representing the possibility of non-termination. Every Haskell type is
+implicitly lifted using this monad.
+
+A well-known advantage of Haskell's implicit possibility of
+non-termination at every type is the easy representation of infinite
+data structures. Laziness means that the computations that generate an
+infinite value are evaluated \emph{on demand} as the structure is
+explored. In fact, we implicitly used this facility in our definition
+of $\mathit{hGetContents}$ above to deal with the possibility of
+$\mathit{Handle}$s that may return infinite streams of
+values. Unfortunately, the beneficial capability of representing
+infinite data structures comes with the downside that we can no longer
+distinguish, just by looking at the types, between finite lists and
+possibly infinite lists: both are assigned the type $[a]$ for some
+$a$. It is often the case that functions are written under the
+assumption that they are only applied to finite lists (for example,
+the standard $\mathit{reverse}$ function). Likewise, when reasoning
+about Haskell programs it often is assumed that lists are finite, so
+that standard techniques like induction may be applied.
+
+To make these implicit assumptions explicit, we take the example of
+$\mathit{List_{io}}$ in the introduction, and alter it to yield the
+type $\mathit{List_{lazy}}$ of lists interleaved with the possibility
+of non-termination:
+\begin{displaymath}
+  \begin{array}{ll}
+    \kw{data}~\mathit{List'_{\mathit{lazy}}}~a
+    &
+    \kw{newtype}~\mathit{List}_{\mathit{lazy}}~a =
+    \\
+    \quad
+    \begin{array}[t]{c@{\hspace{0.5em}}l}
+      = & \mathsf{Nil_{\mathit{lazy}}} \\
+      | & \mathsf{Cons_{\mathit{lazy}}}~a~(\mathit{List_{lazy}}~a) \\
+    \end{array}
+    &
+    \quad \mathsf{List}_{\mathit{lazy}}~(\mathit{List'_{lazy}}~a)_\bot
+  \end{array}
+\end{displaymath}
+Thus a value of type $\mathit{List_{lazy}}~a$ is a possibly
+non-terminating computation that results in either a
+$\mathsf{Nil}_{\mathit{lazy}}$ constructor, or
+$\mathsf{Cons}_{\mathit{lazy}}$ constructor with a value of type $a$
+and another $\mathit{List_{lazy}}~a$. (Note that, for simplicity's
+sake, we have not modelled the fact that constructors of datatypes in
+Haskell also evaluate their arguments lazily.)
+
+Correctly reasoning about values of type $\mathit{List_{lazy}}~a$, and
+other lazy data structures, has traditionally required the use of
+domain-theoretic techniques (Pitts, \cite{pitts-relational}, provides
+a comprehensive overview). The technique of using $f$-and-$m$-algebras
+that we present in this article allows sound reasoning about lazy data
+structures at an abstract level, dispensing with the need to directly
+invoke domain-theoretic concepts. Indeed, Filinski and St\o{}vring
+used lazy data structures as their initial motivation for introducing
+$f$-and-$m$-algebras \cite{filinski07inductive}.
+
+\paragraph{A common generalisation} We have now seen two examples of
+list-like datatypes with interleaved effects, $\mathit{List_{io}}$
+from \hyperref[defn:listio]{Page \pageref*{defn:listio}} and the
+$\mathit{List_{lazy}}$ example above. The obvious common
+generalisation is to abstract over the monad $m$:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{List'}~m~a
@@ -253,81 +363,85 @@ or a $\mathsf{Cons_m}$ with a value of type $a$ and another value of
 type $\mathit{List}~m~a$. Thus this datatype describes lists of values
 of type $a$ interleaved with effects from the monad $m$.
 
-We can re-implement $\mathit{hGetContents}$ to generate values of type
-$\mathit{List}~\mathit{IO}~\mathit{Char}$. An simple implementation
-can be given in terms of the standard Haskell primitives for
-performing IO on file handles:
-\begin{displaymath}
-  \begin{array}{l}
-  \mathit{hGetContents} :: \mathit{Handle} \to \mathit{List}~\mathit{IO}~\mathit{Char} \\
-  \begin{array}{@{}l@{\hspace{0.2em}}l}
-    \mathit{hGetContents}~h = \mathsf{List}~(\kw{do} & \mathit{isEOF} \leftarrow \mathit{hIsEOF}~h \\
-    & \kw{if}~\mathit{isEOF}~\kw{then}~\mathit{return}~\mathsf{Nil} \\
-    & \kw{else}~\kw{do}~
-    \begin{array}[t]{@{}l}
-      c \leftarrow \mathit{hGetChar}~h \\
-      \mathit{return}~(\mathsf{Cons}~c~(\mathit{hGetContents}~h)))
-    \end{array}
-  \end{array}
-\end{array}
-\end{displaymath}
-By using the $\mathit{List}~\mathit{IO}~\mathit{Char}$ datatype, we
-have made the possibility of effects between the elements of the list
-explicit. Therefore, the problems we identified above with implicit
-interleaving are solved: input/output failures are reported within the
-scope of $\mathit{IO}$ actions, and we have access to the
-$\mathit{IO}$ monad to explicitly close the file.
-
-The Haskell community
-%\todo{link to Hackage}
-has also defined many other datatypes that capture the interleaving of
-effects with pure data\footnote{For example, the \texttt{iteratees},
-  \texttt{iterIO}, \texttt{conduits}, \texttt{enumerators}, and
-  \texttt{pipes} Haskell libraries all make use of interleaved data
-  and effects. These libraries are all available from the Hackage
-  archive of Haskell libraries
-  (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
-to make explicit the interleaving implicit in the
-$\mathit{hGetContents}$ function. One of the earliest was Kiselyov's
-Iteratees, later described in a conference publication
-\cite{kiselyov12iteratees}. In essence, Iteratees are descriptions of
-functions that alternate reading from some input with effects in some
-monad, eventually yielding some output. This can be described by the
-following datatype, which follows the same pattern of mutual recursion
-as the $\mathit{List}~m~a$ datatype declaration:
+We can now generalise further by replacing the constructors
+$\mathsf{Nil}$ and $\mathsf{Cons}$ with an arbitrary functor $f$ that
+describes the data to be interleaved with the effects of the monad
+$m$. Doing so, we arrive at the following definition:
 \begin{displaymath}
   \begin{array}{ll}
-    \kw{data}~\mathit{Reader'}~m~a~b
+    \kw{data}~\mathit{Mu'}~f~m
     &
-    \kw{newtype}~\mathit{Reader}~m~a~b = 
+    \kw{newtype}~\mathit{Mu}~f~m = 
     \\
     \quad
     \begin{array}[t]{c@{\hspace{0.5em}}l}
-      = & \mathsf{Input}~(\mathit{Maybe}~a \to \mathit{Reader}~m~a~b) \\
-      | & \mathsf{Yield}~b
+      = & \mathsf{In}~(f~(\mathit{Mu}~f~m))
     \end{array}
     &
-    \quad \mathsf{Reader}~(m~(\mathit{Reader'}~m~a~b))
+    \quad \mathsf{Mu}~(m~(\mathit{Mu'}~f~m))
   \end{array}
 \end{displaymath}
-A value of type $\mathit{Reader}~m~a~b$ is some effect described by
-the monad $m$, yielding either a result of type $b$, or a request for
-input. As Kiselyov demonstrates, the fact that values of type
-$\mathit{Reader}~m~a~b$ abstract the source of the data that they read
-is extremely powerful: different constructions allow values of type
-$\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
-input/output devices, all while retaining the ability to perform
-concrete effects in the monad $m$.  Kiselyov treats the
-$\mathit{Reader}~m~a~b$ type in isolation. In this article, we show
-that it can be regarded as an instance of an application of
-interleaved data and effects: the general construction of the
-coproduct of a free monad and an arbitrary monad. Monad coproducts
-provide a general and canonical way of specifying the combination of
-two monads \cite{luth02composing}. The construction of the coproduct
-of a free monad and an arbitrary monad builds on the general
-foundation of initial $f$-and-$m$-algebras.
+This definition makes it clear that the datatypes we are considering
+interleave pure data, represented by the functor $f$, with effects,
+represented by the monad $m$. The aim of this article is to show that
+$f$-and-$m$-algebras are the appropriate level of abstraction both for
+defining functions that operate on values of type $\mathit{Mu}~f~m$,
+and for reasoning about them.
 
-\subsection{The content of this article}
+% \bigskip
+
+% FIXME: move this lot to the related work section.
+
+% The Haskell community
+% %\todo{link to Hackage}
+% has also defined many other datatypes that capture the interleaving of
+% effects with pure data\footnote{For example, the \texttt{iteratees},
+%   \texttt{iterIO}, \texttt{conduits}, \texttt{enumerators}, and
+%   \texttt{pipes} Haskell libraries all make use of interleaved data
+%   and effects. These libraries are all available from the Hackage
+%   archive of Haskell libraries
+%   (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
+% to make explicit the interleaving implicit in the
+% $\mathit{hGetContents}$ function. One of the earliest was Kiselyov's
+% Iteratees, later described in a conference publication
+% \cite{kiselyov12iteratees}. In essence, Iteratees are descriptions of
+% functions that alternate reading from some input with effects in some
+% monad, eventually yielding some output. This can be described by the
+% following datatype, which follows the same pattern of mutual recursion
+% as the $\mathit{List}~m~a$ datatype declaration:
+% \begin{displaymath}
+%   \begin{array}{ll}
+%     \kw{data}~\mathit{Reader'}~m~a~b
+%     &
+%     \kw{newtype}~\mathit{Reader}~m~a~b = 
+%     \\
+%     \quad
+%     \begin{array}[t]{c@{\hspace{0.5em}}l}
+%       = & \mathsf{Input}~(\mathit{Maybe}~a \to \mathit{Reader}~m~a~b) \\
+%       | & \mathsf{Yield}~b
+%     \end{array}
+%     &
+%     \quad \mathsf{Reader}~(m~(\mathit{Reader'}~m~a~b))
+%   \end{array}
+% \end{displaymath}
+% A value of type $\mathit{Reader}~m~a~b$ is some effect described by
+% the monad $m$, yielding either a result of type $b$, or a request for
+% input. As Kiselyov demonstrates, the fact that values of type
+% $\mathit{Reader}~m~a~b$ abstract the source of the data that they read
+% is extremely powerful: different constructions allow values of type
+% $\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
+% input/output devices, all while retaining the ability to perform
+% concrete effects in the monad $m$.  Kiselyov treats the
+% $\mathit{Reader}~m~a~b$ type in isolation. In this article, we show
+% that it can be regarded as an instance of an application of
+% interleaved data and effects: the general construction of the
+% coproduct of a free monad and an arbitrary monad. Monad coproducts
+% provide a general and canonical way of specifying the combination of
+% two monads \cite{luth02composing}. The construction of the coproduct
+% of a free monad and an arbitrary monad builds on the general
+% foundation of initial $f$-and-$m$-algebras.
+
+\subsection{The contents of this article}
 
 We aim to make this article relatively self-contained, so we include the
 necessary background to enable the reader to follow our proofs and
