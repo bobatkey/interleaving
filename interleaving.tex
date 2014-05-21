@@ -33,6 +33,7 @@
 \newcommand{\proofprinref}[1]{\hyperref[#1]{Proof Principle \ref*{#1}}}
 \newcommand{\thmref}[1]{\hyperref[#1]{Theorem \ref*{#1}}}
 \newcommand{\defref}[1]{\hyperref[#1]{Definition \ref*{#1}}}
+\newcommand{\appendixref}[1]{\hyperref[#1]{Appendix \ref*{#1}}}
 
 \newcommand{\kw}[1]{\textbf{#1}}
 
@@ -1782,136 +1783,7 @@ that have to do with interleaved data and effects.
 \end{theorem}
 
 \begin{proof*}
-  The $f$-algebra and $m$-Eilenberg-Moore-algebra structure are
-  constructed from the $(f \circ m)$-algebra structure map
-  $\mathit{construct}$ and the structure of the monad $m$.  For the
-  $f$-algebra component, we use the composite:
-  \begin{displaymath}
-    \mathit{construct}_f = \mathit{return}_m \circ \mathit{construct} :: f~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
-  \end{displaymath}
-  The $m$-Eilenberg-Moore-algebra component is straightforward, using
-  the free Eilenberg-Moore-algebra construction from
-  \autoref{sec:eilenberg-moore-algebras}:
-  \begin{displaymath}
-    \mathit{construct}_m = \mathit{join}_m :: m~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
-  \end{displaymath}
-  Since we have used the free Eilenberg-Moore-algebra construction, we
-  are automatically guaranteed that we have an
-  $m$-Eilenberg-Moore-algebra.
-
-  Now let us assume we are given an $f$-and-$m$-algebra $(a,
-  \mathit{fAlgebra}_a, \mathit{mAlgebra}_a)$. We construct, and prove
-  unique, an $f$-and-$m$-algebra homomorphism $h$ from the algebra
-  $(m~(\mu(f \circ m)), \mathit{construct}_f, \mathit{construct}_m)$
-  to the algebra with carrier $a$ using the initiality of $\mu(f \circ
-  m)$:
-  \begin{displaymath}
-    h = \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} :: m~(\mu(f \circ m)) \to a
-  \end{displaymath}
-  Close inspection of $h$ reveals that it has the same structure as
-  the definition of $\mathit{eAppend}$ in terms of initial
-  $f$-algebras we gave in \autoref{sec:direct-eappend}. Therefore, as
-  we noted in the introduction to this subsection, the construction we
-  are buliding here abstracts out the common parts of proofs and
-  definitions on effectful datatypes.
-
-  To complete our proof, we now need to demonstrate that $h$ is an
-  $f$-and-$m$-algebra homomorphism, and that it is the unique such. We
-  split this task into three steps:
-  \begin{enumerate}
-  \item The function $h$ is an $f$-algebra homomorphism. We reason as
-    follows:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & h \circ \mathit{construct}_f \\
-        =&\eqAnnotation{definitions of $h$ and $\mathit{construct_f}$} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{return}_m \circ \mathit{construct} \\
-        =&\eqAnnotation{naturality of $\mathit{return}_m$ (\autoref{eq:monad-return-natural})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{return}_m \circ \fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
-        =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an $m$-Eilenberg-Moore-algebra (\autoref{eq:em-alg-return})} \\
-         &\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
-        =&\eqAnnotation{$\fold{-}$ is an $(f \circ m)$-algebra homomorphism (\autoref{eq:falgebra-homomorphism})} \\
-         &\mathit{fAlgebra}_a \circ \\
-         & \hspace{1cm}\mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-    \end{array}
-  \end{displaymath}
-  \begin{displaymath}
-    \begin{array}{cl}
-        =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
-         &\mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-        =&\eqAnnotation{definition of $h$} \\
-         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h
-      \end{array}
-    \end{displaymath}
-  \item The function $h$ is an $m$-Eilenberg-Moore-algebra
-    homomorphism, as shown by the following steps:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & h \circ \mathit{construct_m} \\
-        =&\eqAnnotation{definitions of $h$ and $\mathit{construct}_m$} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{join}_m \\
-        =&\eqAnnotation{naturality of $\mathit{join}_m$ (\autoref{eq:monad-join-natural})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-        =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
-         &\mathit{mAlgebra}_a \circ \\
-         &\hspace{1cm}\mathit{fmap}_m~\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-        =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-        =&\eqAnnotation{definition of $h$} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h
-      \end{array}
-    \end{displaymath}
-  \item The function $h$ is the unique such $f$-and-$m$-algebra. Let
-    us assume that there exists another $f$-and-$m$-algebra
-    homomorphism $h' :: m~(\mu(f \circ m)) \to a$. We aim to show that
-    $h = h'$. We first observe that the following function defined by composition:
-    \begin{displaymath}
-      h' \circ \mathit{return}_m :: \mu(f \circ m) \to a
-    \end{displaymath}
-    is an $(f \circ m)$-algebra homomorphism
-    from $(\mu(f \circ m), \mathit{construct})$ to $(a, \mathit{fAlgebra}_a
-    \circ \mathit{fmap}_f~\mathit{mAlgebra}_a)$, as verified by the
-    following steps:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & h' \circ \mathit{return}_m \circ \mathit{construct} \\
-        =&\eqAnnotationS{definition of $\mathit{construct}_f$} \\
-        & h' \circ \mathit{construct}_f \\
-        =&\eqAnnotationS{$h'$ is an $f$-and-$m$-algebra homomorphism} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h' \\
-        =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$ (\autoref{eq:monad-join-fmap-return})} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m) \\
-        =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h' \circ \mathit{fmap}_m~\mathit{return}_m) \\
-        =&\eqAnnotationS{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~(h' \circ \mathit{return}_m))
-      \end{array}
-    \end{displaymath}
-    Thus, by the uniqueness of $(f \circ m)$-algebra homomorphisms out
-    of $\mu(f \circ m)$, we have proved that 
-    \begin{equation}\label{eq:h'-prop}
-      h' \circ \mathit{return}_m = \fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}
-    \end{equation}
-    We now use this equation to prove that $h=h'$ by the following
-    steps:
-    \begin{displaymath}
-      \begin{array}{cl}
-        & h \\
-        =&\eqAnnotationS{definition of $h$} \\
-        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \\
-        =&\eqAnnotationS{\autoref{eq:h'-prop}} \\
-        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(h' \circ \mathit{return}_m) \\
-        =&\eqAnnotationS{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~{h'} \circ \mathit{fmap}_m~\mathit{return}_m \\
-        =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
-        &h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m \\
-        =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$} \\
-        &h'
-      \end{array}
-    \end{displaymath}
-    Thus $h$ is the unique $f$-and-$m$-algebra homomorphism from
-    $m~(\mu (f \circ m))$ to $a$. \mathproofbox
-  \end{enumerate}
+  See \appendixref{sec:make-initial-fm-proof}.
 \end{proof*}
 
 In the current authors' previous work \cite{atkey12fibrational}, this
@@ -2594,5 +2466,144 @@ $f$-and-$m$-algebras.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{jfp}
 \bibliography{paper}
+
+\appendix
+
+\section{Proof of \thmref{thm:make-initial-f-and-m-alg}}
+\label{sec:make-initial-fm-proof}
+
+\begin{proof*}
+  The $f$-algebra and $m$-Eilenberg-Moore-algebra structure are
+  constructed from the $(f \circ m)$-algebra structure map
+  $\mathit{construct}$ and the structure of the monad $m$.  For the
+  $f$-algebra component, we use the composite:
+  \begin{displaymath}
+    \mathit{construct}_f = \mathit{return}_m \circ \mathit{construct} :: f~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
+  \end{displaymath}
+  The $m$-Eilenberg-Moore-algebra component is straightforward, using
+  the free Eilenberg-Moore-algebra construction from
+  \autoref{sec:eilenberg-moore-algebras}:
+  \begin{displaymath}
+    \mathit{construct}_m = \mathit{join}_m :: m~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
+  \end{displaymath}
+  Since we have used the free Eilenberg-Moore-algebra construction, we
+  are automatically guaranteed that we have an
+  $m$-Eilenberg-Moore-algebra.
+
+  Now let us assume we are given an $f$-and-$m$-algebra $(a,
+  \mathit{fAlgebra}_a, \mathit{mAlgebra}_a)$. We construct, and prove
+  unique, an $f$-and-$m$-algebra homomorphism $h$ from the algebra
+  $(m~(\mu(f \circ m)), \mathit{construct}_f, \mathit{construct}_m)$
+  to the algebra with carrier $a$ using the initiality of $\mu(f \circ
+  m)$:
+  \begin{displaymath}
+    h = \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} :: m~(\mu(f \circ m)) \to a
+  \end{displaymath}
+  Close inspection of $h$ reveals that it has the same structure as
+  the definition of $\mathit{eAppend}$ in terms of initial
+  $f$-algebras we gave in \autoref{sec:direct-eappend}. Therefore, as
+  we noted in the introduction to this subsection, the construction we
+  are buliding here abstracts out the common parts of proofs and
+  definitions on effectful datatypes.
+
+  To complete our proof, we now need to demonstrate that $h$ is an
+  $f$-and-$m$-algebra homomorphism, and that it is the unique such. We
+  split this task into three steps:
+  \begin{enumerate}
+  \item The function $h$ is an $f$-algebra homomorphism. We reason as
+    follows:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & h \circ \mathit{construct}_f \\
+        =&\eqAnnotation{definitions of $h$ and $\mathit{construct_f}$} \\
+         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{return}_m \circ \mathit{construct} \\
+        =&\eqAnnotation{naturality of $\mathit{return}_m$ (\autoref{eq:monad-return-natural})} \\
+         &\mathit{mAlgebra}_a \circ \mathit{return}_m \circ \fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
+        =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an $m$-Eilenberg-Moore-algebra (\autoref{eq:em-alg-return})} \\
+         &\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
+        =&\eqAnnotation{$\fold{-}$ is an $(f \circ m)$-algebra homomorphism (\autoref{eq:falgebra-homomorphism})} \\
+         &\mathit{fAlgebra}_a \circ \\
+         & \hspace{1cm}\mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+    \end{array}
+  \end{displaymath}
+  \begin{displaymath}
+    \begin{array}{cl}
+        =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
+         &\mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+        =&\eqAnnotation{definition of $h$} \\
+         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h
+      \end{array}
+    \end{displaymath}
+  \item The function $h$ is an $m$-Eilenberg-Moore-algebra
+    homomorphism, as shown by the following steps:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & h \circ \mathit{construct_m} \\
+        =&\eqAnnotation{definitions of $h$ and $\mathit{construct}_m$} \\
+         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{join}_m \\
+        =&\eqAnnotation{naturality of $\mathit{join}_m$ (\autoref{eq:monad-join-natural})} \\
+         &\mathit{mAlgebra}_a \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+        =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
+         &\mathit{mAlgebra}_a \circ \\
+         &\hspace{1cm}\mathit{fmap}_m~\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+        =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
+         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+        =&\eqAnnotation{definition of $h$} \\
+         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h
+      \end{array}
+    \end{displaymath}
+  \item The function $h$ is the unique such $f$-and-$m$-algebra. Let
+    us assume that there exists another $f$-and-$m$-algebra
+    homomorphism $h' :: m~(\mu(f \circ m)) \to a$. We aim to show that
+    $h = h'$. We first observe that the following function defined by composition:
+    \begin{displaymath}
+      h' \circ \mathit{return}_m :: \mu(f \circ m) \to a
+    \end{displaymath}
+    is an $(f \circ m)$-algebra homomorphism
+    from $(\mu(f \circ m), \mathit{construct})$ to $(a, \mathit{fAlgebra}_a
+    \circ \mathit{fmap}_f~\mathit{mAlgebra}_a)$, as verified by the
+    following steps:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & h' \circ \mathit{return}_m \circ \mathit{construct} \\
+        =&\eqAnnotationS{definition of $\mathit{construct}_f$} \\
+        & h' \circ \mathit{construct}_f \\
+        =&\eqAnnotationS{$h'$ is an $f$-and-$m$-algebra homomorphism} \\
+        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h' \\
+        =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$ (\autoref{eq:monad-join-fmap-return})} \\
+        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m) \\
+        =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
+        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h' \circ \mathit{fmap}_m~\mathit{return}_m) \\
+        =&\eqAnnotationS{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
+        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~(h' \circ \mathit{return}_m))
+      \end{array}
+    \end{displaymath}
+    Thus, by the uniqueness of $(f \circ m)$-algebra homomorphisms out
+    of $\mu(f \circ m)$, we have proved that 
+    \begin{equation}\label{eq:h'-prop}
+      h' \circ \mathit{return}_m = \fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}
+    \end{equation}
+    We now use this equation to prove that $h=h'$ by the following
+    steps:
+    \begin{displaymath}
+      \begin{array}{cl}
+        & h \\
+        =&\eqAnnotationS{definition of $h$} \\
+        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \\
+        =&\eqAnnotationS{\autoref{eq:h'-prop}} \\
+        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(h' \circ \mathit{return}_m) \\
+        =&\eqAnnotationS{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
+        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~{h'} \circ \mathit{fmap}_m~\mathit{return}_m \\
+        =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
+        &h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m \\
+        =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$} \\
+        &h'
+      \end{array}
+    \end{displaymath}
+    Thus $h$ is the unique $f$-and-$m$-algebra homomorphism from
+    $m~(\mu (f \circ m))$ to $a$. \mathproofbox
+  \end{enumerate}
+\end{proof*}
+
 
 \end{document}
