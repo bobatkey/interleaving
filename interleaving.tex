@@ -374,24 +374,27 @@ describes the data to be interleaved with the effects of the monad
 $m$. Doing so, we arrive at the following definition:
 \begin{displaymath}
   \begin{array}{ll}
-    \kw{data}~\mathit{Mu'}~f~m
+    \kw{data}~\mathit{MuFM_0'}~f~m
     &
-    \kw{newtype}~\mathit{Mu}~f~m = 
+    \kw{newtype}~\mathit{MuFM_0}~f~m =
     \\
     \quad
     \begin{array}[t]{c@{\hspace{0.5em}}l}
-      = & \mathsf{In}~(f~(\mathit{Mu}~f~m))
+      = & \mathsf{In}~(f~(\mathit{MuFM_0}~f~m))
     \end{array}
     &
-    \quad \mathsf{Mu}~(m~(\mathit{Mu'}~f~m))
+    \quad \mathsf{Mu}~(m~(\mathit{MuFM_0'}~f~m))
   \end{array}
 \end{displaymath}
-This definition makes it clear that the datatypes we are considering
-interleave pure data, represented by the functor $f$, with effects,
-represented by the monad $m$. The aim of this article is to show that
-$f$-and-$m$-algebras are the appropriate level of abstraction both for
-defining functions that operate on values of type $\mathit{Mu}~f~m$,
-and for reasoning about them.
+(We have named this type $\mathit{MuFM'_0}~f~m$ with a $0$ subscript
+because we will introduce a more refined, but isomorphic, presentation
+in \autoref{sec:f-and-m-alg-impl}.)  This definition makes it clear
+that the datatypes we are considering interleave pure data,
+represented by the functor $f$, with effects, represented by the monad
+$m$. The aim of this article is to show that $f$-and-$m$-algebras are
+the appropriate level of abstraction both for defining functions that
+operate on values of type $\mathit{MuFM_0}~f~m$, and for reasoning
+about them.
 
 % \bigskip
 
@@ -1804,16 +1807,12 @@ $f$-and-$m$-algebra.
 In light of \thmref{thm:make-initial-f-and-m-alg}, we can take the
 Haskell implementation of initial $f$-algebras from
 \autoref{sec:f-algebras} and apply the construction in the
-theorem to construct an initial $f$-and-$m$-algebra. We do have to
-make a small alteration to satisfy Haskell's type checker, however.
+theorem to construct an initial $f$-and-$m$-algebra.
 
 The seed of our construction is the existence of an initial $(f \circ
 m)$-algebra. Therefore, we need to first construct the composite
-functor $f \circ m$. Since Haskell does not have type-level
-$\lambda$-abstraction or application, there is no lightweight way of
-constructing the composite of two functors' type operator
-components. Thus to express the composition of two type operators as
-a new type operator, we must introduce a $\kw{newtype}$, as
+functor $f \circ m$. To express the composition of two type operators
+as a new type operator, we introduce a $\kw{newtype}$, as
 follows\footnote{This definition requires the GHC extension
   \texttt{-XTypeOperators} to be turned on, allowing infix type
   constructors.}:
@@ -1829,17 +1828,21 @@ $\mathit{fmap}_f$ and $\mathit{fmap}_g$:
 \thmref{thm:make-initial-f-and-m-alg} states that if $\mu(f \circ m)$
 is the carrier of an initial $(f \circ m)$-algebra, then $m~(\mu(f
 \circ m))$ is the carrier of an initial
-$f$-and-$m$-algebra. Therefore, we can define an implementation of the
+$f$-and-$m$-algebra. Therefore, we can define an implementation of an
 initial $f$-and-$m$-algebra by setting $\mu (f|m)$ to be the type
-$\mathit{MuFM}~f~m$, which is defined as:
+$\mathit{MuFM}~f~m$, defined as:
 \begin{displaymath}
   \kw{type}~\mathit{MuFM}~f~m = m~(\mathit{Mu}~(f \fcompose m))
 \end{displaymath}
+Unfolding the definitions of $f \fcompose m$ and $\mathit{Mu}$ shows that
+the type $\mathit{MuFM}~f~m$ is, up to isomorphism, the same as the
+type $\mathit{MuFM_0}~f~m$ from \autoref{sec:motivate-interleaving}
+that we arrived at by generalising the $\mathit{List_{io}}$ and
+$\mathit{List_{lazy}}$ examples.
+
 The $f$-algebra and $m$-Eilenberg-Moore-algebra structure maps
 $\mathit{construct_f}$ and $\mathit{construct_m}$ are defined
-following the construction in \thmref{thm:make-initial-f-and-m-alg},
-augmented with a use of the value constructor $\mathsf{C}$ to satisfy
-the type checker:
+following the construction in \thmref{thm:make-initial-f-and-m-alg}:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{construct}_f :: f~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
@@ -1854,8 +1857,7 @@ Finally, we construct the unique $f$-and-$m$-homomorphism out of
 $\mathit{MuFM}~f~m$ following the proof of
 \thmref{thm:make-initial-f-and-m-alg} by building upon our
 implementation of the unique homomorphisms out of the initial $(f
-\fcompose m)$-algebra, albeit augmented with a coercion $\mathit{unC}
-:: (f \fcompose m)~a \to f~(m~a)$ to satisfy the type checker:
+\fcompose m)$-algebra:
 \begin{displaymath}
   \begin{array}{l}
     \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{MuFM}~f~m \to a \\
@@ -1864,10 +1866,10 @@ implementation of the unique homomorphisms out of the initial $(f
 \end{displaymath}
 We can also implement $\eFold{-}{-}$ directly in terms of Haskell's
 general recursion, just as we did for the implementation of
-$\fold{-}$. This definition arises simply by inlining the
-implementation of $\fold{-}$ into the definition of $\eFold{-}{-}$
-above, and performing some simple rewriting. The direct implementation
-of $\eFold{-}{-}$ is as follows:
+$\fold{-}$. This definition arises by inlining the implementation of
+$\fold{-}$ into the definition of $\eFold{-}{-}$ above, and performing
+some straightforward rewriting. The direct implementation of
+$\eFold{-}{-}$ is as follows:
 \begin{displaymath}
   \begin{array}{l}
     \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{MuFM}~f~m \to a \\
