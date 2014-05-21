@@ -300,10 +300,11 @@ distinguish, just by looking at the types, between finite lists and
 possibly infinite lists: both are assigned the type $[a]$ for some
 $a$. It is often the case that functions are written under the
 implicit assumption that they are only applied to finite lists (for
-example, the standard $\mathit{reverse}$ function\footnote{FIXME:
-  refer forwards}). Likewise, when reasoning about Haskell programs it
-is often implicitly assumed that lists are finite, so that standard
-techniques like induction may be applied.
+example, the standard $\mathit{reverse}$ function). Likewise, when
+reasoning about Haskell programs it is often implicitly assumed that
+lists are finite, so that standard techniques like induction may be
+applied. We examine the case of the assumptions implicit in the
+$\mathit{reverse}$ function in \autoref{sec:reverse}.
 
 To make these implicit assumptions explicit, we take the example of
 $\mathit{List_{io}}$ in the introduction, and alter it to yield the
@@ -1662,7 +1663,12 @@ last element and place it at the head of the new list. Thus the left
 hand side of the equation above will execute all the effects of
 $\mathit{xs}$ and then $\mathit{ys}$ in order, whereas the right hand
 side will execute all the effects of $\mathit{ys}$ first, and then
-$\mathit{xs}$. If we try to prove this property using
+$\mathit{xs}$. If the interleaved effects involve the possibility of
+non-termination, as in the $\mathit{List_{lazy}}$ example in
+\autoref{sec:motivate-interleaving}, then $\mathit{reverse}$ may never
+get to the last element of the list.
+
+If we try to prove this property using
 \proofprinref{pp:initial-f-m-alg}, we see that we are unable to prove
 \autoref{eq:fm-malg}, namely that the right-hand side must be an
 Eilenberg-Moore-algebra homomorphism.
