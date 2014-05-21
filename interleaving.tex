@@ -67,20 +67,22 @@
   with computational effects. Inductive datatypes interleaved with
   effects arise naturally in many computational settings. For example,
   incrementally reading characters from a file generates a list of
-  characters interleaved with input/output actions. Straightforward
-  application of initial algebra techniques to effectful datatypes
-  leads to unnecessarily complicated reasoning, because the pure and
-  effectful concerns must be considered simultaneously. We show how
-  these concerns can be separated the
-  abstraction of initial $f$-and-$m$-algebras, where the functor $f$
-  describes the pure part of a datatype, and the monad $m$ describes
-  the interleaved effects. Because initial $f$-and-$m$-algebras are
-  the analogue for the effectful setting of initial $f$-algebras, they
-  support the extension of the standard definitional and proof
-  principles to the effectful setting. Because initial
-  $f$-and-$m$-algebras separate pure and effectful concerns, they
-  support the direct transfer of definitions and proofs from the pure
-  setting to the effectful setting.
+  characters interleaved with input/output actions, and lazily
+  constructed infinite values can be represented by pure data
+  interleaved with the possibility of non-terminating
+  computation. Straightforward application of initial algebra
+  techniques to effectful datatypes leads to unnecessarily complicated
+  reasoning, because the pure and effectful concerns must be
+  considered simultaneously. We show how these concerns can be
+  separated the abstraction of initial $f$-and-$m$-algebras, where the
+  functor $f$ describes the pure part of a datatype, and the monad $m$
+  describes the interleaved effects. Because initial
+  $f$-and-$m$-algebras are the analogue for the effectful setting of
+  initial $f$-algebras, they support the extension of the standard
+  definitional and proof principles to the effectful setting. Because
+  initial $f$-and-$m$-algebras separate pure and effectful concerns,
+  they support the direct transfer of definitions and proofs from the
+  pure setting to the effectful setting.
 
   Initial $f$-and-$m$-algebras are originally due to Filinski and
   St\o{}vring, and were subsequently generalised to arbitrary
@@ -146,8 +148,8 @@ described by the following datatype declaration:
   \end{array}
 \end{displaymath}
 Similarly, as we shall see in \autoref{sec:motivate-interleaving},
-Haskell's lazy datatypes can thought of as pure data interleaved with
-the possibility of non-termination.
+Haskell's lazy datatypes can be thought of as pure data interleaved
+with the possibility of non-termination effects.
 
 Using the initial $f$-algebra methology to program with and reason
 about such datatypes forces us to mingle the pure and effectful parts
@@ -155,14 +157,15 @@ of our programs and proofs in a way that obscures their essential
 properties (as we demonstrate in \autoref{sec:direct-eappend}). By
 abstracting out the effectful parts, we arrive at the concept of
 initial $f$-and-$m$-algebras, where $f$ is a functor whose initial
-algebra that describes the pure part of the datatype, and $m$ is a
+algebra describes the pure part of the datatype, and $m$ is a
 monad that describes the effects. Initial $f$-and-$m$-algebras
 represent a better level of abstraction for dealing with interleaved
-data and effects. The key idea is to separate the concerns of dealing
-with pure data, via $f$-algebras, and effects, via
-$m$-Eilenberg-Moore-algebras. We shall see in
-\autoref{sec:f-and-m-append} that this separation has the following
-benefits:
+data and effects.
+
+The key idea is to separate the concerns of dealing with pure data,
+via $f$-algebras, and effects, via $m$-Eilenberg-Moore-algebras. We
+shall see in \autoref{sec:f-and-m-append} that this separation has the
+following benefits:
 \begin{itemize}
 \item \emph{Definitions} of functions on datatypes that interleave
   data and effects look very similar to their counterparts on pure
@@ -174,7 +177,7 @@ benefits:
   their effectful counterparts.
 \item \emph{Proofs} about functions on interleaved datatypes also
   carry over almost unchanged from their pure counterparts. We
-  demonstrate this though the proof of associativity for append on
+  demonstrate this through the proof of associativity for append on
   effectful lists, which carries over almost unchanged from the proof
   of associativity of append for pure lists, except for an additional
   side condition that is discharged almost trivially.
@@ -200,7 +203,7 @@ interleaves effects with pure data. By making this implicit
 interleaving explicit, we will see in the main body of this article
 how the $f$-and-$m$-algebra formalism allows for the implicit
 assumptions made when reasoning about Haskell datatypes using initial
-$f$-algebras can also be made explicit.
+$f$-algebras be made explicit as well.
 
 \paragraph{I/O Effects}
 
@@ -273,20 +276,20 @@ $\mathit{IO}$ monad to explicitly close the file.
 FIXME: forward reference to discussion of iteratees etc.
 
 \paragraph{Non-termination} Our second example of implicitly
-interleaved effects is built in to every Haskell type: the possibility
+interleaved effects is built-in to every Haskell type: the possibility
 of non-termination while inspecting a pure value. Haskell dictates a
-lazy evaluation strategy where the computation of a value is only
+lazy evaluation strategy, in which the computation of a value is only
 invoked if the value is actually used. For the purposes of reasoning
 about Haskell programs, we can model the possibility of
-non-termination by using the \emph{lifting} or \emph{non-termination}
+non-termination using the \emph{lifting} or \emph{non-termination}
 monad, $(-)_\bot$, which adds a bottom element $\bot$ to a type,
-representing the possibility of non-termination. Every Haskell type is
-implicitly lifted using this monad.
+representing the possibility of non-termination at that type. Every
+Haskell type is implicitly lifted using this monad.
 
 A well-known advantage of Haskell's implicit possibility of
 non-termination at every type is the easy representation of infinite
-data structures. Laziness means that the computations that generate an
-infinite value are evaluated \emph{on demand} as the structure is
+data structures. Laziness means that computations that generate an
+infinite value are evaluated on demand as the structure is
 explored. In fact, we implicitly used this facility in our definition
 of $\mathit{hGetContents}$ above to deal with the possibility of
 $\mathit{Handle}$s that may return infinite streams of
@@ -295,10 +298,11 @@ infinite data structures comes with the downside that we can no longer
 distinguish, just by looking at the types, between finite lists and
 possibly infinite lists: both are assigned the type $[a]$ for some
 $a$. It is often the case that functions are written under the
-assumption that they are only applied to finite lists (for example,
-the standard $\mathit{reverse}$ function). Likewise, when reasoning
-about Haskell programs it often is assumed that lists are finite, so
-that standard techniques like induction may be applied.
+implicit assumption that they are only applied to finite lists (for
+example, the standard $\mathit{reverse}$ function\footnote{FIXME:
+  refer forwards}). Likewise, when reasoning about Haskell programs it
+is often implicitly assumed that lists are finite, so that standard
+techniques like induction may be applied.
 
 To make these implicit assumptions explicit, we take the example of
 $\mathit{List_{io}}$ in the introduction, and alter it to yield the
@@ -322,20 +326,20 @@ of non-termination:
 Thus a value of type $\mathit{List_{lazy}}~a$ is a possibly
 non-terminating computation that results in either a
 $\mathsf{Nil}_{\mathit{lazy}}$ constructor, or
-$\mathsf{Cons}_{\mathit{lazy}}$ constructor with a value of type $a$
-and another $\mathit{List_{lazy}}~a$. (Note that, for simplicity's
+$\mathsf{Cons}_{\mathit{lazy}}$ constructor applied to a value of type
+$a$ and another $\mathit{List_{lazy}}~a$. (Note that, for simplicity's
 sake, we have not modelled the fact that constructors of datatypes in
 Haskell also evaluate their arguments lazily.)
 
-Correctly reasoning about values of type $\mathit{List_{lazy}}~a$, and
-other lazy data structures, has traditionally required the use of
-domain-theoretic techniques (Pitts, \cite{pitts-relational}, provides
+Correctly reasoning about values of type $\mathit{List_{lazy}}~a$ and
+other lazy data structures has traditionally required the use of
+domain-theoretic techniques (Pitts, \cite{pitts96relational}, provides
 a comprehensive overview). The technique of using $f$-and-$m$-algebras
 that we present in this article allows sound reasoning about lazy data
 structures at an abstract level, dispensing with the need to directly
 invoke domain-theoretic concepts. Indeed, Filinski and St\o{}vring
 used lazy data structures as their initial motivation for introducing
-$f$-and-$m$-algebras \cite{filinski07inductive}.
+$f$-and-$m$-algebras in the category CPO \cite{filinski07inductive}.
 
 \paragraph{A common generalisation} We have now seen two examples of
 list-like datatypes with interleaved effects, $\mathit{List_{io}}$
