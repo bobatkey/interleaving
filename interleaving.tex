@@ -1029,17 +1029,17 @@ for append for lists interleaved with effects.
 
 We program and reason against the abstract interface of initial
 algebras. Hence we assume that an initial $(\mathit{ListF}~a)$-algebra
-$(\mu(\mathit{ListF}~a), \mathit{construct})$ exists, and we write
-$\fold{-}$ for the unique homomorphism induced by initiality. We can
-define $\mathit{append}$ in terms of $\fold{-}$ as:
+$(\mu(\mathit{ListF}~a), \mathit{in})$ exists, and we write $\fold{-}$
+for the unique homomorphism induced by initiality. We can define
+$\mathit{append}$ in terms of $\fold{-}$ as:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{append} :: \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \\
-    \mathit{append}~\mathit{xs}~\mathit{ys} = \fold{\mathit{fAlgebra}}~\mathit{xs} \\
+    \mathit{append}~\mathit{xs}~\mathit{ys} = \fold{k}~\mathit{xs} \\
     \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \kw{where} & \mathit{fAlgebra} :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a)) &\to& \mu(\mathit{ListF}~a) \\
-      & \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{ys} \\
-      & \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})
+      \kw{where} & k :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a)) &\to& \mu(\mathit{ListF}~a) \\
+      & k~\mathsf{Nil} &=& \mathit{ys} \\
+      & k~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{in}~(\mathsf{Cons}~a~\mathit{xs})
     \end{array}
   \end{array}
 \end{displaymath}
@@ -1071,23 +1071,23 @@ We now make use of these properties, and
   algebra property of $\mu(\mathit{ListF}~a)$, so we can use
   \proofprinref{pp:initial-alg} to prove the equation:
   \begin{displaymath}
-    \fold{\mathit{fAlgebra}}~\mathit{xs} = \mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}
+    \fold{k}~\mathit{xs} = \mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}
   \end{displaymath}
   In this instantiation of \proofprinref{pp:initial-alg}, $g = \lambda
   \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}$,
   and:
   \begin{align}
     \label{eq:append-fAlgebra-nil}
-    \mathit{fAlgebra}~\mathsf{Nil} &= \mathit{append}~\mathit{ys}~\mathit{zs} \\
+    k~\mathsf{Nil} &= \mathit{append}~\mathit{ys}~\mathit{zs} \\
     \label{eq:append-fAlgebra-cons}
-    \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &= \mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})
+    k~(\mathsf{Cons}~a~\mathit{xs}) &= \mathit{in}~(\mathsf{Cons}~a~\mathit{xs})
   \end{align}
   Thus we need to prove that for all $x ::
   \mathit{ListF}~a~(\mu(\mathit{ListF}~a))$,
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{append}~(\mathit{append}~(\mathit{construct}~x)~\mathit{ys})~\mathit{zs}\\
-      =&\mathit{fAlgebra}~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
+      &\mathit{append}~(\mathit{append}~(\mathit{in}~x)~\mathit{ys})~\mathit{zs}\\
+      =&k~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
     \end{array}
   \end{displaymath}
   There are two cases to consider, depending on whether $x =
@@ -1095,28 +1095,28 @@ We now make use of these properties, and
   case, we reason as follows:
   \begin{displaymath}
     \begin{array}{cl}
-      & \mathit{append}~(\mathit{append}~(\mathit{construct}~\mathsf{Nil})~\mathit{ys})~\mathit{zs}\\
+      & \mathit{append}~(\mathit{append}~(\mathit{in}~\mathsf{Nil})~\mathit{ys})~\mathit{zs}\\
       =&\eqAnnotation{\autoref{eq:append-nil}} \\
       & \mathit{append}~\mathit{ys}~\mathit{zs} \\
-      =&\eqAnnotation{definition of $\mathit{fAlgebra}$ (\autoref{eq:append-fAlgebra-nil})} \\
-      & \mathit{fAlgebra}~\mathsf{Nil} \\
+      =&\eqAnnotation{definition of $k$ (\autoref{eq:append-fAlgebra-nil})} \\
+      & k~\mathsf{Nil} \\
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
-      & \mathit{fAlgebra}~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs})~\mathsf{Nil})
+      & k~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs})~\mathsf{Nil})
     \end{array}
   \end{displaymath}
   The other possibility is that $x = \mathsf{Cons}~a~\mathit{xs}$, and
   we reason as follows:
   \begin{displaymath}
     \begin{array}{cl}
-      & \mathit{append}~(\mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys})~\mathit{zs}\\
+      & \mathit{append}~(\mathit{append}~(\mathit{in}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys})~\mathit{zs}\\
       =&\eqAnnotation{\autoref{eq:append-cons}} \\
-      & \mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys})))~\mathit{zs}\\
+      & \mathit{append}~(\mathit{in}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys})))~\mathit{zs}\\
       =&\eqAnnotation{\autoref{eq:append-cons}} \\
-      & \mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}))\\
-      =&\eqAnnotation{definition of $\mathit{fAlgebra}$ (\autoref{eq:append-fAlgebra-cons})} \\
-      & \mathit{fAlgebra}~(\mathsf{Cons}~a~(\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}))\\
+      & \mathit{in}~(\mathsf{Cons}~a~(\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}))\\
+      =&\eqAnnotation{definition of $k$ (\autoref{eq:append-fAlgebra-cons})} \\
+      & k~(\mathsf{Cons}~a~(\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs}))\\
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
-      & \mathit{fAlgebra}~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs})~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox\\
+      & k~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{append}~(\mathit{append}~\mathit{xs}~\mathit{ys})~\mathit{zs})~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox\\
     \end{array}
   \end{displaymath}
 \end{proof*}
