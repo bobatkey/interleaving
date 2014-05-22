@@ -1052,9 +1052,9 @@ form $\mathit{construct}~\mathsf{Nil}$ and
 $\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})$. We have:
 \begin{align}
   \label{eq:append-nil}
-  \mathit{append}~(\mathit{construct}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
+  \mathit{append}~(\mathit{in}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
   \label{eq:append-cons}
-  \mathit{append}~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{construct}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys}))
+  \mathit{append}~(\mathit{in}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{in}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys}))
 \end{align}
 We now make use of these properties, and
 \proofprinref{pp:initial-alg}, to prove associativity:
@@ -1170,7 +1170,7 @@ demonstrate this through an extension of the list append example from
 \autoref{sec:pure-append} to the case of lists with interleaved
 effects.
 
-Our presentation is parameteric in the kind of effects that
+Our presentation is parametric in the kind of effects that
 are interleaved with the list. We merely assume that they can be
 described by some monad $(m, \mathit{fmap_m}, \mathit{return_m},
 \mathit{join_m})$.
@@ -1196,11 +1196,15 @@ homomorphism induced by initiality. We now define $\mathit{eAppend}$
 (``$\mathit{e}$'' for effectful) by:
 \begin{displaymath}
   \begin{array}{l}
-    \mathit{eAppend} :: m~(\mu (\mathit{ListF}~a \circ m)) \to m~(\mu (\mathit{ListF}~a \circ m)) \to m~(\mu (\mathit{ListF}~a \circ m)) \\
-    \mathit{eAppend}~\mathit{xs}~\mathit{ys} = \mathit{join}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}}~\mathit{xs}) \\
-    \begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \textbf{where} & \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{ys} \\
-                     & \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join}_m~\mathit{xs})))
+    \mathit{eAppend} :: m~(\mu ((\mathit{ListF}~a) \circ m)) \to m~(\mu ((\mathit{ListF}~a) \circ m)) \to m~(\mu ((\mathit{ListF}~a) \circ m)) \\
+    \mathit{eAppend}~\mathit{xs}~\mathit{ys} = \mathit{join}_m~(\mathit{fmap}_m~\fold{k}~\mathit{xs}) \\
+    \begin{array}{r@{\hspace{0.4em}}l}
+      \textbf{where} & k :: \mathit{ListF}~a~(m~(m~(\mu ((\mathit{ListF}~a) \circ m)))) \to m~(\mu ((\mathit{ListF}~a) \circ m)) \\
+                     &
+                     \begin{array}{@{}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+                       k~\mathsf{Nil} &=& \mathit{ys} \\
+                       k~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~(\mathit{join}_m~\mathit{xs})))
+                     \end{array}
     \end{array}
   \end{array}
 \end{displaymath}
