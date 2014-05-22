@@ -12,6 +12,8 @@
 \def\sectionautorefname{Section}
 \def\subsectionautorefname{Section}
 
+\usepackage[all]{xy}
+
 
 \newcommand{\fold}[1]{\llparenthesis #1 \rrparenthesis}
 \newcommand{\eFold}[2]{\llparenthesis #1|#2 \rrparenthesis}
@@ -579,27 +581,39 @@ An $f$-algebra for a given functor $f$ is a way of describing an
 operation for reducing each layer in an inductive data structure to a
 value. Formally, $f$-algebras are defined as follows:
 \begin{definition}
-  An \emph{$f$-algebra} is a pair $(a, \mathit{fAlgebra}_a)$ of a
+  An \emph{$f$-algebra} is a pair $(a, k_a)$ of a
   \emph{carrier type} $a$ and a \emph{structure map}
-  $\mathit{fAlgebra}_a :: f~a \to a$.
+  $k_a :: f~a \to a$.
 \end{definition}
 Given a pair of $f$-algebras, there is also the concept of a
 homomorphism between them:
 \begin{definition}
-  Given a pair of $f$-algebras $(a,\mathit{fAlgebra}_a)$ and $(b,
-  \mathit{fAlgebra}_b)$, an \emph{$f$-algebra homomorphism} between them is a
-  function $h :: a \to b$ such that
+  Given a pair of $f$-algebras $(a,k_a)$ and $(b, k_b)$, an
+  \emph{$f$-algebra homomorphism} between them is a function $h :: a
+  \to b$ such that the following diagram commutes:
   \begin{equation}
     \label{eq:falgebra-homomorphism}
-    h \circ \mathit{fAlgebra}_a = \mathit{fAlgebra}_b \circ \mathit{fmap}_f~h
+    \xymatrix{
+      {f~a} \ar[r]^{\mathit{fmap}_f~h} \ar[d]_{k_a}
+      &
+      {f~b} \ar[d]^{k_b}
+      \\
+      {a} \ar[r]^h
+      &
+      {b}
+    }
   \end{equation}
+
+
+  % \begin{equation}
+  %   h \circ \mathit{fAlgebra}_a = \mathit{fAlgebra}_b \circ \mathit{fmap}_f~h
+  % \end{equation}
 \end{definition}
 
 \begin{definition}
   An \emph{initial $f$-algebra} is an $f$-algebra $(\mu f,
-  \mathit{construct})$ such that for any $f$-algebra $(a,
-  \mathit{fAlgebra}_a)$, there exists a unique $f$-algebra
-  homomorphism $\fold{\mathit{fAlgebra}_a} :: \mu f \to a$.
+  \mathit{in})$ such that for any $f$-algebra $(a, k_a)$, there exists
+  a unique $f$-algebra homomorphism $\fold{k_a} :: \mu f \to a$.
 \end{definition}
 
 The requirement that an initial $f$-algebra always has an $f$-algebra
@@ -609,16 +623,16 @@ uniqueness requirement yields the following proof principle for
 functions defined on initial $f$-algebras.
 
 \begin{proofprinciple}[Initial $f$-Algebras]\label{pp:initial-alg}
-  Suppose that $(\mu f, \mathit{construct})$ is an initial $f$-algebra.
+  Suppose that $(\mu f, \mathit{in})$ is an initial $f$-algebra.
 
-  Let $(a, \mathit{fAlgebra})$ be an $f$-algebra, and $g :: \mu~f \to
+  Let $(a, k)$ be an $f$-algebra, and $g :: \mu~f \to
   a$ be a function. To prove an equation
   \begin{displaymath}
-    \fold{\mathit{fAlgebra}} = g,
+    \fold{k} = g,
   \end{displaymath}
-  it suffices to show that $g$ is an $f$-algebra homomorphism:
+  is to show that $g$ is an $f$-algebra homomorphism:
   \begin{displaymath}
-    g \circ \mathit{construct} = \mathit{fAlgebra} \circ \mathit{fmap}_f~g.
+    g \circ \mathit{in} = k \circ \mathit{fmap}_f~g.
   \end{displaymath}
 \end{proofprinciple}
 
@@ -664,14 +678,15 @@ any functor $(f,\mathit{fmap_f})$.
       \end{array}
     \end{array}
   \end{displaymath}
-  The following definitions witness that the standard Haskell list datatype
+  Assuming for the moment that the Haskell datatype $[a]$ only
+  contains \emph{finite} lists, the following definitions witness that
   $[a]$ is the carrier of an initial $\mathit{ListF}~a$ algebra:
   \begin{displaymath}
     \begin{array}{l}
-      \mathit{construct} :: \mathit{ListF}~a~[a] \to [a] \\
+      \mathit{in} :: \mathit{ListF}~a~[a] \to [a] \\
       \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
-        \mathit{construct}&\mathsf{Nil} &=& [~] \\
-        \mathit{construct}&(\mathsf{Cons}~a~\mathit{xs}) &=& a : \mathit{xs}
+        \mathit{in}&\mathsf{Nil} &=& [~] \\
+        \mathit{in}&(\mathsf{Cons}~a~\mathit{xs}) &=& a : \mathit{xs}
       \end{array}
     \end{array}
   \end{displaymath}
@@ -680,16 +695,27 @@ any functor $(f,\mathit{fmap_f})$.
     \begin{array}[t]{l}
       \fold{-} :: (\mathit{ListF}~a~b \to b) \to [a] \to b \\
       \begin{array}{@{}l@{\hspace{0.3em}}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
-        \fold{\mathit{fAlgebra}}&[~]&=&\mathit{fAlgebra}~\mathsf{Nil} \\
-        \fold{\mathit{fAlgebra}}&(a : \mathit{xs})&=&\mathit{fAlgebra}~(\mathsf{Cons}~a~(\fold{\mathit{fAlgebra}}~\mathit{xs}))
+        \fold{k}&[~]&=&k~\mathsf{Nil} \\
+        \fold{k}&(a : \mathit{xs})&=&k~(\mathsf{Cons}~a~(\fold{k}~\mathit{xs}))
       \end{array}
     \end{array}
   \end{displaymath}
+  As we pointed out in \autoref{sec:motivate-interleaving}, the
+  assumption that the type $[a]$ only contains finite lists is
+  unsound. We have failed to account for the possibility of
+  non-termination effects interleaved between the elements of the
+  list. With extra effort, it is possible to integrate non-termination
+  effects into the $f$-algebra formalism, as we show in
+  \autoref{sec:direct-eappend}. However, in
+  \autoref{sec:f-and-m-algebras} we show how $f$-and-$m$-algebras
+  offer a simple and direct solution to reasoning about Haskell's lazy
+  lists, as well as other datatypes interleaved with effects.
 \end{example}
 
 \begin{example}
-  We can implement the carrier of an initial $f$-algebra for an arbitrary
-  functor $(f, \mathit{fmap}_f)$ as a recursive datatype:
+  Again ignoring the possibility of non-termination, we can implement
+  the carrier of an initial $f$-algebra for an arbitrary functor $(f,
+  \mathit{fmap}_f)$ as a recursive datatype:
   \begin{displaymath}
     \kw{data}~\mathit{Mu}~f = \mathsf{In}~\{ \mathit{unIn} :: f~(\mathit{Mu}~f) \}
   \end{displaymath}
@@ -700,8 +726,8 @@ any functor $(f,\mathit{fmap_f})$.
   constructor $\mathsf{In}$:
   \begin{displaymath}
     \begin{array}{l}
-      \mathit{construct} :: f~(\mathit{Mu}~f) \to \mathit{Mu}~f \\
-      \mathit{construct} = \mathsf{In}
+      \mathit{in} :: f~(\mathit{Mu}~f) \to \mathit{Mu}~f \\
+      \mathit{in} = \mathsf{In}
     \end{array}
   \end{displaymath}
   and the $f$-algebra homomorphisms out of $\mathit{Mu}~f$ are defined
@@ -710,7 +736,7 @@ any functor $(f,\mathit{fmap_f})$.
   \begin{displaymath}
     \begin{array}{l}
       \fold{-} :: \mathit{Functor}~f \Rightarrow (f~a \to a) \to \mathit{Mu}~f \to a \\
-      \fold{\mathit{fAlgebra}} = \mathit{fAlgebra} \circ \mathit{fmap}_f~\fold{\mathit{fAlgebra}} \circ \mathit{unIn}
+      \fold{k} = k \circ \mathit{fmap}_f~\fold{k} \circ \mathit{unIn}
     \end{array}
   \end{displaymath}
   This construction has been called ``two-level types''
