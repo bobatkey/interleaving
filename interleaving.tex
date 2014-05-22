@@ -12,6 +12,9 @@
 \def\sectionautorefname{Section}
 \def\subsectionautorefname{Section}
 
+\usepackage{todonotes}
+\newcommand{\pattynote}[1]{\todo[inline, color=green!40]{#1}}
+
 \usepackage[all]{xy}
 
 
@@ -522,7 +525,188 @@ follows:
 
 \subsection{Related Work}
 
-FIXME: insert Patty's stuff here.
+The earliest attempt to incorporate effects into the initial algebra
+methodology appears to be Sheard's~\cite{she93a,she93b} use of
+reflection to give direct constructions of monadic $\mathit{map}$ and
+$\mathit{fold}$ functions.  Fokkinga~\cite{fokkinga94monadic} and
+later Pardo~\cite{pardo04combining}, generalised Sheard's
+constructions to the general categorical setting, giving a generic
+recursion combinator for effectful recursive computations that has
+type
+\begin{displaymath}
+  \fold{-}_m : (f~a \to m~a) \to \mu f \to m~a
+\end{displaymath}
+and whose definition requires the existence of a \emph{distributive
+  law} $d :: f~(m~a) \to m~(f~a)$ describing how effects percolate
+through pure data in a uniform way.  Fokkinga and Pardo both defined
+such distributive laws by induction over a grammar of regular
+functors, and then used them, together with liftings of functors to
+Kleisli categories~\cite{bw90,mul93}, to define monadic
+$\mathit{fold}$s for regular datatypes. The result was an effectful
+structural recursion scheme over pure regular data in which all
+effects are pushed to the ``outside'' to monadically wrap a pure
+result.
+
+The existence of a distributive law for just the binary product
+functor is all that is actually required to ensure that distributive
+laws exist for all regular functors, but such laws need not exist for
+all monads; indeed, there is no distributive law for binary products
+for the state monad. In any case, the assumption that distributives
+laws exists is too strong for the purposes of this article because it
+is concerned here with structural recursion over \emph{effectful}
+data, in which data and effects are interleaved, rather than just
+monadically wrapped data.
+
+Although Pardo~\cite{par93} worked in the same effectful setting as
+Fokkinga, he transferred even more origami programming ideas to the
+effectful setting: in addition to defining the aforementioned monadic
+$\mathit{fold}s$ (catamorphisms), he dualised them to give monadic
+$\mathit{unfold}$s (anamorphisms) for structuring corecursive programs
+with monadic effects, and also defined monadic hylomorphisms to
+support even more general ways of structuring monadic computations and
+combining their results. Interestingly, monadic hylomorphisms do
+achieve some interleaving of recursive calls to effectful computations
+with other computations, but the computations they structure must
+still consume pure data. Finally, Pardo developed rules for fusing
+monadic programs structured using the monadic constructs he defined.
+
+Meijer and Juering~\cite{mj95} further extended ideas of origami
+programming by developing a number of fusion rules appropriate to the
+monadic setting, including a new short cut fusion rule for eliminating
+(pure) intermediate structures of type $fa$ in a monadic context $m$.
+J\"urgensen~\cite{jue02} and Voigtl\"ander~\cite{voi08} also defined
+monadic fusion rules based on the uniqueness of the map from a free
+monad to any other monad. However, like all of the aforementioned
+recursion schemes, many methods based on initial algebras for
+restricted classes of (pure) datatypes are in fact generalisable to
+arbitrary inductive types. For example,~\cite{gj09} gives a short cut
+fusion rule that can eliminate data structures of any (pure) inductive
+type in any monadic context.
+
+The work of Filinski and St\o{}vring is undoubtedly the most closely
+related to ours. As we do in this article, they give $\mathit{fold}s$
+for datatypes with proper interleaving of effects. They do so first
+considering the case of lazy datatypes, and then generalising to
+datatypes that interleave monadic effects other than nontermination
+with pure data. To first model the way laziness interleaves the
+possibility of nontermination at any point in the production of a data
+structure, and then to model more general interleavings of effects,
+Filinski and St\o{}vring work in the specific category CPO of
+$\omega$-cpos and (total) continuous functions. They also work with a
+specific grammar of what might be called ``effectful regular
+functors'' that allow effects in recursive positions. Their principle
+of {\em definition by rigid induction} amounts to the derivation of
+$\mathit{fold}$s for minimal invariants for monads in CPO. A minimal
+invariant is a special case --- in the specific setting of CPO for the
+lifting monad $m$ and an effectful regular functor $f$ --- of the
+carrier of the initial $f$-and-$m$-algebra, and Filinski and
+St\o{}vring's $\mathit{fold}$s are special cases of our
+$\mathit{fold}$s from Definition~\ref{Defn11}.  Such monadic
+$\mathit{fold}$s differ from those of Fokkinga, Pardo, and Meijer and
+Juering in that they derive from initiality in the category of
+$f$-and-$m$-algebras, rather than from initiality of algebras in the
+Kleisli category for $m$ under the auspices of a distributive law for
+$f$ and $m$.  Because initial $f$-and-$m$-algebras properly interleave
+effectful computations with the construction of pure data, so that
+effects are actually an integral part of the data being processed
+rather than just wrapping it, more general recursive patterns of
+effectful computation are possible.
+
+Given the well-known relationship between $\mathit{fold}$s and
+induction, it is perhaps surprising that the papers
+preceding~\cite{fs07} did not derive induction rules or other proof
+principles for effectful datatypes. However, Filinski and St\o{}vring
+give a principle of {\em proof by rigid induction} for such datatypes
+that is a variant of those of both Lehmann and Smyth~\cite{ls81}, and
+of Crole and Pitts~\cite{cp92}. It supports the same kind of inductive
+reasoning, again in the specific category and for the specific
+functors with which they work, that we show initial
+$f$-and-$m$-algebras to support more generally.  \pattynote{We don't
+  explicitly give proof principles, so it's hard to draw the same
+  parallel for them as for definitional principles.} The results
+reported here thus extend both the definitional principles of Filinksi
+and St\o{}vring for structuring recursion over effectful datatypes,
+and their proof principles for reasoning about computations over such
+datatypes, to the general category-theoretic setting and to arbitrary
+functors.  Filinski and St\o{}vring also give fusion rules for
+effectful streams (although not for arbitrary effectful datatypes),
+and illustrate the extension of relational reasoning to effectful
+datatypes. We consider neither fusion rules nor relational reasoning
+in this article.
+
+Overall, then, we see that the this article generalises previous
+extensions of the initial algebra methodology to the effectful setting
+in three ways: it handles arbitrary functors, rather than special
+classes of functors; it handles actual interleaving of effects and
+data, rather than just the wrapping of pure results in effectful
+contexts; and it gives proof principles for reasoning about
+interleaved effectful computations, rather than just constructs for
+structuring those computations. \pattynote{We don't actually identify
+  the proof principles we illustrate, so be careful here.}
+
+\pattynote{Perhaps leave the following paragraph in the introduction?
+  If so, then skip to last paragraph, which appears below after it.}
+We mention in closing that the Haskell community has also defined many
+other datatypes that capture the interleaving of effects with pure
+data\footnote{For example, the \texttt{iteratees}, \texttt{iterIO},
+  \texttt{conduits}, \texttt{enumerators}, and \texttt{pipes} Haskell
+  libraries all make use of interleaved data and effects. These
+  libraries are all available from the Hackage archive of Haskell
+  libraries
+  (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
+to make explicit the interleaving implicit in the
+$\mathit{hGetContents}$ function. One of the earliest was Kiselyov's
+iteratees \cite{kiselyov12iteratees}.  Iteratees are used to support
+lazy I/O in languages such as Haskell, Scala, and F\# by handling
+different kinds of sequential information processing in an incremental
+way.  In essence, iteratees are descriptions of functions that
+alternate reading from some input with effects in some monad,
+eventually yielding some output. This can be described by the
+following datatype, which follows the same pattern of mutual recursion
+as the $\mathit{List}~m~a$ datatype declaration:
+\begin{displaymath}
+  \begin{array}{ll}
+    \kw{data}~\mathit{Reader'}~m~a~b
+    &
+    \kw{newtype}~\mathit{Reader}~m~a~b = 
+    \\
+    \quad
+    \begin{array}[t]{c@{\hspace{0.5em}}l}
+      = & \mathsf{Input}~(\mathit{Maybe}~a \to \mathit{Reader}~m~a~b) \\
+      | & \mathsf{Yield}~b
+    \end{array}
+    &
+    \quad \mathsf{Reader}~(m~(\mathit{Reader'}~m~a~b))
+  \end{array}
+\end{displaymath}
+A value of type $\mathit{Reader}~m~a~b$ is some effect described by
+the monad $m$, yielding either a result of type $b$, or a request for
+input. As Kiselyov demonstrates, the fact that values of type
+$\mathit{Reader}~m~a~b$ abstract the source of the data that they read
+is extremely powerful: different constructions allow values of type
+$\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
+input/output devices, all while retaining the ability to perform
+concrete effects in the monad $m$. Kiselyov treats the
+$\mathit{Reader}~m~a~b$ type in isolation, but in fact it can be
+regarded as an instance of an application of interleaved data and
+effects: the general construction of the coproduct of a free monad and
+an arbitrary monad. Monad coproducts provide a general and canonical
+way of specifying the combination of two monads
+\cite{luth02composing}, and the coproduct of a free monad and an
+arbitrary monad can be constructed using initial $f$-and-$m$-algebras.
+
+The monadic induction schemes introduced by Filinski and St\o{}vring,
+and generalised here, \pattynote{Careful! Induction schemes not
+  explicitly given} give one way to reason about effect-interleaved
+data. The ``fast and loose'' reasoning advocated by Danielsson {\em et
+  al.}~\cite{dan06} is another.  Using a logical relations style
+relation to relate total and non-total semantics of programs,
+Danielsson {\em et al.}  show that programmers can reason about
+programs as though they were written in a total language and expect
+the results to carry over to non-total languages.  It would be useful
+from both practical and theoretical viewpoints to know if this kind of
+``morally correct'' reasoning can be extended to effects other than
+just nontermination.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
