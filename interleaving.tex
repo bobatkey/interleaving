@@ -900,9 +900,9 @@ any functor $(f,\mathit{fmap_f})$.
   Again ignoring the possibility of non-termination, we can implement
   the carrier of an initial $f$-algebra for an arbitrary functor $(f,
   \mathit{fmap}_f)$ as a recursive datatype:
-  \begin{displaymath}
+  \begin{equation}\label{eq:mu-defn}
     \kw{data}~\mathit{Mu}~f = \mathsf{In}~\{ \mathit{unIn} :: f~(\mathit{Mu}~f) \}
-  \end{displaymath}
+  \end{equation}
   We have used Haskell's record definition syntax to implicitly define
   a function $\mathit{unIn} :: \mathit{Mu}~f \to f~(\mathit{Mu}~f)$
   that is the inverse of the value constructor $\mathsf{In}$.  The
