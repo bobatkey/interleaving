@@ -471,7 +471,7 @@ definitions. The structure of the remainder of the article is as
 follows:
 \begin{itemize}
 \item In \autoref{sec:f-algebras}, we recall the standard definitions
-  of $f$-algebras and initial $f$-algebras, in a functional
+  of $f$-algebras, initial $f$-algebras, and monads, in a functional
   programming context. We highlight the proof principle associated
   with initial $f$-algebras (\proofprinref{pp:initial-alg}), and
   demonstrate that the initial $f$-algebra abstraction can be thought
@@ -482,12 +482,6 @@ follows:
   datatypes to define list append, and also to show how
   \proofprinref{pp:initial-alg} is used to prove its associativity
   property.
-\item In \autoref{sec:monads}, we recall the definition of monads, and
-  briefly discuss the work of Fokkinga \cite{fokkinga94monadic} and
-  Pardo \cite{pardo04combining} on recursion schemes in the presence
-  of effects. As we note there, their work covers the case of
-  effectful computations on pure data, whereas we wish to consider
-  computations on effectful data.
 \item To motivate the use of $f$-and-$m$-algebras, in
   \autoref{sec:direct-eappend} we attempt to define and prove
   associative the append function for effectful lists directly from
@@ -712,15 +706,16 @@ just nontermination.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background: initial \texorpdfstring{$f$}{f}-algebras}
+\section{Background: \texorpdfstring{$f$}{f}-algebras, initial \texorpdfstring{$f$}{f}-algebras, and monads}
 \label{sec:f-algebras}
 
-Initial $f$-and-$m$-algebras build upon the basic foundation of
-initial $f$-algebras. We recall the definition of initial $f$-algebras
-in this section, and derive the accompanying definitional and proof
-principles. We will make use of the basic definitions of the
-polymorphic identity function $\mathit{id} = \lambda x.~x$ and
-function composition $g \circ h = \lambda x.~g~(h~x)$.
+Initial $f$-and-$m$-algebras build upon the foundations of initial
+$f$-algebras, and of monads. We recall the definition of $f$-algebras,
+initial $f$-algebras, and monads in this section, and derive the
+accompanying definitional and proof principles. We will make use of
+the basic definitions of the polymorphic identity function
+$\mathit{id} = \lambda x.~x$ and function composition $g \circ h =
+\lambda x.~g~(h~x)$.
 
 \subsection{Basic definitions}
 
@@ -941,6 +936,77 @@ property to define the translations between, and
 mutually inverse. This isomorphism result is known as Lambek's lemma
 \cite{LAMBEK68}.
 
+\subsection{Monads}
+
+As is standard in Haskell programming, we describe effectful
+computations in terms of monads \cite{moggi91notions,
+  peytonjones93imperative}. We have opted to use the ``categorical''
+definition of monad in terms of a $\mathit{join}$ (or
+\emph{multiplication}) operation, rather than the Kleisli-triple
+presentation with a bind operation ($\mbind$) that is more standard in
+Haskell programming. For our purposes, the categorical definition is
+more convenient for equational reasoning. Standard references such as
+the lecture notes by Benton, Hughes and Moggi \cite{benton00monads}
+discuss the translations between the two presentations.
+
+\begin{definition}\label{defn:monad}
+  A monad is a quadruple $(m, \mathit{fmap}_m, \mathit{return}_m,
+  \mathit{join}_m)$ of a type constructor $m$, and three functions:
+  \begin{displaymath}
+    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
+      \mathit{fmap}_m   & :: & (a \to b) \to m~a \to m~b \\
+      \mathit{return}_m & :: & a \to m~a \\
+      \mathit{join}_m   & :: & m~(m~a) \to m~a
+    \end{array}
+  \end{displaymath}
+  such that the pair $(m, \mathit{fmap}_m)$ is a functor
+  (\defref{defn:functor}), and the following properties are satisfied:
+  \begin{align}
+    \label{eq:monad-join-return}
+    \mathit{join}_m \circ \mathit{return}_m & = \mathit{id} \\
+    \label{eq:monad-join-fmap-return}
+    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m & = \mathit{id} \\
+    \label{eq:monad-join-join}
+    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{join}_m & = \mathit{join}_m \circ \mathit{join}_m
+  \end{align}
+  and also the naturality laws:
+  \begin{align}
+    \label{eq:monad-return-natural}
+    \mathit{return}_m \circ f & = \mathit{fmap}_m~f \circ \mathit{return}_m \\
+    \label{eq:monad-join-natural}
+    \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~f) & = \mathit{fmap}_m~f \circ \mathit{join}_m
+  \end{align}
+\end{definition}
+
+As with functors and the $\mathit{Functor}$ typeclass, monads in
+Haskell are usually represented in terms of the $\textit{Monad}$
+typeclass. Again, for this article, we will always use subscripts on
+$\mathit{return}_m$ and $\mathit{join}_m$ to disambiguate which monad
+is being referred to, instead of leaving it for the reader to infer.
+
+Finally in this short recap of monads, we recall the definition of a
+\emph{monad morphism} between a pair of monads. Monad morphisms
+represent structure preserving maps between monads. We will use monad
+morphisms in our extended example of the use of $f$-and-$m$-algebras
+to construct the coproduct of two monads in
+\autoref{sec:coproducts-with-free-monads}.
+
+\begin{definition}
+  Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
+  \mathit{join_{m_1}})$ and $(m_2, \mathit{fmap_{m_1}},
+  \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A
+  \emph{monad morphism} between them is a function $h :: m_1~a \to
+  m_2~a$ such that:
+  \begin{align}
+    \label{eq:monad-mor-natural}
+    h \circ \mathit{fmap}_{m_1}~g & = \mathit{fmap}_{m_2}~g \circ h \\
+    \label{eq:monad-mor-return}
+    h \circ \mathit{return}_{m_1} & = \mathit{return}_{m_2} \\
+    \label{eq:monad-mor-join}
+    h \circ \mathit{join}_{m_1} & = \mathit{join}_{m_2} \circ h \circ \mathit{fmap}_{m_1}~h
+  \end{align}
+\end{definition}
+
 \section{List append I: pure lists}
 \label{sec:pure-append}
 
@@ -1066,104 +1132,29 @@ same property for lists interleaved with effects, and show that we are
 able to reuse the core of the above proof.
 %\todo{Make sure this is general}
 
-\section{Background: monadic effects and monadic recursion schemes}
-\label{sec:monads}
+% \section{Background: monadic effects and monadic recursion schemes}
+% \label{sec:monads}
 
-As is standard in Haskell programming, we describe effectful
-computations in terms of monads \cite{moggi91notions,
-  peytonjones93imperative}. In order to keep this article self
-contained, we recall the definition of monad here. We also briefly
-examine prior work by Fokkinga, and by Pardo, on effectful recursive
-programs on pure data.
 
-\subsection{Monadic Effects}
+% \subsection{Monadic Recursion Schemes}
 
-We have opted to use the ``categorical'' definition of monad in terms
-of a $\mathit{join}$ (or \emph{multiplication}) operation, rather than the
-Kleisli-triple presentation with a bind operation ($\mbind$) that is
-more standard in Haskell programming. For our purposes, the
-categorical definition is more convenient for equational
-reasoning. Standard references such as the lecture notes by Benton,
-Hughes and Moggi \cite{benton00monads} discuss the translations
-between the two presentations.
-
-\begin{definition}\label{defn:monad}
-  A monad is a quadruple $(m, \mathit{fmap}_m, \mathit{return}_m,
-  \mathit{join}_m)$ of a type constructor $m$, and three functions:
-  \begin{displaymath}
-    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
-      \mathit{fmap}_m   & :: & (a \to b) \to m~a \to m~b \\
-      \mathit{return}_m & :: & a \to m~a \\
-      \mathit{join}_m   & :: & m~(m~a) \to m~a
-    \end{array}
-  \end{displaymath}
-  such that the pair $(m, \mathit{fmap}_m)$ is a functor
-  (\defref{defn:functor}), and the following properties are satisfied:
-  \begin{align}
-    \label{eq:monad-join-return}
-    \mathit{join}_m \circ \mathit{return}_m & = \mathit{id} \\
-    \label{eq:monad-join-fmap-return}
-    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m & = \mathit{id} \\
-    \label{eq:monad-join-join}
-    \mathit{join}_m \circ \mathit{fmap}_m~\mathit{join}_m & = \mathit{join}_m \circ \mathit{join}_m
-  \end{align}
-  and also the naturality laws:
-  \begin{align}
-    \label{eq:monad-return-natural}
-    \mathit{return}_m \circ f & = \mathit{fmap}_m~f \circ \mathit{return}_m \\
-    \label{eq:monad-join-natural}
-    \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~f) & = \mathit{fmap}_m~f \circ \mathit{join}_m
-  \end{align}
-\end{definition}
-
-As with functors and the $\mathit{Functor}$ typeclass, monads in
-Haskell are usually represented in terms of the $\textit{Monad}$
-typeclass. Again, for this article, we will always use subscripts on
-$\mathit{return}_m$ and $\mathit{join}_m$ to disambiguate which monad
-is being referred to, instead of leaving it for the reader to infer.
-
-Finally in this short recap of monads, we recall the definition of a
-\emph{monad morphism} between a pair of monads. Monad morphisms
-represent structure preserving maps between monads. We will use monad
-morphisms in our extended example of the use of $f$-and-$m$-algebras
-to construct the coproduct of two monads in
-\autoref{sec:coproducts-with-free-monads}.
-
-\begin{definition}
-  Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
-  \mathit{join_{m_1}})$ and $(m_2, \mathit{fmap_{m_1}},
-  \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A
-  \emph{monad morphism} between them is a function $h :: m_1~a \to
-  m_2~a$ such that:
-  \begin{align}
-    \label{eq:monad-mor-natural}
-    h \circ \mathit{fmap}_{m_1}~g & = \mathit{fmap}_{m_2}~g \circ h \\
-    \label{eq:monad-mor-return}
-    h \circ \mathit{return}_{m_1} & = \mathit{return}_{m_2} \\
-    \label{eq:monad-mor-join}
-    h \circ \mathit{join}_{m_1} & = \mathit{join}_{m_2} \circ h \circ \mathit{fmap}_{m_1}~h
-  \end{align}
-\end{definition}
-
-\subsection{Monadic Recursion Schemes}
-
-The initial $f$-algebra methodology has been extended to effectful
-computation on pure data by Fokkinga \cite{fokkinga94monadic} and
-Pardo \cite{pardo04combining}. The generic recursion combinator they
-use for effectful recursive computations has the following type:
-\begin{displaymath}
-  \fold{-}_m : (f~a \to m~a) \to \mu f \to m~a
-\end{displaymath}
-where they also make the implicit assumption that there is a
-\emph{distributive law} $d :: f~(m~a) \to m~(f~a)$ that describes how
-effects percolate through pure data. The assumption that a
-distributive law exists is too strong for our purposes. In the
-theories of Fokkinga and Pardo, the distributive law is used to push
-effects through the pure data in a uniform way. Therefore, they treat
-the case of effectful structural recursion over \emph{pure} data,
-where all the effects are pushed to the ``outside''. By contrast, we
-wish to deal with structural recursion over \emph{effectful} data,
-where data and effects are interleaved.
+% The initial $f$-algebra methodology has been extended to effectful
+% computation on pure data by Fokkinga \cite{fokkinga94monadic} and
+% Pardo \cite{pardo04combining}. The generic recursion combinator they
+% use for effectful recursive computations has the following type:
+% \begin{displaymath}
+%   \fold{-}_m : (f~a \to m~a) \to \mu f \to m~a
+% \end{displaymath}
+% where they also make the implicit assumption that there is a
+% \emph{distributive law} $d :: f~(m~a) \to m~(f~a)$ that describes how
+% effects percolate through pure data. The assumption that a
+% distributive law exists is too strong for our purposes. In the
+% theories of Fokkinga and Pardo, the distributive law is used to push
+% effects through the pure data in a uniform way. Therefore, they treat
+% the case of effectful structural recursion over \emph{pure} data,
+% where all the effects are pushed to the ``outside''. By contrast, we
+% wish to deal with structural recursion over \emph{effectful} data,
+% where data and effects are interleaved.
 
 \section{List append II: lists with interleaved effects, via \texorpdfstring{$f$}{f}-algebras}
 \label{sec:direct-eappend}
