@@ -72,24 +72,27 @@
   constructed infinite values can be represented by pure data
   interleaved with the possibility of non-terminating
   computation. Straightforward application of initial algebra
-  techniques to effectful datatypes leads to unnecessarily complicated
-  reasoning, because the pure and effectful concerns must be
-  considered simultaneously. We show how these concerns can be
-  separated the abstraction of initial $f$-and-$m$-algebras, where the
-  functor $f$ describes the pure part of a datatype, and the monad $m$
-  describes the interleaved effects. Because initial
-  $f$-and-$m$-algebras are the analogue for the effectful setting of
-  initial $f$-algebras, they support the extension of the standard
-  definitional and proof principles to the effectful setting. Because
-  initial $f$-and-$m$-algebras separate pure and effectful concerns,
-  they support the direct transfer of definitions and proofs from the
-  pure setting to the effectful setting.
+  techniques to effectful datatypes either leads to unsound
+  conclusions if we ignore the possibility of effects, or to
+  unnecessarily complicated reasoning, because the pure and effectful
+  concerns must be considered simultaneously. We show how these
+  concerns can be separated using the abstraction of initial
+  $f$-and-$m$-algebras, where the functor $f$ describes the pure part
+  of a datatype, and the monad $m$ describes the interleaved
+  effects. Because initial $f$-and-$m$-algebras are the analogue for
+  the effectful setting of initial $f$-algebras, they support the
+  extension of the standard definitional and proof principles to the
+  effectful setting. Because initial $f$-and-$m$-algebras separate
+  pure and effectful concerns, they support the direct transfer of
+  definitions and proofs from the pure setting to the effectful
+  setting.
 
   Initial $f$-and-$m$-algebras are originally due to Filinski and
-  St\o{}vring, and were subsequently generalised to arbitrary
-  categories by the authors of this article. In this article, we aim
-  to introduce the concept of initial $f$-and-$m$-algebras to a
-  general functional programming audience.
+  St\o{}vring, who studied them in the category Cpo, and were
+  subsequently generalised to arbitrary categories by the authors of
+  this article. In this article, we aim to introduce the general
+  concept of initial $f$-and-$m$-algebras to a general functional
+  programming audience.
 \end{abstract}
 
 \section{Introduction}
@@ -119,20 +122,20 @@ Programming and reasoning using higher-order recursion combinators is
 built upon the category theoretic foundation of initial $f$-algebras
 for functors $f$ \cite{GoguenTW78}. In initial algebra semantics,
 datatypes are represented by carriers of initial algebras --
-i.e.~least fixed points of functors -- and combinators such as
+i.e., least fixed points of functors -- and combinators such as
 $\mathit{foldr}$ are derived from the universal properties of initial
 algebras. The initial $f$-algebra methodology has been successful in
 unifying and clarifying structured functional programming and
 reasoning on values of recursive datatypes that go far beyond lists
 and $\mathit{foldr}$.
 
-In this article, we present a class of recursive datatypes where direct
-use of the initial algebra methodology does \emph{not} provide the
-right level of abstraction. Specifically, we consider recursive
+In this article, we present a class of recursive datatypes where
+direct use of the initial algebra methodology does \emph{not} provide
+the right level of abstraction. Specifically, we consider recursive
 datatypes that interleave pure data with effectful computation. For
-example, lists of characters that are interleaved with the effectful
-input computations that read them from some external source can be
-described by the following datatype declaration:
+example, lists of characters that are interleaved with input/output
+operations that read them from an external source can be described by
+the following datatype declaration:
 \begin{displaymath}\label{defn:listio}
   \begin{array}{ll}
     \kw{data}~\mathit{List'_{io}}
@@ -175,25 +178,31 @@ following benefits:
   demonstrate this. The pure part of the computation remains the same,
   and the effectful part is straightforward. Therefore, definitions of
   functions on pure datatypes can often be transferred directly to
-  their effectful counterparts.
+  their effectful counterparts. Moreover, the new definitions are
+  generic in the interleaved monad we use for representing effects,
+  for example, the $\mathit{IO}$ monad for input/ouptut effects, or
+  the non-termination monad for laziness.
 \item \emph{Proofs} about functions on interleaved datatypes also
   carry over almost unchanged from their pure counterparts. We
   demonstrate this through the proof of associativity for append on
-  effectful lists, which carries over almost unchanged from the proof
-  of associativity of append for pure lists, except for an additional
+  effectful lists, again generic in the monad representing the
+  effects. The proof carries over almost unchanged from the proof of
+  associativity of append for pure lists, except for an additional
   side condition that is discharged almost trivially.
 \end{itemize}
 
 % FIXME: side benefit of making things explicit?
 
 The concept of initial $f$-and-$m$-algebras is originally due to
-Filinski and St\o{}vring \cite{filinski07inductive}, and was
-subsequently extended to a general category-theoretic setting for
-arbitrary functors $f$ by the authors of the current article
-\cite{atkey12fibrational}. In this article, we aim to introduce the
-concept of initial $f$-and-$m$-algebras to a general functional
-programming audience, without the heavy category-theoretic
-prerequisites of our previous work.
+Filinski and St\o{}vring in the specific setting of Cpo (the category
+of complete partial orders and continuous functions)
+\cite{filinski07inductive}, and was subsequently extended to a general
+category-theoretic setting for arbitrary functors $f$ by the authors
+of the current article \cite{atkey12fibrational}. In this article, we
+aim to introduce the concept of initial $f$-and-$m$-algebras to a
+general functional programming audience and show how they can be used
+to structure and reason about functional programs in practice, without
+the heavy category-theoretic prerequisites of our previous work.
 
 \subsection{Interleaving data and effects}
 \label{sec:motivate-interleaving}
@@ -210,8 +219,7 @@ $f$-algebras be made explicit as well.
 
 The $\mathit{hGetContents}$ function from the Haskell standard library
 provides an example of implicit interleaving of data with input/output
-(I/O) effects. The $\mathit{hGetContents}$ function has the following
-type:
+effects. The $\mathit{hGetContents}$ function has the following type:
 \begin{displaymath}
   \mathit{hGetContents} :: \mathit{Handle} \to \mathit{IO}~[\mathit{Char}]
 \end{displaymath}
@@ -341,7 +349,7 @@ that we present in this article allows sound reasoning about lazy data
 structures at an abstract level, dispensing with the need to directly
 invoke domain-theoretic concepts. Indeed, Filinski and St\o{}vring
 used lazy data structures as their initial motivation for introducing
-$f$-and-$m$-algebras in the category CPO \cite{filinski07inductive}.
+$f$-and-$m$-algebras in the category Cpo \cite{filinski07inductive}.
 
 \paragraph{A common generalisation} We have now seen two examples of
 list-like datatypes with interleaved effects, $\mathit{List_{io}}$
@@ -356,16 +364,16 @@ generalisation is to abstract over the monad $m$:
     \\
     \quad
     \begin{array}[t]{c@{\hspace{0.5em}}l}
-      = & \mathsf{Nil_m} \\
-      | & \mathsf{Cons_m}~a~(\mathit{List}~m~a) \\
+      = & \mathsf{Nil} \\
+      | & \mathsf{Cons}~a~(\mathit{List}~m~a) \\
     \end{array}
     &
     \quad \mathsf{List}~(m~(\mathit{List'}~m~a))
   \end{array}
 \end{displaymath}
 A value of type $\mathit{List}~m~a$ consists of an effect described by
-$m$, then either a $\mathsf{Nil_m}$ to indicate the end of the list,
-or a $\mathsf{Cons_m}$ with a value of type $a$ and another value of
+$m$, then either a $\mathsf{Nil}$ to indicate the end of the list,
+or a $\mathsf{Cons}$ with a value of type $a$ and another value of
 type $\mathit{List}~m~a$. Thus this datatype describes lists of values
 of type $a$ interleaved with effects from the monad $m$.
 
