@@ -1920,8 +1920,8 @@ $\eFold{-}{-}$ is as follows:
 
 Whichever implementation of $\eFold{-}{-}$ we choose, we note that
 there is an implicit precondition that the second argument (of type
-$m~a \to a$) must be an Eilenberg-Moore algebra. Unfortunately, we are
-unable to express this requirement in Haskell's type system. 
+$m~a \to a$) must be an Eilenberg-Moore algebra. Unfortunately, it is
+impossible to express this requirement in Haskell's type system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2084,6 +2084,8 @@ from $a$. The $\mathit{join}_{\mathit{FreeM}~f}$ part of the monad
 structure provides substitution of expressions into other expressions,
 and the extension $\fmext{g}$ allows us to interpret a whole
 expression if we can interpret all the constructors.
+
+FIXME: ``interaction trees'' instead of ``sequences of commands''.
 
 Another reading, which is more in line with our general theme of
 computational effects, is in terms of sequences of ``commands''. We
@@ -2356,6 +2358,8 @@ This program executes two abstract read commands to read a pair of
 strings, and then executes a concrete $\mathit{IO}$ action to print
 the two strings in reverse order to the terminal.
 
+%FIXME: like Scheme's with-input-from-file
+
 We can provide an interpretation for the abstract $\mathit{read}$
 operations by combining the coproduct interface with the free monad
 interface. For example, to interpret the read commands as reading from
@@ -2406,7 +2410,7 @@ arbitrary $\mathit{IO}$ actions:
       \end{array} \\
       \\
       \begin{array}{@{}l}
-        \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} :: (\cprd{(\mathit{FreeM}~f)}{m})~((\cprd{(\mathit{FreeM}~f)}{m})~a) \to (\cprd{(\mathit{FreeM}~f)}{m})~b \\
+        \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} :: (\cprd{(\mathit{FreeM}~f)}{m})~((\cprd{(\mathit{FreeM}~f)}{m})~a) \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
         \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} = \eFold{\mathit{joinAlgebra}}{\mathit{construct}_m} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
           \kw{where} & \mathit{joinAlgebra}~(\mathsf{Var}~x) &=& x \\
@@ -2594,13 +2598,13 @@ effectful computation are possible.
 
 Given the well-known relationship between $\mathit{fold}$s and
 induction, it is perhaps surprising that the papers
-preceding~\cite{fs07} did not derive induction rules or other proof
-principles for effectful datatypes. However, Filinski and St\o{}vring
-give a principle of {\em proof by rigid induction} for such datatypes
-that is a variant of those of both Lehmann and Smyth~\cite{ls81}, and
-of Crole and Pitts~\cite{cp92}. It supports the same kind of inductive
-reasoning, again in the specific category and for the specific
-functors with which they work, that we show initial
+preceding~\cite{filinski07inductive} did not derive induction rules or
+other proof principles for effectful datatypes. However, Filinski and
+St\o{}vring give a principle of {\em proof by rigid induction} for
+such datatypes that is a variant of those of both Lehmann and
+Smyth~\cite{ls81}, and of Crole and Pitts~\cite{cp92}. It supports the
+same kind of inductive reasoning, again in the specific category and
+for the specific functors with which they work, that we show initial
 $f$-and-$m$-algebras to support more generally.  \pattynote{We don't
   explicitly give proof principles, so it's hard to draw the same
   parallel for them as for definitional principles.} The results
@@ -2687,6 +2691,8 @@ the results to carry over to non-total languages.  It would be useful
 from both practical and theoretical viewpoints to know if this kind of
 ``morally correct'' reasoning can be extended to effects other than
 just nontermination.
+
+\subsection{Future Work}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
