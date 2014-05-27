@@ -46,7 +46,7 @@
 
 \author[R. Atkey, P. Johann]
        {ROBERT ATKEY \\
-         \vspace{0.3em}
+         \vspace{1em}
          PATRICIA JOHANN \\
          Appalachian State University \\
          \email{bob.atkey@gmail.com, johannp@appstate.edu}}
@@ -287,7 +287,11 @@ interleaving are solved: input/output failures are reported within the
 scope of $\mathit{IO}$ actions, and we have access to the
 $\mathit{IO}$ monad to explicitly close the file.
 
-FIXME: forward reference to discussion of iteratees etc.
+We return to the example of interleaved I/O effects in
+\autoref{sec:coproducts-with-free-monads}, where we will see that
+practical techniques that have been proposed by the Haskell community
+for making the interleaving explicit can be handled neatly by using
+$f$-and-$m$-algebras.
 
 \paragraph{Non-termination} Our second example of implicitly
 interleaved effects is built-in to every Haskell type: the possibility
@@ -505,13 +509,14 @@ follows:
   m)$-algebras. Consequently, we are able to give a generic
   construction of initial $f$-and-$m$-algebras for arbirary functors
   $f$ and monads $m$.
-\item In \autoref{sec:coproducts-with-free-monads}, we present an
-  extended example of the use of initial $f$-and-$m$-algebras. We
-  reconstruct a result of Hyland, Plotkin and Power on the
-  construction of coproducts of free monads with arbitrary monads,
-  using $f$-and-$m$-algebras. This construction has practical
-  interest, in that it provides a general construction of monads that
-  interleave abstract and concrete commands, as seen in the
+\item \todo{FIX THIS} In
+  \autoref{sec:coproducts-with-free-monads}, we present an extended
+  example of the use of initial $f$-and-$m$-algebras. We reconstruct a
+  result of Hyland, Plotkin and Power on the construction of
+  coproducts of free monads with arbitrary monads, using
+  $f$-and-$m$-algebras. This construction has practical interest, in
+  that it provides a general construction of monads that interleave
+  abstract and concrete commands, as seen in the
   $\mathit{Reader}~m~a~b$ monad in the previous section. The monad
   coproduct structure further highlights the central theme of this
   article: the separation of concerns of pure data and effects.
@@ -1927,33 +1932,129 @@ impossible to express this requirement in Haskell's type system.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Application: Coproducts of free monads with arbitrary monads}
+\section{Application: Streaming I/O and coproducts of free monads with arbitrary monads}
 \label{sec:coproducts-with-free-monads}
 
-To demonstrate the effectiveness of initial $f$-and-$m$-algebras for
-programming with and reasoning about datatypes with interleaved
-effects, we reconstruct a result originally due to Hyland, Plotkin and
-Power \cite{hyland06combining} on the construction of coproducts of
-free monads with arbitrary monads. This example highlights the
-advantages that $f$-and-$m$-algebras' separation of pure data and
-effects provides, and also has theoretical and practical interest. We
-now give a brief explanation of the relevant concepts.
+In \autoref{sec:motivate-interleaving}, we motivated the consideration
+of streams of interleaved data and effects by giving the
+$\mathit{hGetContents}$ function a type that more precisely reflects
+its actual behaviour. The Haskell community, motivated by the concerns
+about lazy I/O that we listed in \autoref{sec:motivate-interleaving},
+has proposed many other datatypes that capture the interleaving of
+effects with pure data\footnote{For example, the \texttt{iteratees},
+  \texttt{iterIO}, \texttt{conduits}, \texttt{enumerators}, and
+  \texttt{pipes} Haskell libraries all make use of interleaved data
+  and effects. These libraries are all available from the Hackage
+  archive of Haskell libraries
+  (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
+to make the interleaving explicit. One of the earliest was Kiselyov's
+iteratees \cite{kiselyov12iteratees}.  Iteratees are used to support
+lazy I/O in languages such as Haskell, Scala, and F\# by handling
+different kinds of sequential information processing in an incremental
+way.  In essence, iteratees are descriptions of functions that
+alternate reading from some input with effects in some monad,
+eventually yielding some output. Kiselyov captured this using the
+following datatype, which follows the same pattern of mutual recursion
+as the $\mathit{List}~m~a$ datatype declaration:
+\begin{displaymath}
+  \begin{array}{ll}
+    \kw{data}~\mathit{Reader'}~m~a~b
+    &
+    \kw{newtype}~\mathit{Reader}~m~a~b = 
+    \\
+    \quad
+    \begin{array}[t]{c@{\hspace{0.5em}}l}
+      = & \mathsf{Input}~(\mathit{Maybe}~a \to \mathit{Reader}~m~a~b) \\
+      | & \mathsf{Yield}~b
+    \end{array}
+    &
+    \quad \mathsf{Reader}~(m~(\mathit{Reader'}~m~a~b))
+  \end{array}
+\end{displaymath}
+A value of type $\mathit{Reader}~m~a~b$ is some effect described by
+the monad $m$, yielding either a result of type $b$, or a request for
+input. As Kiselyov demonstrates, the fact that values of type
+$\mathit{Reader}~m~a~b$ abstract the source of the data that they read
+is extremely powerful: different constructions allow values of type
+$\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
+input/output devices, all while retaining the ability to perform
+concrete effects in the monad $m$.
 
-\emph{Monad coproducts} provide a canonical way of describing the
-combination of two monads to form another monad. We formally define
-the coproduct of two monads below, in
-\autoref{sec:coproducts-of-monads}. For now, we can think of the
-coproduct of two monads as the ``least commitment'' combination. The
-coproduct of two monads is able to describe any effects that its
-constituents describes, but imposes no interaction between
-them. Unfortunately, the coproduct of two arbitrary monads is not
-always guaranteed to exist, but is known to exist in certain special
-cases. For example, monad coproducts are guaranteed to exist when the
-monads in question are ideal monads \cite{ghani04coproducts}, or when
-working in the category of Sets \cite{adamek12coproducts}, or if the
-monads are constructed from algebraic theories
-\cite{hyland06combining}. One particular special case is when one of
-the constituent monads is \emph{free}.
+Kiselyov treats the $\mathit{Reader}~m~a~b$ type in isolation, and
+notes that it has several useful properties, including the fact that
+it is (the functor part of) a monad. In terms of $f$-and-$m$-algebras
+we can see that the type $\mathit{Reader}~m~a~b$ is an instance of an
+initial $f$-and-$m$-algebra, where the functor $f$ is given by:
+\begin{displaymath}
+  \begin{array}{l}
+    \kw{data}~\mathit{ReaderF}~a~b~x = \\
+    \begin{array}[t]{c@{\hspace{0.5em}}l}
+      = & \mathsf{Input}~(\mathit{Maybe}~a \to x) \\
+      | & \mathsf{Yield}~b
+    \end{array}
+  \end{array}
+\end{displaymath}
+Consequently, we could use \proofprinref{pp:initial-f-m-alg} to reason
+about programs involving iteratees. For example, we could prove that
+$\mathit{Reader}~m~a~b$ is a monad whenever $m$ is. However, we can
+see iteratees as an instance of a yet more general construction:
+\emph{the coproduct of a free monad with an arbitrary monad}. Monad
+coproducts provide a general and canonical way of specifying the
+combination of two monads \cite{luth02composing}. Almost trivially,
+once we observe that $\mathit{Reader}~m~a~b$ is the coproduct of two
+monads, we can immediately deduce that it is a monad, rather than
+having to prove this fact as a special case for this particular
+type. As we will see below, in \autoref{sec:construct-coproducts}, the
+coproduct of a free monad and an arbitrary monad can be
+straightforwardly constructed using initial $f$-and-$m$-algebras.
+
+In the next subsection, we present the formal definition of the notion
+of a free monad, and briefly describe the reading of free monads as
+abstract interaction trees that can be interpreted in multiple
+ways. In \autoref{sec:construct-free-monads}, we show that concrete
+free monads can be defined using specific initial $f$-algebras. We
+will be able to reuse most of this construction when constructing the
+coproduct in \autoref{sec:construct-coproducts}. We present the formal
+definition of monad coproduct in \autoref{sec:coproducts-of-monads},
+and elaborate on the reading of free monads as interaction trees, now
+interleaved with effects from some arbitrary monad. In
+\autoref{sec:construct-coproducts}, we present a concrete construction
+of the coproduct of a free monad with an arbitrary monad. By making
+use of $f$-and-$m$-algebras we are able to reuse much of the core of
+the definitions of the free monad structure we defined in
+\autoref{sec:construct-free-monads}. 
+
+% Finally, in
+% \autoref{sec:haskell-application}, we briefly examine the application
+% of our results to Haskell libraries that use interleaved data and
+% effects.
+
+% reconstruct a result originally due to Hyland, Plotkin and
+% Power \cite{hyland06combining} on the construction of coproducts of
+% free monads with arbitrary monads. This example highlights the
+% advantages that $f$-and-$m$-algebras' separation of pure data and
+% effects provides, and also has theoretical and practical interest. We
+% now give a brief explanation of the relevant concepts.
+
+
+% Coproducts of free monads with arbitrary monads arise when considering
+% certain kinds of datatypes interleaved with effects, such as the
+% Iteratee type $\mathit{Reader}~m~a~b$ in
+% \autoref{sec:motivate-interleaving}. This type describes computations
+% that interleave the possibility of reading with performing effects in
+% some arbitrary monad (often the $\mathit{IO}$ monad). The power of the
+% $\mathit{Reader}~m~a~b$ type, as demonstrated by Kiselyov
+% \cite{kiselyov12iteratees}, is that we are provided with considerable
+% flexibility in how to interpret ``reading'', allowing for instances of
+% the type $\mathit{Reader}~m~a~b$ to be chained together in interesting
+% ways. The monad coproduct interface provides us with a simple,
+% general, and canonical way of precisely describing exactly how
+% $\mathit{Reader}~m~a~b$ is the combination of read effects with
+% effects in $m$.
+
+
+\subsection{Free monads}
+\label{sec:free-monads}
 
 A \emph{free monad} for a functor $(f, \mathit{fmap}_f)$ is a way of
 extending $f$ to be a monad while, intuitively, adding no additional
@@ -1963,58 +2064,8 @@ commands are described by the functor $f$, and no commitment is made
 as to their interpretations. Swierstra and Altenkirch
 \cite{swierstra07beauty} have developed this idea to provide a
 straightforward way of reasoning about programs that perform
-input/output. We briefly describe this view of free monads after we
-give the formal definition in \autoref{sec:free-monads}.
-
-Coproducts of free monads with arbitrary monads arise when considering
-certain kinds of datatypes interleaved with effects, such as the
-Iteratee type $\mathit{Reader}~m~a~b$ in
-\autoref{sec:motivate-interleaving}. This type describes computations
-that interleave the possibility of reading with performing effects in
-some arbitrary monad (often the $\mathit{IO}$ monad). The power of the
-$\mathit{Reader}~m~a~b$ type, as demonstrated by Kiselyov
-\cite{kiselyov12iteratees}, is that we are provided with considerable
-flexibility in how to interpret ``reading'', allowing for instances of
-the type $\mathit{Reader}~m~a~b$ to be chained together in interesting
-ways. The monad coproduct interface provides us with a simple,
-general, and canonical way of precisely describing exactly how
-$\mathit{Reader}~m~a~b$ is the combination of read effects with
-effects in $m$.
-
-In the next subsection, we present the formal definition of the notion of a free
-monad, and briefly describe the reading of free monads as abstract
-sequences of commands that can be interpreted in multiple ways. In
-\autoref{sec:construct-free-monads}, we show that concrete free monads
-can be defined using specific initial $f$-algebras. We will be able to reuse
-most of this construction when constructing the coproduct in
-\autoref{sec:construct-coproducts}. We present the formal definition of
-monad coproduct in \autoref{sec:coproducts-of-monads}, and elaborate
-on the reading of free monads as sequences of commands, now
-interleaved with effects from some arbitrary monad. Finally, in
-\autoref{sec:construct-coproducts}, we present a concrete construction
-of the coproduct of a free monad with an arbitrary monad. By making
-use of $f$-and-$m$-algebras we are able to reuse much of the core of
-the definitions of the free monad structure we defined in
-\autoref{sec:construct-free-monads}.
-
-We emphasise that the result we present here is not new; Hyland
-\emph{et al.} have already demonstrated, albeit with a different proof
-technique, that the construction we give below in
-\autoref{sec:construct-coproducts} actually defines the monad
-coproduct. A special case of this result, where the free monad part of
-the construction is the free monad over the identity functor, has also
-been previously presented by Pir{\'o}g and Gibbons
-\cite{pirog12tracing}. Our contribution is to show that the use of
-$f$-and-$m$-algebras simplifies and elucidates the definitions
-involved.
-
-\subsection{Free monads}
-\label{sec:free-monads}
-
-In this section, we give the formal definition of the free monad
-interface, and give a brief example showing how free monads provide a
-powerful way of writing effectful programs that have multiple
-interpretations.
+input/output. We will briefly describe this view of free monads after
+we give the formal definition:
 
 \begin{definition}\label{defn:freemonad}
   Let $(f, \mathit{fmap}_f)$ be a functor. A \emph{free monad} on
@@ -2085,12 +2136,10 @@ structure provides substitution of expressions into other expressions,
 and the extension $\fmext{g}$ allows us to interpret a whole
 expression if we can interpret all the constructors.
 
-FIXME: ``interaction trees'' instead of ``sequences of commands''.
-
 Another reading, which is more in line with our general theme of
-computational effects, is in terms of sequences of ``commands''. We
-think of the functor $(f, \mathit{fmap}_f)$ as describing a collection
-of possible commands that can be issued by a program. For example, the
+computational effects, is in terms of ``interaction trees''. We think
+of the functor $(f, \mathit{fmap}_f)$ as describing a collection of
+possible commands that can be issued by a program. For example, the
 functor $(\mathit{ReaderF}~a, \mathit{fmap}_{\mathit{ReaderF}~a})$,
 that we define now, describes a single command of reading a value from
 some input. The $\mathit{ReaderF}~a$ functor is defined as follows:
@@ -2111,7 +2160,7 @@ some input. The $\mathit{ReaderF}~a$ functor is defined as follows:
   \end{array}
 \end{displaymath}
 We think of values of type $\mathit{FreeM}~(\mathit{ReaderF}~a)~b$ as
-sequences of read commands, eventually yielding a value of type
+trees of read commands, eventually yielding a value of type
 $b$. We use the $\mathit{wrap}_{\mathit{ReaderF}~a}$ part of the free
 monad interface to define a primitive read operation:
 \begin{displaymath}
@@ -2120,7 +2169,7 @@ monad interface to define a primitive read operation:
     \mathit{read} = \mathit{wrap}_{\mathit{ReaderF}~a}~(\mathsf{Read}~\mathit{return}_{\mathit{FreeM}~(\mathit{ReaderF}~a)})
   \end{array}
 \end{displaymath}
-As every free monad is a monad, we can use Haskell's $\kw{do}$
+Every free monad is a monad, so we can use Haskell's $\kw{do}$
 notation to sequence individual commands. For example, here is a
 simple program that reads two strings from some input, and returns
 them as a pair in the opposite order.
@@ -2144,7 +2193,7 @@ standard Haskell function $\mathit{getLine}$ to do the actual reading:
   \end{array}
 \end{displaymath}
 The free monad interface now provides a way to extend this
-interpretation of individual commands to sequences of commmands:
+interpretation of individual commands to trees of commmands:
 \begin{displaymath}
   \fmext{\mathit{useGetLine}} :: \mathit{FreeM}~(\mathit{ReaderF}~\mathit{String})~a \to \mathit{IO}~a
 \end{displaymath}
@@ -2175,7 +2224,7 @@ possible way of accomplishing this is to ensure that there is an
 additional constructor to the functor $f$ that describes an additional
 ``abstract command'' of performing an effect in the chosen monad. For
 example, we could extend the $\mathit{ReaderF}~a$ functor like so to
-add the possibility of concrete effects in a monad $m$:
+add the possibility of effects in a monad $m$:
 \begin{displaymath}
   \kw{data}~\mathit{ReaderMF}~m~a~x = \mathsf{Read}~(a \to x) \mathrel| \mathsf{Act}~(m~x)
 \end{displaymath}
@@ -2291,13 +2340,26 @@ the definitions in \autoref{fig:construct-free-monads}.
 
 \newcommand{\cprd}[2]{#1\mathord{+}#2}
 
-In the introduction to this section, we intuitively described monad
-coproducts as the ``least commitment'' combination of a pair of
-monads. Formally, this least commitment aspect is realised as the
-existence of a \emph{unique} monad morphism out of a coproduct for
-every way of interpreting its consistuent parts. Coproducts of monads
-are precisely coproducts in the category of monads and monad
-morphisms. The following definition sets out the precise conditions:
+\emph{Monad coproducts} provide a canonical way of describing the
+combination of two monads to form another monad. We can think of the
+coproduct of two monads as the ``least commitment'' combination. The
+coproduct of two monads is able to describe any effects that its
+constituents describes, but imposes no interaction between
+them. Unfortunately, the coproduct of two arbitrary monads is not
+always guaranteed to exist, but is known to exist in certain special
+cases. For example, monad coproducts are guaranteed to exist when the
+monads in question are ideal monads \cite{ghani04coproducts}, or when
+working in the category of Sets \cite{adamek12coproducts}, or if the
+monads are constructed from algebraic theories
+\cite{hyland06combining}. One particular special case is when one of
+the constituent monads is \emph{free}, as we shall see in
+\autoref{sec:construct-coproducts}, below.
+
+Formally, ``least commitment'' is realised as the existence of a
+\emph{unique} monad morphism out of a coproduct for every way of
+interpreting its consistuent parts. Coproducts of monads are precisely
+coproducts in the category of monads and monad morphisms. The
+following definition sets out the precise conditions:
 \begin{definition}\label{defn:coproducts}
   Let $(m_1, \mathit{fmap}_{m_1}, \mathit{return}_{m_1}, \mathit{join}_{m_1})$ and $(m_2,
   \mathit{fmap}_{m_1}, \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A \emph{coproduct} of these two monads is a
@@ -2380,7 +2442,7 @@ describes how to execute single reads on a file handle as an $\mathit{IO}$ actio
 \end{displaymath}
 Again, we can combine the free monad and monad coproduct interfaces to
 extend this interpretation of individual abstract $\mathit{read}$
-commands to all sequences of $\mathit{read}$ commands interleaved with
+commands to all trees of $\mathit{read}$ commands interleaved with
 arbitrary $\mathit{IO}$ actions:
 \begin{displaymath}
   \lambda h.~[\fmext{\mathit{useFileHandle}~h}, \mathit{id}] :: \mathit{Handle} \to (\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}})~a \to \mathit{IO}~a
@@ -2442,12 +2504,14 @@ arbitrary $\mathit{IO}$ actions:
 coproduct of a free monad with an arbitrary monad $m$ in terms of
 initial $f$-and-$m$-algebras. We program against the abstract
 interface of initial $f$-and-$m$-algebras, rather relying on any
-particular implementation. If we take the implementation that we
-presented in \autoref{sec:f-and-m-alg-impl}, then the definition of
-$(\cprd{(\mathit{FreeM}~f)}{m})~a$ unfolds to be
-$m~(\mathit{Mu}~(\mathit{FreeMF}~f~a \fcompose m))$, which is exactly
-the Haskell translation of the construction that Hyland \emph{et al.}
-present.
+particular implementation.
+
+% If we take the implementation that we
+% presented in \autoref{sec:f-and-m-alg-impl}, then the definition of
+% $(\cprd{(\mathit{FreeM}~f)}{m})~a$ unfolds to be
+% $m~(\mathit{Mu}~(\mathit{FreeMF}~f~a \fcompose m))$, which is exactly
+% the Haskell translation of the construction that Hyland \emph{et al.}
+% present.
 
 The definitions of the basic monad structure -- $\mathit{fmap}$,
 $\mathit{return}$ and $\mathit{join}$ -- are almost identical to the
@@ -2504,19 +2568,35 @@ $\fmext{g}$ satisfies the required properties for the free monad
 specification. This is another testament to the power of
 $f$-and-$m$-algebras.
 
+We emphasise that the result we have presented here is not new; Hyland
+\emph{et al.} have already demonstrated, albeit with a different proof
+technique, that the construction we give below in
+\autoref{sec:construct-coproducts} actually defines the monad
+coproduct. A special case of this result, where the free monad part of
+the construction is the free monad over the identity functor, has also
+been previously presented by Pir{\'o}g and Gibbons
+\cite{pirog12tracing}. Our contribution is to show that the use of
+$f$-and-$m$-algebras simplifies and elucidates the definitions
+involved.
+
 \section{Conclusions}
 \label{sec:conclusions}
+
+We have presented a generalisation of Filinski and St\o{}vring's
+$f$-and-$m$-algebras to arbitrary categories, and seen how they
+simplify defining and reasoning about functions that manipulated
+interleaved data and effects.
 
 \subsection{Related Work}
 
 The earliest attempt to incorporate effects into the initial algebra
 methodology appears to be Sheard's~\cite{she93a,she93b} use of
-reflection to give direct constructions of monadic $\mathit{map}$ and
-$\mathit{fold}$ functions.  Fokkinga~\cite{fokkinga94monadic} and
-later Pardo~\cite{pardo04combining}, generalised Sheard's
-constructions to the general categorical setting, giving a generic
-recursion combinator for effectful recursive computations that has
-type
+compile-time reflection to give direct constructions of monadic
+$\mathit{map}$ and $\mathit{fold}$ functions.
+Fokkinga~\cite{fokkinga94monadic} and later
+Pardo~\cite{pardo04combining}, generalised Sheard's constructions to
+the general categorical setting, giving a generic recursion combinator
+for effectful recursive computations that has type
 \begin{displaymath}
   \fold{-}_m : (f~a \to m~a) \to \mu f \to m~a
 \end{displaymath}
@@ -2541,18 +2621,19 @@ is concerned here with structural recursion over \emph{effectful}
 data, in which data and effects are interleaved, rather than just
 monadically wrapped data.
 
-Although Pardo~\cite{par93} worked in the same effectful setting as
-Fokkinga, he transferred even more origami programming ideas to the
-effectful setting: in addition to defining the aforementioned monadic
-$\mathit{fold}s$ (catamorphisms), he dualised them to give monadic
-$\mathit{unfold}$s (anamorphisms) for structuring corecursive programs
-with monadic effects, and also defined monadic hylomorphisms to
-support even more general ways of structuring monadic computations and
-combining their results. Interestingly, monadic hylomorphisms do
-achieve some interleaving of recursive calls to effectful computations
-with other computations, but the computations they structure must
-still consume pure data. Finally, Pardo developed rules for fusing
-monadic programs structured using the monadic constructs he defined.
+Although Pardo~\cite{pardo04combining} worked in the same effectful
+setting as Fokkinga, he transferred even more origami programming
+ideas to the effectful setting: in addition to defining the
+aforementioned monadic $\mathit{fold}s$ (catamorphisms), he dualised
+them to give monadic $\mathit{unfold}$s (anamorphisms) for structuring
+corecursive programs with monadic effects, and also defined monadic
+hylomorphisms to support even more general ways of structuring monadic
+computations and combining their results. Interestingly, monadic
+hylomorphisms do achieve some interleaving of recursive calls to
+effectful computations with other computations, but the computations
+they structure must still consume pure data. Finally, Pardo developed
+rules for fusing monadic programs structured using the monadic
+constructs he defined.
 
 Meijer and Juering~\cite{mj95} further extended ideas of origami
 programming by developing a number of fusion rules appropriate to the
@@ -2618,7 +2699,7 @@ and illustrate the extension of relational reasoning to effectful
 datatypes. We consider neither fusion rules nor relational reasoning
 in this article.
 
-Overall, then, we see that the this article generalises previous
+Overall, then, we see that this article generalises previous
 extensions of the initial algebra methodology to the effectful setting
 in three ways: it handles arbitrary functors, rather than special
 classes of functors; it handles actual interleaving of effects and
@@ -2628,56 +2709,8 @@ interleaved effectful computations, rather than just constructs for
 structuring those computations. \pattynote{We don't actually identify
   the proof principles we illustrate, so be careful here.}
 
-\pattynote{Perhaps leave the following paragraph in the introduction?
-  If so, then skip to last paragraph, which appears below after it.}
-We mention in closing that the Haskell community has also defined many
-other datatypes that capture the interleaving of effects with pure
-data\footnote{For example, the \texttt{iteratees}, \texttt{iterIO},
-  \texttt{conduits}, \texttt{enumerators}, and \texttt{pipes} Haskell
-  libraries all make use of interleaved data and effects. These
-  libraries are all available from the Hackage archive of Haskell
-  libraries
-  (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
-to make explicit the interleaving implicit in the
-$\mathit{hGetContents}$ function. One of the earliest was Kiselyov's
-iteratees \cite{kiselyov12iteratees}.  Iteratees are used to support
-lazy I/O in languages such as Haskell, Scala, and F\# by handling
-different kinds of sequential information processing in an incremental
-way.  In essence, iteratees are descriptions of functions that
-alternate reading from some input with effects in some monad,
-eventually yielding some output. This can be described by the
-following datatype, which follows the same pattern of mutual recursion
-as the $\mathit{List}~m~a$ datatype declaration:
-\begin{displaymath}
-  \begin{array}{ll}
-    \kw{data}~\mathit{Reader'}~m~a~b
-    &
-    \kw{newtype}~\mathit{Reader}~m~a~b = 
-    \\
-    \quad
-    \begin{array}[t]{c@{\hspace{0.5em}}l}
-      = & \mathsf{Input}~(\mathit{Maybe}~a \to \mathit{Reader}~m~a~b) \\
-      | & \mathsf{Yield}~b
-    \end{array}
-    &
-    \quad \mathsf{Reader}~(m~(\mathit{Reader'}~m~a~b))
-  \end{array}
-\end{displaymath}
-A value of type $\mathit{Reader}~m~a~b$ is some effect described by
-the monad $m$, yielding either a result of type $b$, or a request for
-input. As Kiselyov demonstrates, the fact that values of type
-$\mathit{Reader}~m~a~b$ abstract the source of the data that they read
-is extremely powerful: different constructions allow values of type
-$\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
-input/output devices, all while retaining the ability to perform
-concrete effects in the monad $m$. Kiselyov treats the
-$\mathit{Reader}~m~a~b$ type in isolation, but in fact it can be
-regarded as an instance of an application of interleaved data and
-effects: the general construction of the coproduct of a free monad and
-an arbitrary monad. Monad coproducts provide a general and canonical
-way of specifying the combination of two monads
-\cite{luth02composing}, and the coproduct of a free monad and an
-arbitrary monad can be constructed using initial $f$-and-$m$-algebras.
+% \pattynote{Perhaps leave the following paragraph in the introduction?
+%   If so, then skip to last paragraph, which appears below after it.}
 
 The monadic induction schemes introduced by Filinski and St\o{}vring,
 and generalised here, \pattynote{Careful! Induction schemes not
