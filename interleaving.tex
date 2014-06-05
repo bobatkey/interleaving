@@ -68,7 +68,7 @@
   This technique has been expanded to a whole methodology of
   structured functional programming, often called origami programming.
 
-  In this article, we show how to extend initial algebra semantics
+  In this article we show how to extend initial algebra semantics
   from pure inductive datatypes to inductive datatypes interleaved
   with computational effects. Inductive datatypes interleaved with
   effects arise naturally in many computational settings. For example,
@@ -77,13 +77,13 @@
   constructed infinite values can be represented by pure data
   interleaved with the possibility of non-terminating
   computation. Straightforward application of initial algebra
-  techniques to effectful datatypes either leads to unsound
+  techniques to effectful datatypes leads either to unsound
   conclusions if we ignore the possibility of effects, or to
-  unnecessarily complicated reasoning, because the pure and effectful
-  concerns must be considered simultaneously. We show how these
-  concerns can be separated using the abstraction of initial
+  unnecessarily complicated reasoning because the pure and effectful
+  concerns must be considered simultaneously. We show how pure and
+  effectful concerns can be separated using the abstraction of initial
   $f$-and-$m$-algebras, where the functor $f$ describes the pure part
-  of a datatype, and the monad $m$ describes the interleaved
+  of a datatype and the monad $m$ describes the interleaved
   effects. Because initial $f$-and-$m$-algebras are the analogue for
   the effectful setting of initial $f$-algebras, they support the
   extension of the standard definitional and proof principles to the
@@ -93,11 +93,13 @@
   setting.
 
   Initial $f$-and-$m$-algebras are originally due to Filinski and
-  St\o{}vring, who studied them in the category Cpo, and were
+  St\o{}vring, who studied them in the category Cpo. They were
   subsequently generalised to arbitrary categories by the authors of
-  this article. In this article, we aim to introduce the general
-  concept of initial $f$-and-$m$-algebras to a general functional
-  programming audience.
+  this article.  \pattynote{Replace ``by the authors of the present
+    article'' with something that gives Bart and Neil credit for their
+    contributions to the FoSSaCS version.}  In this article we aim to
+  introduce the general concept of initial $f$-and-$m$-algebras to a
+  general functional programming audience.
 \end{abstract}
 
 \section{Introduction}
@@ -126,17 +128,17 @@ of Programming methodology \cite{bdm97}.
 Programming and reasoning using higher-order recursion combinators is
 built upon the category theoretic foundation of initial $f$-algebras
 for functors $f$ \cite{GoguenTW78}. In initial algebra semantics,
-datatypes are represented by carriers of initial algebras --
-i.e., least fixed points of functors -- and combinators such as
+datatypes are represented by carriers of initial $f$-algebras -- i.e.,
+least fixed points of functors $f$ -- and combinators such as
 $\mathit{foldr}$ are derived from the universal properties of initial
-algebras. The initial $f$-algebra methodology has been successful in
-unifying and clarifying structured functional programming and
+$f$-algebras. The initial $f$-algebra methodology has been successful
+in unifying and clarifying structured functional programming and
 reasoning on values of recursive datatypes that go far beyond lists
 and $\mathit{foldr}$.
 
-In this article, we present a class of recursive datatypes where
-direct use of the initial algebra methodology does \emph{not} provide
-the right level of abstraction. Specifically, we consider recursive
+In this article we present a class of recursive datatypes where direct
+use of the initial $f$-algebra methodology does \emph{not} provide the
+right level of abstraction. Specifically, we consider recursive
 datatypes that interleave pure data with effectful computation. For
 example, lists of characters that are interleaved with input/output
 operations that read them from an external source can be described by
@@ -166,10 +168,10 @@ of our programs and proofs in a way that obscures their essential
 properties (as we demonstrate in \autoref{sec:direct-eappend}). By
 abstracting out the effectful parts, we arrive at the concept of
 initial $f$-and-$m$-algebras, where $f$ is a functor whose initial
-algebra describes the pure part of the datatype, and $m$ is a
-monad that describes the effects. Initial $f$-and-$m$-algebras
-represent a better level of abstraction for dealing with interleaved
-data and effects.
+algebra describes the pure part of the datatype, and $m$ is a monad
+that describes the effects. In this article we will show that initial
+$f$-and-$m$-algebras represent a better level of abstraction for
+dealing with interleaved data and effects.
 
 The key idea is to separate the concerns of dealing with pure data,
 via $f$-algebras, and effects, via $m$-Eilenberg-Moore-algebras. We
@@ -184,7 +186,7 @@ following benefits:
   and the effectful part is straightforward. Therefore, definitions of
   functions on pure datatypes can often be transferred directly to
   their effectful counterparts. Moreover, the new definitions are
-  generic in the interleaved monad we use for representing effects,
+  generic in the interleaved monad we use for representing effects ---
   for example, the $\mathit{IO}$ monad for input/ouptut effects, or
   the non-termination monad for laziness.
 \item \emph{Proofs} about functions on interleaved datatypes also
@@ -203,11 +205,14 @@ Filinski and St\o{}vring in the specific setting of Cpo (the category
 of complete partial orders and continuous functions)
 \cite{filinski07inductive}, and was subsequently extended to a general
 category-theoretic setting for arbitrary functors $f$ by the authors
-of the current article \cite{atkey12fibrational}. In this article, we
-aim to introduce the concept of initial $f$-and-$m$-algebras to a
-general functional programming audience and show how they can be used
-to structure and reason about functional programs in practice, without
-the heavy category-theoretic prerequisites of our previous work.
+of the current article \cite{atkey12fibrational}.  \pattynote{Replace
+  ``by the authors of the present article'' with something that gives
+  Bart and Neil credit for their contributions to the FoSSaCS
+  version.}  In this article, we aim to introduce the concept of
+initial $f$-and-$m$-algebras to a general functional programming
+audience and show how they can be used to structure and reason about
+functional programs in practice, without the heavy category-theoretic
+prerequisites of that previous work.
 
 \subsection{Interleaving data and effects}
 \label{sec:motivate-interleaving}
@@ -228,15 +233,15 @@ effects. The $\mathit{hGetContents}$ function has the following type:
 \begin{displaymath}
   \mathit{hGetContents} :: \mathit{Handle} \to \mathit{IO}~[\mathit{Char}]
 \end{displaymath}
-Reading the type of this function, one might assume that it operates
-by reading all the available data from the file referenced by the
-given handle as an $\mathit{IO}$ action, and then returns the list of
+Reading the type of this function, we might assume that it operates by
+reading all the available data from the file referenced by the given
+handle as an $\mathit{IO}$ action, and then returns the list of
 characters as pure data. In fact, the standard implementation of this
 function postpones the reading of data from the handle until the list
 is actually accessed by the program. The effect of reading from the
 file handle is implicitly \emph{interleaved} with any later pure
 computation on the list. This interleaving is not made apparent in the
-type of $\mathit{hGetContents}$, with the following undesirable
+type of $\mathit{hGetContents}$, which has the following undesirable
 consequences:
 \begin{itemize}
 \item Input/output errors that occur during reading (e.g.,~network
@@ -288,28 +293,28 @@ scope of $\mathit{IO}$ actions, and we have access to the
 $\mathit{IO}$ monad to explicitly close the file.
 
 We return to the example of interleaved I/O effects in
-\autoref{sec:coproducts-with-free-monads}, where we will see that
+\autoref{sec:coproducts-with-free-monads}, where we will see how
 practical techniques that have been proposed by the Haskell community
 for making the interleaving explicit can be handled neatly by using
 $f$-and-$m$-algebras.
 
-\paragraph{Non-termination} Our second example of implicitly
-interleaved effects is built-in to every Haskell type: the possibility
-of non-termination while inspecting a pure value. Haskell dictates a
-lazy evaluation strategy, in which the computation of a value is only
-invoked if the value is actually used. For the purposes of reasoning
-about Haskell programs, we can model the possibility of
+\paragraph{Non-termination} A second scenario in which implicitly
+interleaved effects arise is built-in to every Haskell type: the
+possibility of non-termination while inspecting a pure value. Haskell
+dictates a lazy evaluation strategy, in which the computation of a
+value is only invoked if the value is actually used. For the purposes
+of reasoning about Haskell programs, we can model the possibility of
 non-termination using the \emph{lifting} or \emph{non-termination}
-monad, $(-)_\bot$, which adds a bottom element $\bot$ to a type,
-representing the possibility of non-termination at that type. Every
-Haskell type is implicitly lifted using this monad.
+monad, $(-)_\bot$. This monad adds a bottom element $\bot$ to a type,
+representing the possibility of non-termination at that type, and
+every Haskell type is implicitly lifted using this monad.
 
 A well-known advantage of Haskell's implicit possibility of
 non-termination at every type is the easy representation of infinite
-data structures. Laziness means that computations that generate an
-infinite value are evaluated on demand as the structure is
-explored. In fact, we implicitly used this facility in our definition
-of $\mathit{hGetContents}$ above to deal with the possibility of
+data structures. Laziness means that a computation that generates an
+infinite value is evaluated on demand as the structure is explored. In
+fact, we implicitly used this facility in our definition of
+$\mathit{hGetContents}$ above to deal with the possibility of
 $\mathit{Handle}$s that may return infinite streams of
 values. Unfortunately, the beneficial capability of representing
 infinite data structures comes with the downside that we can no longer
@@ -320,13 +325,13 @@ implicit assumption that they are only applied to finite lists (for
 example, the standard $\mathit{reverse}$ function). Likewise, when
 reasoning about Haskell programs it is often implicitly assumed that
 lists are finite, so that standard techniques like induction may be
-applied. We examine the case of the assumptions implicit in the
-$\mathit{reverse}$ function in \autoref{sec:reverse}.
+applied. We examine the assumptions implicit in the $\mathit{reverse}$
+function in \autoref{sec:reverse}.
 
-To make these implicit assumptions explicit, we take the example of
-$\mathit{List_{io}}$ in the introduction, and alter it to yield the
-type $\mathit{List_{lazy}}$ of lists interleaved with the possibility
-of non-termination:
+To make these implicit assumptions explicit, we can modify the type
+$\mathit{List_{io}}$ from the introduction to get the type
+$\mathit{List_{lazy}}$ of lists interleaved with the possibility of
+non-termination:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{List'_{\mathit{lazy}}}~a
@@ -342,7 +347,7 @@ of non-termination:
     \quad \mathsf{List}_{\mathit{lazy}}~(\mathit{List'_{lazy}}~a)_\bot
   \end{array}
 \end{displaymath}
-Thus a value of type $\mathit{List_{lazy}}~a$ is a possibly
+A value of type $\mathit{List_{lazy}}~a$ is thus a possibly
 non-terminating computation that results in either a
 $\mathsf{Nil}_{\mathit{lazy}}$ constructor, or
 $\mathsf{Cons}_{\mathit{lazy}}$ constructor applied to a value of type
@@ -352,7 +357,7 @@ Haskell also evaluate their arguments lazily.)
 
 Correctly reasoning about values of type $\mathit{List_{lazy}}~a$ and
 other lazy data structures has traditionally required the use of
-domain-theoretic techniques (Pitts, \cite{pitts96relational}, provides
+domain-theoretic techniques (Pitts \cite{pitts96relational} provides
 a comprehensive overview). The technique of using $f$-and-$m$-algebras
 that we present in this article allows sound reasoning about lazy data
 structures at an abstract level, dispensing with the need to directly
@@ -360,11 +365,12 @@ invoke domain-theoretic concepts. Indeed, Filinski and St\o{}vring
 used lazy data structures as their initial motivation for introducing
 $f$-and-$m$-algebras in the category Cpo \cite{filinski07inductive}.
 
-\paragraph{A common generalisation} We have now seen two examples of
-list-like datatypes with interleaved effects, $\mathit{List_{io}}$
-from \hyperref[defn:listio]{Page \pageref*{defn:listio}} and the
-$\mathit{List_{lazy}}$ example above. The obvious common
-generalisation is to abstract over the monad $m$:
+\paragraph{A common generalisation} We have now seen two scenarios in which  
+list-like datatypes with interleaved effects naturally arise, namely
+the $\mathit{List_{io}}$ datatype from \hyperref[defn:listio]{Page
+  \pageref*{defn:listio}} and the $\mathit{List_{lazy}}$ datatype
+above. The obvious common generalisation is to abstract over the monad
+$m$:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{List'}~m~a
@@ -383,7 +389,7 @@ generalisation is to abstract over the monad $m$:
 A value of type $\mathit{List}~m~a$ consists of an effect described by
 $m$, then either a $\mathsf{Nil}$ to indicate the end of the list,
 or a $\mathsf{Cons}$ with a value of type $a$ and another value of
-type $\mathit{List}~m~a$. Thus this datatype describes lists of values
+type $\mathit{List}~m~a$. Thus, this datatype describes lists of values
 of type $a$ interleaved with effects from the monad $m$.
 
 We can now generalise further by replacing the constructors
@@ -406,8 +412,9 @@ $m$. Doing so, we arrive at the following definition:
 \end{displaymath}
 (We have named this type $\mathit{MuFM'_0}~f~m$ with a $0$ subscript
 because we will introduce a more refined, but isomorphic, presentation
-in \autoref{sec:f-and-m-alg-impl}.)  This definition makes it clear
-that the datatypes we are considering interleave pure data,
+in \autoref{sec:f-and-m-alg-impl}.)  \pattynote{Actually, we've used a
+  subscript on $\mathit{MuFM_0}~f~m$, too...} This definition makes
+it clear that the datatypes we are considering interleave pure data,
 represented by the functor $f$, with effects, represented by the monad
 $m$. The aim of this article is to show that $f$-and-$m$-algebras are
 the appropriate level of abstraction both for defining functions that
@@ -475,11 +482,12 @@ definitions. The structure of the remainder of the article is as
 follows:
 \begin{itemize}
 \item In \autoref{sec:f-algebras}, we recall the standard definitions
-  of $f$-algebras, initial $f$-algebras, and monads, in a functional
-  programming context. We highlight the proof principle associated
-  with initial $f$-algebras (\proofprinref{pp:initial-alg}), and
-  demonstrate that the initial $f$-algebra abstraction can be thought
-  of as an abstract interface for programming and reasoning.
+  of $f$-algebras, initial $f$-algebras, and monads, all in a
+  functional programming context. We highlight the proof principle
+  associated with initial $f$-algebras
+  (\proofprinref{pp:initial-alg}), and demonstrate that $f$-algebras
+  can be thought of as abstract interfaces for programming and
+  reasoning.
 \item We introduce our main running example of list append and its
   associativity property in \autoref{sec:pure-append}. In this
   section, we make use of the initial $f$-algebra methodology for pure
@@ -507,7 +515,7 @@ follows:
 \item In \autoref{sec:impl-f-and-m}, we show that the construction of
   initial $f$-and-$m$-algebras can be reduced to initial $(f \circ
   m)$-algebras. Consequently, we are able to give a generic
-  construction of initial $f$-and-$m$-algebras for arbirary functors
+  construction of initial $f$-and-$m$-algebras for arbitrary functors
   $f$ and monads $m$.
 \item \todo{FIX THIS} In
   \autoref{sec:coproducts-with-free-monads}, we present an extended
@@ -580,9 +588,9 @@ An $f$-algebra for a given functor $f$ is a way of describing an
 operation for reducing each layer in an inductive data structure to a
 value. Formally, $f$-algebras are defined as follows:
 \begin{definition}
-  An \emph{$f$-algebra} is a pair $(a, k_a)$ of a
+  An \emph{$f$-algebra} is a pair $(a, k)$ of a
   \emph{carrier type} $a$ and a \emph{structure map}
-  $k_a :: f~a \to a$.
+  $k :: f~a \to a$.
 \end{definition}
 Given a pair of $f$-algebras, there is also the concept of a
 homomorphism between them:
@@ -610,16 +618,16 @@ homomorphism between them:
 \end{definition}
 
 \begin{definition}
-  An \emph{initial $f$-algebra} is an $f$-algebra $(\mu f,
-  \mathit{in})$ such that for any $f$-algebra $(a, k_a)$, there exists
-  a unique $f$-algebra homomorphism $\fold{k_a} :: \mu f \to a$.
+  An \emph{initial $f$-algebra} is an $f$-algebra $(\mu \! f,
+  \mathit{in})$ such that for any $f$-algebra $(a, k)$, there exists
+  a unique $f$-algebra homomorphism $\fold{k} :: \mu f \to a$.
 \end{definition}
 
 The requirement that an initial $f$-algebra always has an $f$-algebra
 homomorphism to any $f$-algebra allows us to define functions on the
-datatypes represented by carriers $\mu f$ of initial $f$-algebras. The
-uniqueness requirement yields the following proof principle for
-functions defined on initial $f$-algebras.
+datatypes represented by carriers $\mu \! f$ of initial
+$f$-algebras. The uniqueness requirement yields the following proof
+principle for functions defined on initial $f$-algebras.
 
 \begin{proofprinciple}[Initial $f$-Algebras]\label{pp:initial-alg}
   Suppose that $(\mu f, \mathit{in})$ is an initial $f$-algebra.
@@ -634,6 +642,7 @@ functions defined on initial $f$-algebras.
     g \circ \mathit{in} = k \circ \mathit{fmap}_f~g.
   \end{displaymath}
 \end{proofprinciple}
+\pattynote{PP1 can be stated as a bi-implication.}
 
 We demonstrate the use of \proofprinref{pp:initial-alg} in
 \autoref{sec:pure-append} below, to set up our presentation of
@@ -745,15 +754,17 @@ any functor $(f,\mathit{fmap_f})$.
 
 These two examples demonstrate that initial algebras for a given
 functor are not unique: the types $[a]$ and
-$\mathit{Mu}~(\mathit{ListF}~a)$ are not equal, but they are both
+$\mathit{Mu}~(\mathit{ListF}~a)$ are not equal \pattynote{Replace
+  ``equal'' with ``identical''? Surely they are equal in the
+  categorical sense of both being initial...}, but they are both
 initial $(\mathit{ListF}~a)$-algebras. Therefore, we regard the
 initial $f$-algebra abstraction as an interface to program against,
 rather than thinking in terms of specific implementations such as
 $\mathit{Mu}~f$. Note that it is possible to prove that any two
 initial $f$-algebras are isomorphic, by using the initial algebra
-property to define the translations between, and
+property to define the translations between them, and
 \proofprinref{pp:initial-alg} to prove that the translations are
-mutually inverse. This isomorphism result is known as Lambek's lemma
+mutually inverse. This isomorphism result is known as Lambek's Lemma
 \cite{LAMBEK68}.
 
 \subsection{Monads}
@@ -764,9 +775,9 @@ computations in terms of monads \cite{moggi91notions,
 definition of monad in terms of a $\mathit{join}$ (or
 \emph{multiplication}) operation, rather than the Kleisli-triple
 presentation with a bind operation ($\mbind$) that is more standard in
-Haskell programming. For our purposes, the categorical definition is
-more convenient for equational reasoning. Standard references such as
-the lecture notes by Benton, Hughes and Moggi \cite{benton00monads}
+Haskell programming simply because the categorical definition is more
+convenient for equational reasoning. Standard references such as the
+lecture notes by Benton, Hughes and Moggi \cite{benton00monads}
 discuss the translations between the two presentations.
 
 \begin{definition}\label{defn:monad}
@@ -805,16 +816,16 @@ $\mathit{return}_m$ and $\mathit{join}_m$ to disambiguate which monad
 is being referred to, instead of leaving it for the reader to infer.
 
 Finally in this short recap of monads, we recall the definition of a
-\emph{monad morphism} between a pair of monads. Monad morphisms
-represent structure preserving maps between monads. We will use monad
-morphisms in our extended example of the use of $f$-and-$m$-algebras
-to construct the coproduct of two monads in
+\emph{monad morphism} between two monads. Monad morphisms represent
+structure preserving maps between monads. We will use monad morphisms
+in our extended example of the use of $f$-and-$m$-algebras to
+construct the coproduct of two monads in
 \autoref{sec:coproducts-with-free-monads}.
 
 \begin{definition}
   Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
   \mathit{join_{m_1}})$ and $(m_2, \mathit{fmap_{m_1}},
-  \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be a pair of monads. A
+  \mathit{return}_{m_2}, \mathit{join}_{m_2})$ be two monads. A
   \emph{monad morphism} between them is a function $h :: m_1~a \to
   m_2~a$ such that:
   \begin{align}
@@ -834,13 +845,13 @@ We now introduce our running example of list append and its
 associativity property. In this section, we use an initial
 $(\mathit{ListF}~a)$-algebra and \proofprinref{pp:initial-alg} to
 define and prove associative the append function on pure lists. In
-\autoref{sec:direct-eappend} we attempt the same example in a setting
-with interleaved effects, using the initial $f$-algebra technique, and
-see that direct use of initial $f$-algebras makes the definition and
-proof unnecessarily complicated. In \autoref{sec:f-and-m-algebras}, we
-use $f$-and-$m$-algebras to simplify the definition and proof, and
-show that this lets us reuse much of the definition and proof that we
-give in this section.
+\autoref{sec:direct-eappend} we attempt to use the initial $f$-algebra
+technique to prove the analogous property in a setting with
+interleaved effects, and see that direct use of initial $f$-algebras
+makes the definition and proof unnecessarily complicated. In
+\autoref{sec:f-and-m-algebras}, we use $f$-and-$m$-algebras to
+simplify the definition and proof, and show that this lets us reuse
+much of the definition and proof that we give in this section.
 
 The definition and proof that we present here are standard and have
 appeared many times in the literature. We present them in some detail
@@ -848,10 +859,10 @@ in order to use them as a reference when we cover the analogous proof
 for append for lists interleaved with effects.
 
 We program and reason against the abstract interface of initial
-algebras. Hence we assume that an initial $(\mathit{ListF}~a)$-algebra
-$(\mu(\mathit{ListF}~a), \mathit{in})$ exists, and we write $\fold{-}$
-for the unique homomorphism induced by initiality. We can define
-$\mathit{append}$ in terms of $\fold{-}$ as:
+$f$-algebras. Hence we assume that an initial
+$(\mathit{ListF}~a)$-algebra $(\mu(\mathit{ListF}~a), \mathit{in})$
+exists, and we write $\fold{-}$ for the unique homomorphism induced by
+initiality. We can define $\mathit{append}$ in terms of $\fold{-}$ as:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{append} :: \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \\
@@ -876,8 +887,8 @@ $\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})$. We have:
   \label{eq:append-cons}
   \mathit{append}~(\mathit{in}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{in}~(\mathsf{Cons}~a~(\mathit{append}~\mathit{xs}~\mathit{ys}))
 \end{align}
-We now make use of these properties, and
-\proofprinref{pp:initial-alg}, to prove associativity:
+We now make use of these properties and \proofprinref{pp:initial-alg}
+to prove associativity:
 
 \begin{theorem}\label{thm:append-assoc}
   For all $\mathit{xs}, \mathit{ys}, \mathit{zs} :: \mu(\mathit{ListF}~a)$,
@@ -1042,13 +1053,13 @@ $\mathit{eAppend}$ that tell us how it acts on the two list
 constructors:
 \begin{equation}
   \label{eq:eappend-direct-nil}
-  \mathit{eAppend}~(\mathit{return}_m~(\mathit{construct}~\mathsf{Nil}))~\mathit{ys} = \mathit{ys}
+  \mathit{eAppend}~(\mathit{return}_m~(\mathit{in}~\mathsf{Nil}))~\mathit{ys} = \mathit{ys}
 \end{equation}
 and
 \begin{equation}\label{eq:eappend-direct-cons}
   \begin{array}{cl}
-    & \mathit{eAppend}~(\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})))~\mathit{ys} \\ 
-    =&\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})))
+    & \mathit{eAppend}~(\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\mathit{xs})))~\mathit{ys} \\ 
+    =&\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})))
   \end{array}
 \end{equation}
 We note that the derivations of these equations involve more work
@@ -1072,52 +1083,52 @@ the definition of $\mathit{eAppend}$ too early.
 \begin{proof*}
   We will eventually be able to use \proofprinref{pp:initial-alg}, but
   first we must rearrange both sides of the equation to be of a
-  suitable form. For this proof, we adopt the notation
-  $\mathit{fAlgebra}_l$ to denote an instance of the
-  $\mathit{fAlgebra}$ function defined in the body of
+  suitable form. For this proof, we adopt the notation $k_l$ to denote
+  an instance of the function $k$ defined in the body of
   $\mathit{eAppend}$ with the free variable $\mathit{ys}$ replaced by
   $l$.
 
   The left hand side of the equation to be proved is equal to:
   \begin{displaymath}
     \begin{array}{cl}
-       &\mathit{eAppend}~\mathit{xs}~(\mathit{eAppend}~\mathit{ys}~\mathit{zs}) \\
-       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-       &\mathit{join_m}~(\mathit{fmap_m}~\fold{\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}}~\mathit{xs})
+       &\mathit{eAppend}~\mathit{xs}~(\mathit{eAppend}~\mathit{ys}~\mathit{zs})
+      \\ =&\eqAnnotation{definition of $\mathit{eAppend}$}
+      \\ &\mathit{join_m}~(\mathit{fmap_m}~\fold{k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}}~\mathit{xs})
     \end{array}
   \end{displaymath}
   The right hand side of the equation requires a little more work:
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs} \\
-      =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      &\mathit{eAppend}~(\mathit{join}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_{\mathit{ys}}}~\mathit{xs}))~\mathit{zs} \\
-      =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      &\mathit{join}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_{\mathit{ys}}}~\mathit{xs}))) \\
-      =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
-      &\mathit{join}_m~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs}))) \\
-      =&\eqAnnotation{monad law: 
+      &\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs}
+      \\ =&\eqAnnotation{definition of $\mathit{eAppend}$}
+      \\ &\mathit{eAppend}~(\mathit{join}_m~(\mathit{fmap}_m~\fold{k_{\mathit{ys}}}~\mathit{xs}))~\mathit{zs}
+      \\ =&\eqAnnotation{definition of $\mathit{eAppend}$}
+      \\ &\mathit{join}_m~(\mathit{fmap}_m~\fold{k_{zs}}~(\mathit{join}_m~(\mathit{fmap}_m~\fold{k_{\mathit{ys}}}~\mathit{xs})))
+      \\ =&\eqAnnotation{naturality of $\mathit{join_m}$
+        (\autoref{eq:monad-join-natural})}
+      \\ &\mathit{join}_m~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap}_m~\fold{k_{zs}})~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs})))
+      \\ =&\eqAnnotation{monad law:
 %$\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\mathit{join_m}$ 
 \autoref{eq:monad-join-join}} \\
-      &\mathit{join_m}~(\mathit{fmap_m}~\mathit{join_m}~(\mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs}))) \\
+      &\mathit{join_m}~(\mathit{fmap_m}~\mathit{join_m}~(\mathit{fmap}_m~(\mathit{fmap}_m~\fold{k_{zs}})~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs}))) \\
       =&\eqAnnotation{$\mathit{fmap_m}$ preserves composition (\autoref{eq:fmap-comp})} \\
-      &\mathit{join_m}~(\mathit{fmap_m}~(\mathit{join_m} \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}} \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs}) \\
+      &\mathit{join_m}~(\mathit{fmap_m}~(\mathit{join_m} \circ \mathit{fmap}_m~\fold{k_{zs}} \circ \fold{k_{ys}})~\mathit{xs}) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      &\mathit{join_m}~(\mathit{fmap_m}~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})
+      &\mathit{join_m}~(\mathit{fmap_m}~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})
     \end{array}
   \end{displaymath}
   Looking at the final lines of these two chains of equations, we see
   that the problem reduces to proving the following equation:
   \begin{displaymath}
-    \fold{\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}} = (\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}}
+    \fold{k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}} = (\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}
   \end{displaymath}
   To prove this equation, we use \proofprinref{pp:initial-alg}, which
   reduces the problem to proving the following equation, for all $x ::
   \mathit{ListF}~a~(m~(\mu(\mathit{ListF}~a \circ m)))$:
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{eAppend}~(\fold{\mathit{fAlgebra_{ys}}}~(\mathit{construct}~x))~\mathit{zs} \\
-      =& \mathit{fAlgebra}_{\mathit{eAppend}~\mathit{xs}~\mathit{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}}))~x)
+      &\mathit{eAppend}~(\fold{k_{ys}}~(\mathit{in}~x))~\mathit{zs} \\
+      =& k_{\mathit{eAppend}~\mathit{xs}~\mathit{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}))~x)
     \end{array}
   \end{displaymath}
   There are two cases to consider, depending on whether $x =
@@ -1131,59 +1142,59 @@ the definition of $\mathit{eAppend}$ too early.
   \proofprinref{pp:initial-alg}.
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{eAppend}~(\fold{\mathit{fAlgebra_{ys}}}~(\mathit{construct}~\mathsf{Nil}))~\mathit{zs} \\
-      =&\eqAnnotation{$\fold{\mathit{fAlgebra_{ys}}}$ is a $(\mathit{ListF}~a \circ m)$-algebra homomorphism} \\
-      &\mathit{eAppend}~(\mathit{fAlgebra_{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}})~\mathsf{Nil}))~\mathit{zs} \\
+      &\mathit{eAppend}~(\fold{k_{ys}}~(\mathit{in}~\mathsf{Nil}))~\mathit{zs} \\
+      =&\eqAnnotation{$\fold{k_{ys}}$ is a $(\mathit{ListF}~a \circ m)$-algebra homomorphism} \\
+      &\mathit{eAppend}~(k_{ys}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~\fold{k_{ys}})~\mathsf{Nil}))~\mathit{zs} \\
       =&\eqAnnotation{definition of $\mathit{fmap_{\mathit{ListF}~a}}$} \\
-      &\mathit{eAppend}~(\mathit{fAlgebra_{ys}}~\mathsf{Nil})~\mathit{zs} \\
-      =&\eqAnnotation{definition of $\mathit{fAlgebra_{ys}}$} \\
+      &\mathit{eAppend}~(k_{ys}~\mathsf{Nil})~\mathit{zs} \\
+      =&\eqAnnotation{definition of $k_{ys}$} \\
       &\mathit{eAppend}~\mathit{ys}~\mathit{zs} \\
-      =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
-      &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\mathsf{Nil} \\
+      =&\eqAnnotation{definition of $k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
+      &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\mathsf{Nil} \\
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
-      &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{xs}~\mathit{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}}))~\mathsf{Nil})
+      &k_{\mathit{eAppend}~\mathit{xs}~\mathit{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}))~\mathsf{Nil})
     \end{array}
   \end{displaymath}
   In the second case, when $x = \mathsf{Cons}~a~\mathit{xs}$, we
   reason using the following steps:
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{eAppend}~(\fold{\mathit{fAlgebra_{ys}}}~(\mathit{construct}~(\mathsf{Cons}~a~\mathit{xs})))~\mathit{zs} \\
-      =&\eqAnnotation{$\fold{\mathit{fAlgebra_{ys}}}$ is a $(\mathit{ListF}~a \circ m)$-algebra homomorphism} \\
-      &\mathit{eAppend}~(\mathit{fAlgebra_{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}})~(\mathsf{Cons}~a~\mathit{xs})))~\mathit{zs} \\
+      &\mathit{eAppend}~(\fold{k_{ys}}~(\mathit{in}~(\mathsf{Cons}~a~\mathit{xs})))~\mathit{zs} \\
+      =&\eqAnnotation{$\fold{k_{ys}}$ is a $(\mathit{ListF}~a \circ m)$-algebra homomorphism} \\
+      &\mathit{eAppend}~(k_{ys}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~\fold{k_{ys}})~(\mathsf{Cons}~a~\mathit{xs})))~\mathit{zs} \\
       =&\eqAnnotation{definition of $\mathit{fmap_{\mathit{ListF}~a}}$} \\
-      &\mathit{eAppend}~(\mathit{fAlgebra_{ys}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))~\mathit{zs} \\
-      =&\eqAnnotation{definition of $\mathit{fAlgebra_{ys}}$} \\
-      & \mathit{eAppend}~(\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))~\mathit{zs} \\
+      &\mathit{eAppend}~(k_{ys}~(\mathsf{Cons}~a~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs})))~\mathit{zs} \\
+      =&\eqAnnotation{definition of $k_{ys}$} \\
+      & \mathit{eAppend}~(\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~(\mathit{join}_m~(\mathit{fmap_m}~\fold{k_{ys}}~\mathit{xs})))))~\mathit{zs} \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      & \mathit{eAppend}~(\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))))~\mathit{zs} \\
+      & \mathit{eAppend}~(\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))))~\mathit{zs} \\
       =&\eqAnnotation{\autoref{eq:eappend-direct-cons}} \\
-      & \mathit{return_m}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs}))) \\
+      & \mathit{return_m}~(\mathit{in}~(\mathsf{Cons}~a~(\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs}))) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
-      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{zs}}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      &\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\fold{k_{zs}}~(\mathit{join}_m~(\mathit{fmap_m}~\fold{k_{ys}}~\mathit{xs})))))) \\
       =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
-      & \hspace{1cm}(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      &\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{k_{zs}})~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs})))))) \\
     \end{array}
   \end{displaymath}
   \begin{displaymath}
     \begin{array}{cl}
       =&\eqAnnotation{monad law: $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap}_m~\mathit{join_m}$ (\autoref{eq:monad-join-join})} \\
-      &\mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
+      &\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\mathit{join_m}~\\
-      & \hspace{1.5cm}(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}})~(\mathit{fmap}_m~\fold{\mathit{fAlgebra_{ys}}}~\mathit{xs})))))) \\
+      & \hspace{1.5cm}(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{k_{zs}})~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs})))))) \\
       =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-      & \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
-      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~(\mathit{join_m} \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra_{zs}}} \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})))) \\
+      & \mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~(\mathit{join_m} \circ \mathit{fmap_m}~\fold{k_{zs}} \circ \fold{k_{ys}})~\mathit{xs})))) \\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
-      & \mathit{return}_m~(\mathit{construct}~(\mathsf{Cons}~a~\\
-      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})))) \\
-      =&\eqAnnotation{definition of $\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
-      &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}})~\mathit{xs})) \\
+      & \mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
+      & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})))) \\
+      =&\eqAnnotation{definition of $k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
+      &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})) \\
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
-      &\mathit{fAlgebra}_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\\
-      & \hspace{1cm}(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{\mathit{fAlgebra_{ys}}}))~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox
+      &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\\
+      & \hspace{1cm}(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}))~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox
     \end{array}
   \end{displaymath}
 \end{proof*}
@@ -1205,7 +1216,7 @@ We identify the following problems with this proof:
   \autoref{eq:eappend-direct-cons} once, unlike in the proof of
   \thmref{thm:append-assoc} where the analogous equation was applied
   twice. We also had to expand $\mathit{eAppend}$ again in order to
-  rewrite the occurences of $\mathit{join_m}$ and $\mathit{fmap_m}$.
+  rewrite the occurrences of $\mathit{join_m}$ and $\mathit{fmap_m}$.
 \end{itemize}
 The definition and proof that we have given in this section
 demonstrates that direct use of initial $f$-algebras provides us with
@@ -1233,6 +1244,7 @@ To solve the problems we have identified with the direct use of
 $f$-algebras, we use the concept of $f$-and-$m$-algebras, originally
 introduced by Filinski and St\o{}vring \cite{filinski07inductive}, and
 generalised to arbitrary functors by the current authors
+\pattynote{Same comment as above.}
 \cite{atkey12fibrational}. As the name may imply, $f$-and-$m$-algebras
 are simultaneously $f$-algebras and $m$-algebras. A twist is that the
 $m$-algebra component must be an Eilenberg-Moore
@@ -1250,16 +1262,16 @@ with the structure of the monad:
 
 \begin{definition}
   An \emph{$m$-Eilenberg-Moore algebra} consists of a pair
-  $(a,\mathit{mAlgebra}_a)$ of a type $a$ and a function
+  $(a,l)$ of a type $a$ and a function
   \begin{displaymath}
-    \mathit{mAlgebra}_a :: m~a \to a
+    l :: m~a \to a
   \end{displaymath}
   such that the following two equations are satisfied:
   \begin{align}
     \label{eq:em-alg-return}
-    \mathit{mAlgebra}_a \circ \mathit{return}_m & = \mathit{id} \\
+    l \circ \mathit{return}_m & = \mathit{id} \\
     \label{eq:em-alg-join}
-    \mathit{mAlgebra}_a \circ \mathit{join}_m & = \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\mathit{mAlgebra}_a
+    l \circ \mathit{join}_m & = l \circ \mathit{fmap}_m~l
   \end{align}
 \end{definition}
 
@@ -1272,10 +1284,10 @@ structures supporting that algebraic theory. Mac Lane's book
 Eilenberg-Moore algebras.
 
 In terms of computational effects, an $m$-Eilenberg-Moore-algebra $(a,
-\mathit{mAlgebra})$ represents a way of ``performing'' the effects of
-the monad $m$ in the type $a$, preserving the $\mathit{return}_m$ and
-$\mathit{join_m}$ of the monad structure. For example, if we let the
-monad $m$ be the error monad $\mathit{ErrorM}$:
+l)$ represents a way of ``performing'' the effects of the monad $m$ in
+the type $a$, preserving the $\mathit{return}_m$ and $\mathit{join_m}$
+of the monad structure. For example, if we let the monad $m$ be the
+error monad $\mathit{ErrorM}$:
 \begin{displaymath}
   \begin{array}{ll}
     \begin{array}[t]{l}
@@ -1307,18 +1319,18 @@ then we can define an $\mathit{ErrorM}$-Eilenberg-Moore-algebra with
 carrier $\mathit{IO}~a$ as follows:
 \begin{displaymath}
   \begin{array}{l}
-    \mathit{mAlgebra} :: \mathit{ErrorM}~(\mathit{IO}~a) \to \mathit{IO}~a \\
+    l :: \mathit{ErrorM}~(\mathit{IO}~a) \to \mathit{IO}~a \\
     \begin{array}{@{}l@{\hspace{0.4em}}lcl}
-      \mathit{mAlgebra}&(\mathsf{Ok}~\mathit{ioa}) & = & \mathit{ioa} \\
-      \mathit{mAlgebra}&(\mathsf{Error}~\mathit{msg}) & = & \mathit{throw}~(\mathsf{ErrorCall}~\mathit{msg})
+      l&(\mathsf{Ok}~\mathit{ioa}) & = & \mathit{ioa} \\
+      l&(\mathsf{Error}~\mathit{msg}) & = & \mathit{throw}~(\mathsf{ErrorCall}~\mathit{msg})
     \end{array}
   \end{array}
 \end{displaymath}
 The function $\mathit{throw}$ and the constructor $\mathsf{ErrorCall}$
-are part of the standard $\mathit{Control.Exception}$ module. This
-$\mathit{mAlgebra}$ propagates normal $\mathit{IO}$ actions, and
-interprets errors using the exception throwing facilities of the
-Haskell $\mathit{IO}$ monad.
+are part of the standard $\mathit{Control.Exception}$ module. The
+algebra $l$ propagates normal $\mathit{IO}$ actions, and interprets
+errors using the exception throwing facilities of the Haskell
+$\mathit{IO}$ monad.
 
 The general pattern of $m$-Eilenberg-Moore-algebras with carriers that
 are themselves constructed from monads has been studied by Filinski
@@ -1331,7 +1343,7 @@ $m'$ is layered over $m$.
 A particularly useful class of Eilenberg-Moore algebras for a given
 monad $m$ is the class of \emph{free}
 $m$-Eilenberg-Moore-algebras. The \emph{free} Eilenberg-Moore algebra
-for an arbitrary type $a$ is given by $(m~a, \mathit{join}_m)$. In
+for an arbitrary type $a$ is given by $(m\,a, \,\mathit{join}_m)$. In
 terms of layered monads, this just states that the monad $m$ can be
 layered over itself. We will make use of this construction below in
 the proof of \thmref{thm:make-initial-f-and-m-alg} below.
@@ -1372,14 +1384,16 @@ in \autoref{sec:f-algebras}.
 \begin{definition}
   An \emph{$m$-Eilenberg-Moore-algebra homomorphism}
   \begin{displaymath}
-    h :: (a, \mathit{mAlgebra}_a) \to (b, \mathit{mAlgebra}_b)
+    h :: (a, l_a) \to (b, l_b)
   \end{displaymath}
   consists of a function $h :: a \to b$ such that:
   \begin{equation}
     \label{eq:em-alg-homomorphism}
-    h \circ \mathit{mAlgebra}_a = \mathit{mAlgebra}_b \circ \mathit{fmap}_m~h
+    h \circ l_a = l_b \circ \mathit{fmap}_m~h
   \end{equation}
 \end{definition}
+
+\pattynote{Do we want more categorical diagrams?}
 
 \subsection{Definition of \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 
@@ -1396,15 +1410,15 @@ $\mathit{return}$).
 
 \begin{definition}
   An \emph{$f$-and-$m$-algebra} consists of a triple
-  $(a,\mathit{fAlgebra},\mathit{mAlgebra})$ of an object $a$ and two
+  $(a,k,l)$ of an object $a$ and two
   functions:
   \begin{displaymath}
     \begin{array}{rcl}
-      \mathit{fAlgebra} & :: & f~a \to a \\
-      \mathit{mAlgebra} & :: & m~a \to a
+      k & :: & f~a \to a \\
+      l & :: & m~a \to a
     \end{array}
   \end{displaymath}
-  where $\mathit{mAlgebra}$ is an $m$-Eilenberg-Moore algebra.
+  where $l$ is an $m$-Eilenberg-Moore algebra.
 \end{definition}
 
 Homomorphisms of $f$-and-$m$-algebras are single functions that are
@@ -1414,17 +1428,19 @@ $m$-Eilenberg-Moore-algebra homomorphisms:
 \begin{definition}
   An \emph{$f$-and-$m$-algebra homomorphism}
   \begin{displaymath}
-    h :: (a, \mathit{fAlgebra}_a, \mathit{mAlgebra}_a) \to (b, \mathit{fAlgebra}_b, \mathit{mAlgebra}_b)
+    h :: (a, k_a, l_a) \to (b, k_b, l_b)
   \end{displaymath}
   between two $f$-and-$m$ algebras is a function $h :: a \to b$ such
   that:
   \begin{displaymath}
     \begin{array}{rcl}
-      h \circ \mathit{fAlgebra}_a & = & \mathit{fAlgebra}_b \circ \mathit{fmap}_f~h \\
-      h \circ \mathit{mAlgebra}_a & = & \mathit{mAlgebra}_b \circ \mathit{fmap}_m~h
+      h \circ k_a & = & k_b \circ \mathit{fmap}_f~h \\
+      h \circ l_a & = & l_b \circ \mathit{fmap}_m~h
     \end{array}
   \end{displaymath}
 \end{definition}
+\pattynote{Number the last two equations for reference below, say as
+  (*) and (**).}
 
 Given the above definitions, the definition of initial
 $f$-and-$m$-algebras is straightforward, and follows the same
@@ -1437,11 +1453,10 @@ effects (represented by $m$).
 
 \begin{definition}
   An \emph{initial $f$-and-$m$-algebra} is an $f$-and-$m$-algebra
-  $(\mu(f|m), \mathit{construct}_f, \mathit{construct}_m)$ such that
-  for any $f$-and-$m$-algebra $(a, \mathit{fAlgebra}_a,
-  \mathit{mAlgebra}_a)$, there exists a unique $f$-and-$m$-algebra
-  homomorphism $\eFold{\mathit{fAlgebra}_a}{\mathit{mAlgebra}_a} ::
-  \mu(f|m) \to a$.
+  $(\mu(f|m), \mathit{in}_f, \mathit{in}_m)$ such that for any
+  $f$-and-$m$-algebra $(a, k, l)$, there exists a unique
+  $f$-and-$m$-algebra homomorphism $\eFold{k}{l} :: \mu(f|m) \to
+  a$.
 \end{definition}
 
 As for initial $f$-algebras, the requirement that an initial
@@ -1457,26 +1472,25 @@ homomorphism.
 
 \begin{proofprinciple}[Initial $f$-and-$m$-Algebras]
   \label{pp:initial-f-m-alg}
-  Suppose that $(\mu(f|m), \mathit{construct}_f, \mathit{construct}_m)$ is an
+  Suppose that $(\mu(f|m), \mathit{in}_f, \mathit{in}_m)$ is an
   initial $f$-and-$m$-algebra. 
 
-  Let $(a, \mathit{fAlgebra}, \mathit{mAlgebra})$ be some
-  $f$-and-$m$-algebra, and let
-  $\eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}}$ denote the induced
-  function of type $\mu(f|m) \to a$. For any function $g :: \mu(f|m)
-  \to a$, we can prove the equation:
+  Let $(a, k, l)$ be an $f$-and-$m$-algebra, and let $\eFold{k}{l}$
+  denote the induced function of type $\mu(f|m) \to a$. For any
+  function $g :: \mu(f|m) \to a$, we can prove the equation:
   \begin{displaymath}
-    \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = g
+    \eFold{k}{l} = g
   \end{displaymath}
   by demonstrating that
   \begin{equation}\label{eq:fm-falg}
-    g \circ \mathit{construct}_f = \mathit{fAlgebra} \circ \mathit{fmap}_f
+    g \circ \mathit{in}_f = k \circ \mathit{fmap}_f~g
   \end{equation}
   and
   \begin{equation}\label{eq:fm-malg}
-    g \circ \mathit{construct}_m = \mathit{mAlgebra} \circ \mathit{fmap}_m
+    g \circ \mathit{in}_m = l \circ \mathit{fmap}_m~g
   \end{equation}
 \end{proofprinciple}
+\pattynote{PP2 can be stated as a bi-implication.}
 
 The key feature of \proofprinref{pp:initial-f-m-alg} is that it
 cleanly splits the pure and effectful proof obligations. Therefore we
@@ -1489,42 +1503,47 @@ for our list append running example in the next section.
 \begin{example}
   The $\mathit{List}~m~a$ datatype that we defined in the introduction
   can be presented as the carrier of an initial
-  $(\mathit{ListF}~a)$-and-$m$-algebra. The $\mathit{construct_f}$
+  $(\mathit{ListF}~a)$-and-$m$-algebra. The $\mathit{in_{\mathit{ListF}~a}}$
   function is defined as follows:
   \begin{displaymath}
     \begin{array}{l}
-      \mathit{construct_f} :: \mathit{ListF}~a~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
+      \mathit{in_{\mathit{ListF}~a}} :: \mathit{ListF}~a~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
       \begin{array}{@{}l@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
-        \mathit{construct_f}~\mathsf{Nil}&=&\mathsf{List}~(\mathit{return_m}~\mathsf{Nil_m}) \\
-        \mathit{construct_f}~(\mathsf{Cons}~a~\mathit{xs})&=&\mathsf{List}~(\mathit{return_m}~(\mathsf{Cons_m}~a~\mathit{xs})) \\
+        \mathit{in_{\mathit{ListF}~a}}~\mathsf{Nil}&=&\mathsf{List}~(\mathit{return_m}~\mathsf{Nil}_m) \\
+        \mathit{in_{\mathit{ListF}~a}}~(\mathsf{Cons}~a~\mathit{xs})&=&\mathsf{List}~(\mathit{return_m}~(\mathsf{Cons}_m~a~\mathit{xs})) \\
       \end{array}
     \end{array}
   \end{displaymath}
-  The $\mathit{construct_m}$ component is slightly complicated by the
+  The $\mathit{in_m}$ component is slightly complicated by the
   presence of the $\mathsf{List}$ constructor. We use Haskell's
   $\kw{do}$ notation for convenience:
   \begin{displaymath}
     \begin{array}{l}
-      \mathit{construct_m} :: m~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
-      \mathit{construct_m}~\mathit{ml} = \mathsf{List}~(\kw{do}~\{ \mathsf{List}~x \leftarrow \mathit{ml}; x \})
+      \mathit{in_m} :: m~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
+      \mathit{in_m}~\mathit{ml} = \mathsf{List}~(\kw{do}~\{ \mathsf{List}~x \leftarrow \mathit{ml}; x \})
     \end{array}
   \end{displaymath}
+\pattynote{Point out that, if not for the List constructor, this would
+  be join.}
   Finally, we define the induced homomorphism to any other
   $(\mathit{ListF}~a)$-and-$m$-algebra as a pair of mutually recursive
   functions, following the structure of the declaration of
   $\mathit{List}~m~a$:
+\pattynote{Is the type of $\eFold{-}{-}$ correct? Should it be 
+{\tt (ListF a b -> b) -> (m b -> b) -> List m a -> b?}}
   \begin{displaymath}
     \begin{array}{l}
       \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{List}~m~a \to a \\
-      \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = \mathit{loop} \\
+      \eFold{k}{l} = \mathit{loop} \\
       \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-        \kw{where} & \mathit{loop}~(\mathsf{List}~x) &=& \mathit{mAlgebra}~(\mathit{fmap}_m~\mathit{loop'}~x) \\
-        & \mathit{loop'}~\mathsf{Nil_m}& = & \mathit{fAlgebra}~\mathsf{Nil} \\
-        & \mathit{loop'}~(\mathsf{Cons_m}~a~\mathit{xs}) &=& \mathit{fAlgebra}~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
+        \kw{where} & \mathit{loop}~(\mathsf{List}~x) &=& l~(\mathit{fmap}_m~\mathit{loop'}~x) \\
+        & \mathit{loop'}~\mathsf{Nil}_m& = & k~\mathsf{Nil} \\
+        & \mathit{loop'}~(\mathsf{Cons}_m~a~\mathit{xs}) &=& k~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
       \end{array}
     \end{array}
   \end{displaymath}
 \end{example}
+\pattynote{Include the type of loop above.}
 We will give a general construction of initial $f$-and-$m$-algebras in
 \autoref{sec:f-and-m-alg-impl} that builds on the generic definition
 of initial $f$-algebras from \autoref{sec:f-algebras}. The key result
@@ -1547,7 +1566,7 @@ pure case we presented in \autoref{sec:pure-append}.
 By separating the pure and effectful parts of the proof,
 \proofprinref{pp:initial-f-m-alg} allows us to reuse proofs from the
 pure case. Therefore, it makes sense to ask when the additional
-condition (\autoref{eq:fm-falg}) that it imposes fails. We examine an
+condition (\autoref{eq:fm-malg}) that it imposes fails. We examine an
 instance of this in \autoref{sec:reverse}, where a standard property
 of list reverse fails to carry over to the case of lists with
 interleaved effects.
@@ -1558,18 +1577,18 @@ We define our function $\mathit{eAppend}$ against the abstract
 interface of initial $(\mathit{ListF}~a)$-and-$m$-algebras that we
 defined in the previous section. Hence we assume that an initial
 $(\mathit{ListF}~a)$-and-$m$-algebra $(\mu(\mathit{ListF}~a|m),
-\mathit{construct}_{\mathit{ListF}~a}, \mathit{construct}_m)$ exists,
-and we denote the unique $(\mathit{ListF}~a)$-and-$m$-algebra
-homomorphism using the notation $\eFold{-}{-}$. We can define the
-function $\mathit{eAppend}$ in terms of initial $f$-and-$m$-algebras
-as:
+\mathit{in}_{\mathit{ListF}~a}, \mathit{in}_m)$ exists, and we denote
+the unique $(\mathit{ListF}~a)$-and-$m$-algebra homomorphism using the
+notation $\eFold{-}{-}$. We can define the function $\mathit{eAppend}$
+in terms of initial $f$-and-$m$-algebras as:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{eAppend} :: \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \\
-    \mathit{eAppend}~\mathit{xs}~\mathit{ys} = \eFold{\mathit{fAlgebra}}{\mathit{construct}_m}~\mathit{xs} \\
+    \mathit{eAppend}~\mathit{xs}~\mathit{ys} = \eFold{k}{\mathit{in}_m}~\mathit{xs} \\
     \begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \textbf{where} & \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{ys} \\
-                     & \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs})      
+      \textbf{where} & k~\mathsf{Nil} &=& \mathit{ys} \\ &
+      k~(\mathsf{Cons}~a~\mathit{xs}) &=&
+      \mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs})
     \end{array}
   \end{array}
 \end{displaymath}
@@ -1578,31 +1597,43 @@ made in \autoref{sec:direct-eappend}, this definition is almost
 identical to the definition of the function $\mathit{append}$ from
 \autoref{sec:pure-append}. The only differences are the additional
 $m$-Eilenberg-Moore-algebra argument to $\eFold{-}{-}$ and the
-different type of $\mathit{construct}_{\mathit{ListF}~a}$. The fact
-that the pure part of definition (i.e.,~the function
-$\mathit{fAlgebra}$) is almost identical to the $\mathit{fAlgebra}$ in
-the definition of $\mathit{append}$ is a result of the separation of
-pure and effectful concerns that the abstraction of
-$f$-and-$m$-algebras affords.
+different type of $\mathit{in}_{\mathit{ListF}~a}$. The fact that the
+pure part of the definition (i.e.,~the function $k$) is almost
+identical to the $k$ in the definition of $\mathit{append}$ is a
+result of the separation of pure and effectful concerns that the
+abstraction of $f$-and-$m$-algebras affords.
 
 Just as in the case of $\mathit{append}$, we can immediately read off
-two properties of $\mathit{eAppend}$ from the fact that it constructed
-as a $(\mathit{ListF}~a)$-algebra homomorphism. We have one property
-for each of the constructors of the type constructor
+two properties of $\mathit{eAppend}$ from the fact that it 
+\pattynote{Actually, $\lambda xs. eAppend\, xs\, ys$!}
+is constructed as a $(\mathit{ListF}~a)$-algebra homomorphism. We have
+one property for each of the constructors of the type constructor
 $\mathit{ListF}~a$:
 \begin{align}
   \label{eq:eAppend-nil}
-  \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
+  \mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
   \label{eq:eAppend-cons}
-  \mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))
+  \mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))
 \end{align}
-Again by construction, we also know that $\mathit{eAppend}$ is an
+\pattynote{The first is by (*), the second is from (**), which is the
+  same as (21).}
+
+Again by construction, we also know that $\mathit{eAppend}$
+\pattynote{Actually, $\lambda xs. eAppend\, xs\, ys$!}  is an
 $m$-Eilenberg-Moore-algebra homomorphism. Hence we have the following
 property of $\mathit{eAppend}$ for free. For all $x ::
 m~(\mu(\mathit{ListF}~a|m))$:
 \begin{equation}\label{eq:eappend-em}
-  \mathit{eAppend}~(\mathit{construct}_m~\mathit{x})~\mathit{ys} = \mathit{construct}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{x})
+  \mathit{eAppend}~(\mathit{in}_m~\mathit{x})~\mathit{ys} = \mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{x})
 \end{equation}
+\pattynote{Also by (**) or (21). Here, we should point out that the
+  return/bind style interpretation of (26): $in_m$ is essentially
+  join, so the lefthand side of (26) is essentially bind. Using
+  ``let'' syntax {\tt let x = e1 in e2} for {\tt bind (\ x -> e2) e1},
+  this means that (26) is {\tt eAppend (let xs = x in return xs) ys =
+    let xs = x in eAppend xs ys}. This is a familiar commuting
+  conversion saying that the first thing eAppend does is evaluate its
+  first argument.}
 
 With these three properties of $\mathit{eAppend}$ in hand we can prove
 that it is associative. We use \proofprinref{pp:initial-f-m-alg},
@@ -1630,15 +1661,15 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   \autoref{eq:fm-falg} holds, i.e. that:
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{eAppend}~(\mathit{eAppend}~(\mathit{construct}_{\mathit{ListF}~a}~x)~\mathit{ys})~\mathit{zs}\\
-      =&\mathit{fAlgebra}~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
+      &\mathit{eAppend}~(\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~x)~\mathit{ys})~\mathit{zs}\\
+      =&k~(\mathit{fmap}_{\mathit{ListF}~a}~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
     \end{array}
   \end{displaymath}
   where
   \begin{displaymath}
     \begin{array}{rcl}
-      \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{eAppend}~\mathit{ys}~\mathit{zs} \\
-      \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{construct}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs})
+      k~\mathsf{Nil} &=& \mathit{eAppend}~\mathit{ys}~\mathit{zs} \\
+      k~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs})
     \end{array}
   \end{displaymath}
   This equation is, up to renaming, \emph{exactly the same} as the
@@ -1653,8 +1684,8 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   \autoref{eq:fm-malg} holds:
   \begin{displaymath}
     \begin{array}{cl}
-      &\mathit{eAppend}~(\mathit{eAppend}~(\mathit{construct}_m~x)~\mathit{ys})~\mathit{zs} \\
-      =&\mathit{construct}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
+      &\mathit{eAppend}~(\mathit{eAppend}~(\mathit{in}_m~x)~\mathit{ys})~\mathit{zs} \\
+      =&\mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
     \end{array}
   \end{displaymath}
   This follows straightforwardly from the fact that $\mathit{eAppend}$
@@ -1662,13 +1693,13 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   above in \autoref{eq:eappend-em}, and that such homomorphisms are closed under composition:
   \begin{displaymath}
     \begin{array}{cl}
-      & \mathit{eAppend}~(\mathit{eAppend}~(\mathit{construct}_m~x)~\mathit{ys})~\mathit{zs} \\
+      & \mathit{eAppend}~(\mathit{eAppend}~(\mathit{in}_m~x)~\mathit{ys})~\mathit{zs} \\
       =&\eqAnnotationS{\autoref{eq:eappend-em}} \\
-      & \mathit{eAppend}~(\mathit{construct}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~x))~\mathit{zs} \\
+      & \mathit{eAppend}~(\mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~x))~\mathit{zs} \\
       =&\eqAnnotationS{\autoref{eq:eappend-em}} \\
-      & \mathit{construct_m}~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{zs})~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~x)) \\
+      & \mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{zs})~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~x)) \\
       =&\eqAnnotationS{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-      & \mathit{construct_m}~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x) \mathproofbox
+      & \mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x) \mathproofbox
     \end{array}
   \end{displaymath}
 \end{proof*}
@@ -1685,7 +1716,7 @@ condition for effects.
 
 Given the above example of a proof of a property of a function on pure
 lists carrying over almost unchanged to lists interleaved with
-effects, one might wonder if there are circumstances where this
+effects, we might wonder if there are circumstances where this
 approach fails. Clearly, it cannot be the case that all properties
 true for pure lists carry over to effectful lists. One example of a
 property that fails to carry over is the following property of the
@@ -1717,10 +1748,10 @@ function we defined above.
 \begin{displaymath}
   \begin{array}{l}
     \mathit{eReverse} :: \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \\
-    \mathit{eReverse} = \eFold{\mathit{fAlgebra}}{\mathit{construct}_m} \\
+    \mathit{eReverse} = \eFold{k}{\mathit{in}_m} \\
     \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \kw{where} & \mathit{fAlgebra}~\mathsf{Nil} &=& \mathit{construct}_{\mathit{ListF}~a}~\mathsf{Nil} \\
-      & \mathit{fAlgebra}~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{eAppend}~\mathit{xs}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{construct}~\mathsf{Nil})))
+      \kw{where} & k~\mathsf{Nil} &=& \mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil} \\
+      & k~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{eAppend}~\mathit{xs}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))
     \end{array}
   \end{array}
 \end{displaymath}
@@ -1729,13 +1760,13 @@ before we can apply \proofprinref{pp:initial-f-m-alg}, because the
 left-hand side of the equation is constructed from a composite of two
 functions of the form $\eFold{-}{-}$. However, it is
 straightforward to prove that this composite is equal to
-$\eFold{\mathit{alg}}{\mathit{construct}_m}$, where
+$\eFold{\mathit{alg}}{\mathit{in}_m}$, where
 \begin{displaymath}
   \begin{array}{l}
-    \mathit{alg} :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m)) \to \mu(\mathit{ListF}~a|m) \\
+    k' :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m)) \to \mu(\mathit{ListF}~a|m) \\
     \begin{array}{@{}l@{\hspace{0.5em}}lcl}
-      \mathit{alg}&\mathsf{Nil} &=& \mathit{eReverse}~\mathit{ys} \\
-      \mathit{alg}&(\mathsf{Cons}~a~\mathit{xs}) & =& \mathit{eAppend}~\mathit{xs}~(\mathit{construct}~(\mathsf{Cons}~a~(\mathit{construct}~\mathsf{Nil})))
+      k'&\mathsf{Nil} &=& \mathit{eReverse}~\mathit{ys} \\
+      k'&(\mathsf{Cons}~a~\mathit{xs}) & =& \mathit{eAppend}~\mathit{xs}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))
     \end{array}
   \end{array}
 \end{displaymath}
@@ -1744,41 +1775,43 @@ well, so this is not where the problem with interleaved effects
 lies. If we attempt to apply \proofprinref{pp:initial-f-m-alg} to the
 equation:
 \begin{displaymath}
-  \eFold{\mathit{alg}}{\mathit{construct}_m}~\mathit{xs} = \mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})
+  \eFold{k'}{\mathit{in}_m}~\mathit{xs} = \mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})
 \end{displaymath}
 Then the pure part of the proof goes through straightforwardly. We are
-left with proving that the right hand side of this equation is an
+left with proving that the right-hand side of this equation is an
 Eilenberg-Moore-algebra homomorphism in its second
 argument. Certainly, $\mathit{eReverse}$ is an Eilenberg-Moore-algebra
 homomorphism by its construction via the initial $f$-and-$m$-algebra
 property. However, $\mathit{eAppend}$ is not an Eilenberg-Moore
 algebra homomorphism in its \emph{second} argument, as the following
-counterexample shows. If we let the monad $m$ be the $\mathit{ErrorM}$
+counterexample shows.
+\pattynote{So $\lambda x. eAppend\, x\, y$ is an E-M-algebra homomorphism,
+  but $eAppend \, x$ isn't.}
+ If we let the monad $m$ be the $\mathit{ErrorM}$
 monad we defined in \autoref{sec:eilenberg-moore-algebras}, then if
 $\mathit{eAppend}$ were an Eilenberg-Moore-algebra homomorphism in its
 second argument the following equation would hold:
 \begin{equation}\label{eq:purported-em}
   \begin{array}{cl}
-    &\mathit{eAppend}~(\mathit{construct}_f~(\mathsf{Cons}~a~(\mathit{construct}_f~\mathsf{Nil})))~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})) \\
-    =&\mathit{construct}_{\mathit{ErrorM}}~\\
-    & \hspace{1cm}(\mathit{fmap}_{\mathit{ErrorM}}~(\lambda ys.~\mathit{eAppend}~(\mathit{construct}_f~(\mathsf{Cons}~a~(\mathit{construct}_f~\mathsf{Nil}))))~\\
-    & \hspace{1.5cm}(\mathsf{Error}~\texttt{"msg"}))
+    &\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"}))
+    \\ =&\mathit{in}_{\mathit{ErrorM}}~\\ & \hspace{1cm}(\mathit{fmap}_{\mathit{ErrorM}}~(\lambda
+    ys.~\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil}))))~\\ & \hspace{1.5cm}(\mathsf{Error}~\texttt{"msg"}))
   \end{array}
 \end{equation}
 However, starting from the left-hand side, we calculate as follows:
 \begin{displaymath}
   \begin{array}{cl}
-    & \mathit{eAppend}~(\mathit{construct}_f~(\mathsf{Cons}~a~(\mathit{construct}_f~\mathsf{Nil})))~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})) \\
+    & \mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})) \\
     =&\eqAnnotation{\autoref{eq:eAppend-cons}} \\
-    & \mathit{construct}_f~(\mathit{Cons}~a~(\mathit{eAppend}~(\mathit{construct}_f~\mathsf{Nil})~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})))) \\
+    & \mathit{in}_{\mathit{ListF}~a}~(\mathit{Cons}~a~(\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})))) \\
     =&\eqAnnotation{\autoref{eq:eAppend-nil}} \\
-    & \mathit{construct}_f~(\mathit{Cons}~a~(\mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})))
+    & \mathit{in}_{\mathit{ListF}~a}~(\mathit{Cons}~a~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})))
   \end{array}
 \end{displaymath}
 while the right hand side of \autoref{eq:purported-em} reduces by the
 definition of $\mathit{fmap}_{\mathit{ErrorM}}$ to simply:
 \begin{displaymath}
-  \mathit{construct}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})
+  \mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})
 \end{displaymath}
 Thus the proof fails. This is the formal rendering of the intuition
 for the failure given at the start of this subsection.
@@ -1799,7 +1832,7 @@ for the failure given at the start of this subsection.
 We have seen that existing datatypes such as $\mathit{List}~m~a$ can
 be given the structure of initial $f$-and-$m$-algebras. In this
 section, we show that, in Haskell, we can implement an initial
-$f$-and-$m$-algebra for and functor $f$ and monad $m$. We build on the
+$f$-and-$m$-algebra for any functor $f$ and monad $m$. We build on the
 generic implementation of initial $f$-algebras we presented in
 \autoref{sec:example-initial-f}. The key construction is to show that
 if we have an initial $(f \circ m)$-algebra, then we can construct an
@@ -1831,8 +1864,11 @@ that have to do with interleaved data and effects.
 \begin{proof*}
   See \appendixref{sec:make-initial-fm-proof}.
 \end{proof*}
+\pattynote{Redirects to intro rather than appendix. :-( }
 
-In the current authors' previous work \cite{atkey12fibrational}, this
+In the current authors' previous work \cite{atkey12fibrational}
+\pattynote{Same comment as elsewhere.}
+, this
 same result was obtained in a less elementary way by constructing a
 functor $\Phi$ from the category of $(f \circ m)$-algebras to the
 category of $f$-and-$m$-algebras. The functor $\Phi$ was shown to be a
@@ -1884,15 +1920,15 @@ that we arrived at by generalising the $\mathit{List_{io}}$ and
 $\mathit{List_{lazy}}$ examples.
 
 The $f$-algebra and $m$-Eilenberg-Moore-algebra structure maps
-$\mathit{construct_f}$ and $\mathit{construct_m}$ are defined
+$\mathit{in}_f$ and $\mathit{in}_m$ are defined
 following the construction in \thmref{thm:make-initial-f-and-m-alg}:
 \begin{displaymath}
   \begin{array}{l}
-    \mathit{construct}_f :: f~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
-    \mathit{construct}_f = \mathit{return}_m \circ \mathit{construct} \circ \mathsf{C} \\
+    \mathit{in}_f :: f~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
+    \mathit{in}_f = \mathit{return}_m \circ \mathit{in} \circ \mathsf{C} \\
     \\
-    \mathit{construct}_m :: m~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
-    \mathit{construct}_m = \mathit{join}_m
+    \mathit{in}_m :: m~(\mathit{MuFM}~f~m) \to \mathit{MuFM}~f~m \\
+    \mathit{in}_m = \mathit{join}_m
   \end{array}
 \end{displaymath}
 
@@ -1904,7 +1940,7 @@ implementation of the unique homomorphisms out of the initial $(f
 \begin{displaymath}
   \begin{array}{l}
     \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{MuFM}~f~m \to a \\
-    \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = \mathit{mAlgebra} \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra} \circ \mathit{fmap}_f~\mathit{mAlgebra} \circ \mathit{unC}}
+    \eFold{k}{l} = l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l \circ \mathit{unC}}
   \end{array}
 \end{displaymath}
 We can also implement $\eFold{-}{-}$ directly in terms of Haskell's
@@ -1916,9 +1952,9 @@ $\eFold{-}{-}$ is as follows:
 \begin{displaymath}
   \begin{array}{l}
     \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{MuFM}~f~m \to a \\
-    \eFold{\mathit{fAlgebra}}{\mathit{mAlgebra}} = \mathit{mAlgebra} \circ \mathit{fmap}_m~\mathit{loop} \\
+    \eFold{k}{l} = l \circ \mathit{fmap}_m~\mathit{loop} \\
     \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \kw{where} & \mathit{loop} &=& \mathit{fAlgebra} \circ \mathit{fmap}_f~\mathit{mAlgebra} \circ \mathit{fmap}_f~(\mathit{fmap}_m~\mathit{loop}) \circ \mathit{unC} \circ \mathit{unIn}
+      \kw{where} & \mathit{loop} &=& k \circ \mathit{fmap}_f~l \circ \mathit{fmap}_f~(\mathit{fmap}_m~\mathit{loop}) \circ \mathit{unC} \circ \mathit{unIn}
     \end{array}
   \end{array}
 \end{displaymath}
@@ -1926,7 +1962,7 @@ $\eFold{-}{-}$ is as follows:
 Whichever implementation of $\eFold{-}{-}$ we choose, we note that
 there is an implicit precondition that the second argument (of type
 $m~a \to a$) must be an Eilenberg-Moore algebra. Unfortunately, it is
-impossible to express this requirement in Haskell's type system.
+not possible to express this requirement in Haskell's type system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2056,7 +2092,7 @@ the definitions of the free monad structure we defined in
 \subsection{Free monads}
 \label{sec:free-monads}
 
-A \emph{free monad} for a functor $(f, \mathit{fmap}_f)$ is a way of
+A \emph{free monad} for a functor $(f,\, \mathit{fmap}_f)$ is a way of
 extending $f$ to be a monad while, intuitively, adding no additional
 constraints. A useful application of free monads is as a way of
 describing effectful computations over a set of commands, where the
@@ -2114,7 +2150,7 @@ monads in terms of $f$-and-$m$-algebras in
   If $(\mathit{FreeM}~f, \mathit{fmap}_{\mathit{FreeM}~f},
   \mathit{return}_{\mathit{FreeM}~f},
   \mathit{join}_{\mathit{FreeM}~f})$ is a free monad for a functor
-  $(f, \mathit{fmap}_f)$, then the operation $\fmext{-} :: (\forall
+  $(f, \,\mathit{fmap}_f)$, then the operation $\fmext{-} :: (\forall
   a.~f~a \to m~a) \to (\forall a.~\mathit{FreeM}~f~a \to m~a)$ is a
   bijection between natural transformations and monad morphisms. The
   inverse operation can be defined as follows:
@@ -2275,38 +2311,38 @@ to construct free monads from initial $f$-algebras.
       \\
       \begin{array}{@{}l}
         \mathit{fmap}_{\mathit{FreeM}~f} :: (a \to b) \to \mathit{FreeM}~f~a \to \mathit{FreeM}~f~b \\
-        \mathit{fmap}_{\mathit{FreeM}~f}~g = \fold{\mathit{fmapAlgebra}} \\
+        \mathit{fmap}_{\mathit{FreeM}~f}~g = \fold{k} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-          \kw{where} & \mathit{fmapAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}~(\mathsf{Var}~(g~a)) \\
-          & \mathit{fmapAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}~(\mathsf{Term}~x)
+          \kw{where} & k~(\mathsf{Var}~a) &=& \mathit{in}~(\mathsf{Var}~(g~a)) \\
+          & k~(\mathsf{Term}~x) &=& \mathit{in}~(\mathsf{Term}~x)
         \end{array}
       \end{array} \\
       \\
       \begin{array}{@{}l}
         \mathit{return}_{\mathit{FreeM}~f} :: a \to \mathit{FreeM}~f~a \\
-        \mathit{return}_{\mathit{FreeM}~f}~a = \mathit{construct}~(\mathsf{Var}~a)
+        \mathit{return}_{\mathit{FreeM}~f}~a = \mathit{in}~(\mathsf{Var}~a)
       \end{array} \\
       \\
       \begin{array}{@{}l}
         \mathit{join}_{\mathit{FreeM}~f} :: \mathit{FreeM}~f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~b \\
-        \mathit{join}_{\mathit{FreeM}~f} = \fold{\mathit{joinAlgebra}} \\
+        \mathit{join}_{\mathit{FreeM}~f} = \fold{j} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-          \kw{where} & \mathit{joinAlgebra}~(\mathsf{Var}~x) &=& x \\
-          & \mathit{joinAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}~(\mathsf{Term}~x)
+          \kw{where} & j~(\mathsf{Var}~x) &=& x \\
+          & j~(\mathsf{Term}~x) &=& \mathit{in}~(\mathsf{Term}~x)
         \end{array}
       \end{array} \\
       \\
       \begin{array}{@{}l}
         \mathit{wrap}_f :: f~(\mathit{FreeM}~f~a) \to \mathit{FreeM}~f~a \\
-        \mathit{wrap}_f~x = \mathit{construct}~(\mathsf{Term}~x)
+        \mathit{wrap}_f~x = \mathit{in}~(\mathsf{Term}~x)
       \end{array} \\
       \\
       \begin{array}{@{}l}
         \fmext{-} :: (f~a \to m~a) \to \mathit{FreeM}~f~a \to m~a \\
-        \fmext{g} = \fold{\mathit{extAlgebra}} \\
+        \fmext{g} = \fold{e} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-          \kw{where} & \mathit{extAlgebra}~(\mathsf{Var}~a) &=& \mathit{return}_m~a \\
-          & \mathit{extAlgebra}~(\mathsf{Term}~x) &=& \mathit{join}_m~(g~x)
+          \kw{where} & e~(\mathsf{Var}~a) &=& \mathit{return}_m~a \\
+          & e~(\mathsf{Term}~x) &=& \mathit{join}_m~(g~x)
         \end{array}
       \end{array}
     \end{array}
@@ -2357,7 +2393,7 @@ the constituent monads is \emph{free}, as we shall see in
 
 Formally, ``least commitment'' is realised as the existence of a
 \emph{unique} monad morphism out of a coproduct for every way of
-interpreting its consistuent parts. Coproducts of monads are precisely
+interpreting its constituent parts. Coproducts of monads are precisely
 coproducts in the category of monads and monad morphisms. The
 following definition sets out the precise conditions:
 \begin{definition}\label{defn:coproducts}
@@ -2459,39 +2495,39 @@ arbitrary $\mathit{IO}$ actions:
       \\
       \begin{array}{@{}l}
         \mathit{fmap}_{\cprd{(\mathit{FreeM}~f)}{m}} :: (a \to b) \to (\cprd{(\mathit{FreeM}~f)}{m})~a \to (\cprd{(\mathit{FreeM}~f)}{m})~b \\
-        \mathit{fmap}_{\cprd{(\mathit{FreeM}~f)}{m}}~g = \eFold{\mathit{fmapAlgebra}}{\mathit{construct_m}} \\
+        \mathit{fmap}_{\cprd{(\mathit{FreeM}~f)}{m}}~g = \eFold{k}{\mathit{in}_m} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-          \kw{where} & \mathit{fmapAlgebra}~(\mathsf{Var}~a) &=& \mathit{construct}_{\mathit{FreeMF}~f~b}~(\mathsf{Var}~(g~a)) \\
-          & \mathit{fmapAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}_{\mathit{FreeMF}~f~b}~(\mathsf{Term}~x)
+          \kw{where} & k~(\mathsf{Var}~a) &=& \mathit{in}_{\mathit{FreeMF}~f~b}~(\mathsf{Var}~(g~a)) \\
+          & k~(\mathsf{Term}~x) &=& \mathit{in}_{\mathit{FreeMF}~f~b}~(\mathsf{Term}~x)
         \end{array}
       \end{array} \\
       \\
       \begin{array}{@{}l}
         \mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}} :: a \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
-        \mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}}~a = \mathit{construct}_{\mathit{FreeMF}~f~a}~(\mathsf{Var}~a)
+        \mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}}~a = \mathit{in}_{\mathit{FreeMF}~f~a}~(\mathsf{Var}~a)
       \end{array} \\
       \\
       \begin{array}{@{}l}
         \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} :: (\cprd{(\mathit{FreeM}~f)}{m})~((\cprd{(\mathit{FreeM}~f)}{m})~a) \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
-        \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} = \eFold{\mathit{joinAlgebra}}{\mathit{construct}_m} \\
+        \mathit{join}_{\cprd{(\mathit{FreeM}~f)}{m}} = \eFold{j}{\mathit{in}_m} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-          \kw{where} & \mathit{joinAlgebra}~(\mathsf{Var}~x) &=& x \\
-          & \mathit{joinAlgebra}~(\mathsf{Term}~x) &=& \mathit{construct}~(\mathsf{Term}~x)
+          \kw{where} & j~(\mathsf{Var}~x) &=& x \\
+          & j~(\mathsf{Term}~x) &=& \mathit{in}~(\mathsf{Term}~x)
         \end{array}
       \end{array} \\
       \\
       \mathit{inj_1} :: \mathit{FreeM}~f~a \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
-      \mathit{inj_1} = \fmext{\mathit{construct}_{\mathit{FreeMF}~f~a} \circ \mathsf{Term}} \\
+      \mathit{inj_1} = \fmext{\mathit{in}_{\mathit{FreeMF}~f~a} \circ \mathsf{Term}} \\
       \\
       \mathit{inj_2} :: m~a \to (\cprd{(\mathit{FreeM}~f)}{m})~a \\
-      \mathit{inj_2} = \mathit{construct}_m \circ \mathit{fmap}_m~\mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}}\\
+      \mathit{inj_2} = \mathit{in}_m \circ \mathit{fmap}_m~\mathit{return}_{\cprd{(\mathit{FreeM}~f)}{m}}\\
       \\
       \begin{array}{@{}l}
         {}[-,-] :: (\forall a.~\mathit{FreeM}~f~a \to m'~a) \to (\forall a.~m~a \to m'~a) \to (\cprd{(\mathit{FreeM}~f)}{m})~a \to m'~a \\
-        {}[g_1,g_2] = \eFold{\mathit{caseAlgebra}}{\mathit{join}_{m'} \circ g_2} \\
+        {}[g_1,g_2] = \eFold{c}{\mathit{join}_{m'} \circ g_2} \\
         \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-          \kw{where} & \mathit{caseAlgebra}~(\mathsf{Var}~a) &=& \mathit{return}_{m'}~a \\
-          & \mathit{caseAlgebra}~(\mathsf{Term}~x) &=& \mathit{join}_{m'}~(\fmext{g_1}^{-1}~x)
+          \kw{where} & c~(\mathsf{Var}~a) &=& \mathit{return}_{m'}~a \\
+          & c~(\mathsf{Term}~x) &=& \mathit{join}_{m'}~(\fmext{g_1}^{-1}~x)
         \end{array}
       \end{array}
     \end{array}
@@ -2526,18 +2562,17 @@ list append example.
 
 For the monad coproduct structure, we use the pure and effectful parts
 of the initial $(\mathit{FreeMF}~f~a)$-and-$m$-algebra stucture --
-$\mathit{construct}_{\mathit{FreeMF}~f~a}$ and $\mathit{construct}_m$
--- for the first and second injections $\mathit{inj}_1$ and
-$\mathit{inj}_2$ respectively. Since
-$\mathit{construct}_{\mathit{FreeMF}~f~a}$ injects an single abstract
-command from $f$ into the coproduct, we use the free monad structure
-to inject all the commands into the coproduct.
+$\mathit{in}_{\mathit{FreeMF}~f~a}$ and $\mathit{in}_m$ -- for the
+first and second injections $\mathit{inj}_1$ and $\mathit{inj}_2$
+respectively. Since $\mathit{in}_{\mathit{FreeMF}~f~a}$ injects an
+single abstract command from $f$ into the coproduct, we use the free
+monad structure to inject all the commands into the coproduct.
 
 In order for the use of the $(\mathit{FreeMF}~f~a)$-and-$m$-algebra
 initiality to construct a function on $\mu(\mathit{FreeMF}~f~a|m)$ in
 the definition of $[-,-]$ to be valid, we must check that the second
-component of $\eFold{\mathit{caseAlgebra}}{\mathit{join_{m'}} \circ
-  g_2}$ is actually an $m$-Eilenberg-Moore-algebra. For the first law
+component of $\eFold{c}{\mathit{join_{m'}} \circ g_2}$ is actually an
+$m$-Eilenberg-Moore-algebra. For the first law
 (\autoref{eq:em-alg-return}), we reason as follows:
 \begin{displaymath}
   \begin{array}{cl}
@@ -2742,36 +2777,37 @@ just nontermination.
 \begin{proof*}
   The $f$-algebra and $m$-Eilenberg-Moore-algebra structure are
   constructed from the $(f \circ m)$-algebra structure map
-  $\mathit{construct}$ and the structure of the monad $m$.  For the
+  $\mathit{in}$ and the structure of the monad $m$.  For the
   $f$-algebra component, we use the composite:
   \begin{displaymath}
-    \mathit{construct}_f = \mathit{return}_m \circ \mathit{construct} :: f~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
+    \mathit{in}_f = \mathit{return}_m \circ \mathit{in} :: f~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
   \end{displaymath}
   The $m$-Eilenberg-Moore-algebra component is straightforward, using
   the free Eilenberg-Moore-algebra construction from
   \autoref{sec:eilenberg-moore-algebras}:
   \begin{displaymath}
-    \mathit{construct}_m = \mathit{join}_m :: m~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
+    \mathit{in}_m = \mathit{join}_m :: m~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
   \end{displaymath}
   Since we have used the free Eilenberg-Moore-algebra construction, we
   are automatically guaranteed that we have an
   $m$-Eilenberg-Moore-algebra.
 
-  Now let us assume we are given an $f$-and-$m$-algebra $(a,
-  \mathit{fAlgebra}_a, \mathit{mAlgebra}_a)$. We construct, and prove
-  unique, an $f$-and-$m$-algebra homomorphism $h$ from the algebra
-  $(m~(\mu(f \circ m)), \mathit{construct}_f, \mathit{construct}_m)$
-  to the algebra with carrier $a$ using the initiality of $\mu(f \circ
-  m)$:
+  Now let us assume we are given an $f$-and-$m$-algebra $(a,k,l)$. We
+  construct, and prove unique, an $f$-and-$m$-algebra homomorphism $h$
+  from the algebra $(m~(\mu(f \circ m)), \mathit{in}_f,
+  \mathit{in}_m)$ to the algebra with carrier $a$ using the initiality
+  of $\mu(f \circ m)$:
   \begin{displaymath}
-    h = \mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} :: m~(\mu(f \circ m)) \to a
+    h = l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l} :: m~(\mu(f \circ m)) \to a
   \end{displaymath}
-  Close inspection of $h$ reveals that it has the same structure as
-  the definition of $\mathit{eAppend}$ in terms of initial
-  $f$-algebras we gave in \autoref{sec:direct-eappend}. Therefore, as
-  we noted in the introduction to this subsection, the construction we
-  are buliding here abstracts out the common parts of proofs and
-  definitions on effectful datatypes.
+\pattynote{One reviewer missed the connection here with eAppend. Not
+  sure why, but clarify?}  Close inspection of $h$ reveals that it has
+the same structure as the definition of $\mathit{eAppend}$ in terms of
+initial $f$-algebras we gave at the start of
+\autoref{sec:direct-eappend}. Therefore, as we noted in the
+introduction to this subsection, the construction we are building here
+abstracts out the common parts of proofs and definitions on effectful
+datatypes.
 
   To complete our proof, we now need to demonstrate that $h$ is an
   $f$-and-$m$-algebra homomorphism, and that it is the unique such. We
@@ -2781,42 +2817,40 @@ just nontermination.
     follows:
     \begin{displaymath}
       \begin{array}{cl}
-        & h \circ \mathit{construct}_f \\
-        =&\eqAnnotation{definitions of $h$ and $\mathit{construct_f}$} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{return}_m \circ \mathit{construct} \\
+        & h \circ \mathit{in}_f \\
+        =&\eqAnnotation{definitions of $h$ and $\mathit{in_f}$} \\
+         &l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l} \circ \mathit{return}_m \circ \mathit{in} \\
         =&\eqAnnotation{naturality of $\mathit{return}_m$ (\autoref{eq:monad-return-natural})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{return}_m \circ \fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
-        =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an $m$-Eilenberg-Moore-algebra (\autoref{eq:em-alg-return})} \\
-         &\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{construct} \\
+         &l \circ \mathit{return}_m \circ \fold{k \circ \mathit{fmap}_f~l} \circ \mathit{in} \\
+        =&\eqAnnotation{$l$ is an $m$-Eilenberg-Moore-algebra (\autoref{eq:em-alg-return})} \\
+         &\fold{k \circ \mathit{fmap}_f~l} \circ \mathit{in} \\
         =&\eqAnnotation{$\fold{-}$ is an $(f \circ m)$-algebra homomorphism (\autoref{eq:falgebra-homomorphism})} \\
-         &\mathit{fAlgebra}_a \circ \\
-         & \hspace{1cm}\mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-    \end{array}
-  \end{displaymath}
-  \begin{displaymath}
-    \begin{array}{cl}
+         &k \circ \mathit{fmap}_f~l \circ \mathit{fmap}_f~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
+%    \end{array}
+%  \end{displaymath}
+%  \begin{displaymath}
+%    \begin{array}{cl}
         =&\eqAnnotation{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
-         &\mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap_m}~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+         &k \circ \mathit{fmap}_f~(l \circ \mathit{fmap_m}~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{definition of $h$} \\
-         & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h
+         & k \circ \mathit{fmap}_f~h
       \end{array}
     \end{displaymath}
   \item The function $h$ is an $m$-Eilenberg-Moore-algebra
     homomorphism, as shown by the following steps:
     \begin{displaymath}
       \begin{array}{cl}
-        & h \circ \mathit{construct_m} \\
-        =&\eqAnnotation{definitions of $h$ and $\mathit{construct}_m$} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \circ \mathit{join}_m \\
+        & h \circ \mathit{in}_m \\
+        =&\eqAnnotation{definitions of $h$ and $\mathit{in}_m$} \\
+         &l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l} \circ \mathit{join}_m \\
         =&\eqAnnotation{naturality of $\mathit{join}_m$ (\autoref{eq:monad-join-natural})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
-        =&\eqAnnotation{$\mathit{mAlgebra}_a$ is an Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
-         &\mathit{mAlgebra}_a \circ \\
-         &\hspace{1cm}\mathit{fmap}_m~\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+         &l \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
+        =&\eqAnnotation{$l$ is an Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
+         &l \circ \mathit{fmap}_m~k \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}) \\
+         &l \circ \mathit{fmap}_m~(l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{definition of $h$} \\
-         &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h
+         &l \circ \mathit{fmap}_m~h
       \end{array}
     \end{displaymath}
   \item The function $h$ is the unique such $f$-and-$m$-algebra. Let
@@ -2826,29 +2860,28 @@ just nontermination.
     \begin{displaymath}
       h' \circ \mathit{return}_m :: \mu(f \circ m) \to a
     \end{displaymath}
-    is an $(f \circ m)$-algebra homomorphism
-    from $(\mu(f \circ m), \mathit{construct})$ to $(a, \mathit{fAlgebra}_a
-    \circ \mathit{fmap}_f~\mathit{mAlgebra}_a)$, as verified by the
-    following steps:
+    is an $(f \circ m)$-algebra homomorphism from $(\mu(f \circ m),
+    \mathit{in})$ to $(a, k \circ \mathit{fmap}_f~l)$, as verified by
+    the following steps:
     \begin{displaymath}
       \begin{array}{cl}
-        & h' \circ \mathit{return}_m \circ \mathit{construct} \\
-        =&\eqAnnotationS{definition of $\mathit{construct}_f$} \\
-        & h' \circ \mathit{construct}_f \\
+        & h' \circ \mathit{return}_m \circ \mathit{in} \\
+        =&\eqAnnotationS{definition of $\mathit{in}_f$} \\
+        & h' \circ \mathit{in}_f \\
         =&\eqAnnotationS{$h'$ is an $f$-and-$m$-algebra homomorphism} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~h' \\
+        & k \circ \mathit{fmap}_f~h' \\
         =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$ (\autoref{eq:monad-join-fmap-return})} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m) \\
+        & k \circ \mathit{fmap}_f~(h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m) \\
         =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~(\mathit{mAlgebra}_a \circ \mathit{fmap}_m~h' \circ \mathit{fmap}_m~\mathit{return}_m) \\
+        & k \circ \mathit{fmap}_f~(l \circ \mathit{fmap}_m~h' \circ \mathit{fmap}_m~\mathit{return}_m) \\
         =&\eqAnnotationS{$\mathit{fmap}_f$ preserves function composition (\autoref{eq:fmap-comp})} \\
-        & \mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a \circ \mathit{fmap}_f~(\mathit{fmap}_m~(h' \circ \mathit{return}_m))
+        & k \circ \mathit{fmap}_f~l \circ \mathit{fmap}_f~(\mathit{fmap}_m~(h' \circ \mathit{return}_m))
       \end{array}
     \end{displaymath}
     Thus, by the uniqueness of $(f \circ m)$-algebra homomorphisms out
     of $\mu(f \circ m)$, we have proved that 
     \begin{equation}\label{eq:h'-prop}
-      h' \circ \mathit{return}_m = \fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a}
+      h' \circ \mathit{return}_m = \fold{k \circ \mathit{fmap}_f~l}
     \end{equation}
     We now use this equation to prove that $h=h'$ by the following
     steps:
@@ -2856,11 +2889,11 @@ just nontermination.
       \begin{array}{cl}
         & h \\
         =&\eqAnnotationS{definition of $h$} \\
-        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~\fold{\mathit{fAlgebra}_a \circ \mathit{fmap}_f~\mathit{mAlgebra}_a} \\
+        &l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l} \\
         =&\eqAnnotationS{\autoref{eq:h'-prop}} \\
-        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~(h' \circ \mathit{return}_m) \\
+        &l \circ \mathit{fmap}_m~(h' \circ \mathit{return}_m) \\
         =&\eqAnnotationS{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
-        &\mathit{mAlgebra}_a \circ \mathit{fmap}_m~{h'} \circ \mathit{fmap}_m~\mathit{return}_m \\
+        &l \circ \mathit{fmap}_m~{h'} \circ \mathit{fmap}_m~\mathit{return}_m \\
         =&\eqAnnotationS{$h'$ is an $m$-Eilenberg-Moore-algebra homomorphism (\autoref{eq:em-alg-homomorphism})} \\
         &h' \circ \mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m \\
         =&\eqAnnotationS{monad law: $\mathit{join}_m \circ \mathit{fmap}_m~\mathit{return}_m = \mathit{id}$} \\
