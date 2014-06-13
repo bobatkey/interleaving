@@ -94,12 +94,10 @@
 
   Initial $f$-and-$m$-algebras are originally due to Filinski and
   St\o{}vring, who studied them in the category Cpo. They were
-  subsequently generalised to arbitrary categories by the authors of
-  this article.  \pattynote{Replace ``by the authors of the present
-    article'' with something that gives Bart and Neil credit for their
-    contributions to the FoSSaCS version.}  In this article we aim to
-  introduce the general concept of initial $f$-and-$m$-algebras to a
-  general functional programming audience.
+  subsequently generalised to arbitrary categories by Atkey, Ghani,
+  Jacobs, and Johann in a FoSSaCS 2012 paper. In this article we aim
+  to introduce the general concept of initial $f$-and-$m$-algebras to
+  a general functional programming audience.
 \end{abstract}
 
 \section{Introduction}
@@ -187,7 +185,7 @@ following benefits:
   functions on pure datatypes can often be transferred directly to
   their effectful counterparts. Moreover, the new definitions are
   generic in the interleaved monad we use for representing effects ---
-  for example, the $\mathit{IO}$ monad for input/ouptut effects, or
+  for example, the $\mathit{IO}$ monad for input/output effects, or
   the non-termination monad for laziness.
 \item \emph{Proofs} about functions on interleaved datatypes also
   carry over almost unchanged from their pure counterparts. We
@@ -204,15 +202,12 @@ The concept of initial $f$-and-$m$-algebras is originally due to
 Filinski and St\o{}vring in the specific setting of Cpo (the category
 of complete partial orders and continuous functions)
 \cite{filinski07inductive}, and was subsequently extended to a general
-category-theoretic setting for arbitrary functors $f$ by the authors
-of the current article \cite{atkey12fibrational}.  \pattynote{Replace
-  ``by the authors of the present article'' with something that gives
-  Bart and Neil credit for their contributions to the FoSSaCS
-  version.}  In this article, we aim to introduce the concept of
-initial $f$-and-$m$-algebras to a general functional programming
-audience and show how they can be used to structure and reason about
-functional programs in practice, without the heavy category-theoretic
-prerequisites of that previous work.
+category-theoretic setting for arbitrary functors $f$ by Atkey, Ghani,
+Jacobs, and Johann \cite{atkey12fibrational}.  In this article, we aim
+to introduce the concept of initial $f$-and-$m$-algebras to a general
+functional programming audience and show how they can be used to
+structure and reason about functional programs in practice, without
+the heavy category-theoretic prerequisites of that previous work.
 
 \subsection{Interleaving data and effects}
 \label{sec:motivate-interleaving}
@@ -223,7 +218,7 @@ interleaves effects with pure data. By making this implicit
 interleaving explicit, we will see in the main body of this article
 how the $f$-and-$m$-algebra formalism allows for the implicit
 assumptions made when reasoning about Haskell datatypes using initial
-$f$-algebras be made explicit as well.
+$f$-algebras can be made explicit as well.
 
 \paragraph{I/O Effects}
 
@@ -298,33 +293,33 @@ practical techniques that have been proposed by the Haskell community
 for making the interleaving explicit can be handled neatly by using
 $f$-and-$m$-algebras.
 
-\paragraph{Non-termination} A second scenario in which implicitly
-interleaved effects arise is built-in to every Haskell type: the
-possibility of non-termination while inspecting a pure value. Haskell
-dictates a lazy evaluation strategy, in which the computation of a
-value is only invoked if the value is actually used. For the purposes
-of reasoning about Haskell programs, we can model the possibility of
-non-termination using the \emph{lifting} or \emph{non-termination}
+\paragraph{Non-termination} A second scenario involving implicitly
+interleaved effects is built in to every Haskell type: the possibility
+of non-termination while inspecting a pure value. Haskell dictates a
+lazy evaluation strategy, in which the computation of a value is only
+invoked if the value is actually needed. For the purposes of reasoning
+about the behaviour of Haskell programs, we can model the possibility
+of non-termination using the \emph{lifting} or \emph{non-termination}
 monad, $(-)_\bot$. This monad adds a bottom element $\bot$ to a type,
-representing the possibility of non-termination at that type, and
-every Haskell type is implicitly lifted using this monad.
+representing the possibility of non-termination at that type.  Every
+Haskell type is implicitly lifted using this monad.
 
-A well-known advantage of Haskell's implicit possibility of
+A well-known benefit of Haskell's implicit possibility of
 non-termination at every type is the easy representation of infinite
 data structures. Laziness means that a computation that generates an
-infinite value is evaluated on demand as the structure is explored. In
-fact, we implicitly used this facility in our definition of
+infinite value is evaluated on demand as the structure is explored. We
+implicitly used this facility in our definition of
 $\mathit{hGetContents}$ above to deal with the possibility of
 $\mathit{Handle}$s that may return infinite streams of
 values. Unfortunately, the beneficial capability of representing
 infinite data structures comes with the downside that we can no longer
 distinguish, just by looking at the types, between finite lists and
-possibly infinite lists: both are assigned the type $[a]$ for some
+possibly infinite lists. Both are assigned the type $[a]$ for some
 $a$. It is often the case that functions are written under the
 implicit assumption that they are only applied to finite lists (for
 example, the standard $\mathit{reverse}$ function). Likewise, when
 reasoning about Haskell programs it is often implicitly assumed that
-lists are finite, so that standard techniques like induction may be
+lists are finite, so that standard techniques like induction can be
 applied. We examine the assumptions implicit in the $\mathit{reverse}$
 function in \autoref{sec:reverse}.
 
@@ -357,8 +352,8 @@ Haskell also evaluate their arguments lazily.)
 
 Correctly reasoning about values of type $\mathit{List_{lazy}}~a$ and
 other lazy data structures has traditionally required the use of
-domain-theoretic techniques (Pitts \cite{pitts96relational} provides
-a comprehensive overview). The technique of using $f$-and-$m$-algebras
+domain-theoretic techniques (Pitts \cite{pitts96relational} provides a
+comprehensive overview). The technique of using $f$-and-$m$-algebras
 that we present in this article allows sound reasoning about lazy data
 structures at an abstract level, dispensing with the need to directly
 invoke domain-theoretic concepts. Indeed, Filinski and St\o{}vring
@@ -410,14 +405,14 @@ $m$. Doing so, we arrive at the following definition:
     \quad \mathsf{Mu}~(m~(\mathit{MuFM_0'}~f~m))
   \end{array}
 \end{displaymath}
-(We have named this type $\mathit{MuFM'_0}~f~m$ with a $0$ subscript
-because we will introduce a more refined, but isomorphic, presentation
-in \autoref{sec:f-and-m-alg-impl}.)  \pattynote{Actually, we've used a
-  subscript on $\mathit{MuFM_0}~f~m$, too...} This definition makes
-it clear that the datatypes we are considering interleave pure data,
-represented by the functor $f$, with effects, represented by the monad
-$m$. The aim of this article is to show that $f$-and-$m$-algebras are
-the appropriate level of abstraction both for defining functions that
+(We have named these types $\mathit{MuFM_0}~f~m$ and
+$\mathit{MuFM'_0}~f~m$ with a $0$ subscript because we will introduce
+a more refined, but isomorphic, presentation in
+\autoref{sec:f-and-m-alg-impl}.) This definition makes it clear that
+the datatypes we are considering interleave pure data, represented by
+the functor $f$, with effects, represented by the monad $m$. The aim
+of this article is to show that $f$-and-$m$-algebras are the
+appropriate level of abstraction both for defining functions that
 operate on values of type $\mathit{MuFM_0}~f~m$, and for reasoning
 about them.
 
@@ -517,17 +512,21 @@ follows:
   m)$-algebras. Consequently, we are able to give a generic
   construction of initial $f$-and-$m$-algebras for arbitrary functors
   $f$ and monads $m$.
-\item \todo{FIX THIS} In
-  \autoref{sec:coproducts-with-free-monads}, we present an extended
-  example of the use of initial $f$-and-$m$-algebras. We reconstruct a
-  result of Hyland, Plotkin and Power on the construction of
-  coproducts of free monads with arbitrary monads, using
-  $f$-and-$m$-algebras. This construction has practical interest, in
-  that it provides a general construction of monads that interleave
-  abstract and concrete commands, as seen in the
-  $\mathit{Reader}~m~a~b$ monad in the previous section. The monad
-  coproduct structure further highlights the central theme of this
-  article: the separation of concerns of pure data and effects.
+\item In \autoref{sec:coproducts-with-free-monads}, we present an
+  extended example of the use of initial
+  $f$-and-$m$-algebras. Motivated by the undesirable properties of
+  implicitly interleaving pure lists with I/O effects that we
+  described in the previous section, the Haskell community has
+  developed several approaches that explicitly interleave effects with
+  data. Examples include Kiselyov's Iteratees
+  \cite{kiselyov12iteratees} and Gonzalez's \texttt{pipes}
+  library\footnote{\url{http://hackage.haskell.org/package/pipes}}. We
+  show that these constructions are often instances of the general
+  construction of the coproduct of a free monad with another
+  monad. Hyland, Plotkin and Power previously gave this coproduct
+  construction using purely categorical techniques. In
+  \autoref{sec:coproducts-with-free-monads}, we reconstruct this
+  result using $f$-and-$m$-algebras.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -633,16 +632,15 @@ principle for functions defined on initial $f$-algebras.
   Suppose that $(\mu f, \mathit{in})$ is an initial $f$-algebra.
 
   Let $(a, k)$ be an $f$-algebra, and $g :: \mu~f \to
-  a$ be a function. To prove an equation
+  a$ be a function. The equation
   \begin{displaymath}
     \fold{k} = g,
   \end{displaymath}
-  is to show that $g$ is an $f$-algebra homomorphism:
+  holds if and only if $g$ is an $f$-algebra homomorphism:
   \begin{displaymath}
     g \circ \mathit{in} = k \circ \mathit{fmap}_f~g.
   \end{displaymath}
 \end{proofprinciple}
-\pattynote{PP1 can be stated as a bi-implication.}
 
 We demonstrate the use of \proofprinref{pp:initial-alg} in
 \autoref{sec:pure-append} below, to set up our presentation of
@@ -754,9 +752,7 @@ any functor $(f,\mathit{fmap_f})$.
 
 These two examples demonstrate that initial algebras for a given
 functor are not unique: the types $[a]$ and
-$\mathit{Mu}~(\mathit{ListF}~a)$ are not equal \pattynote{Replace
-  ``equal'' with ``identical''? Surely they are equal in the
-  categorical sense of both being initial...}, but they are both
+$\mathit{Mu}~(\mathit{ListF}~a)$ are not identical, but they are both
 initial $(\mathit{ListF}~a)$-algebras. Therefore, we regard the
 initial $f$-algebra abstraction as an interface to program against,
 rather than thinking in terms of specific implementations such as
@@ -1218,8 +1214,43 @@ We identify the following problems with this proof:
   twice. We also had to expand $\mathit{eAppend}$ again in order to
   rewrite the occurrences of $\mathit{join_m}$ and $\mathit{fmap_m}$.
 \end{itemize}
-The definition and proof that we have given in this section
-demonstrates that direct use of initial $f$-algebras provides us with
+An alternative proof that $\mathit{append}$ is associative appeals not
+directly to \proofprinref{pp:initial-alg}, but rather to an important
+consequence of it, known as the {\em fold fusion law}, that can first
+be derived as an independent lemma. The derivation of both the fold
+fusion law and the proof of associativity of $\mathit{append}$ based
+on it can then be lifted to the effectful setting. This modularization
+and instantiation does give a shorter and more streamlined proof than
+the one presented above, but it relies on 1) the programmer's correct
+extraction and formulation of the fold fusion law as the relevant
+lemma from the associativity problem for $\mathit{eAppend}$, 2) a
+correct proof that the effectful fold fusion law holds, and 3) the
+correct instantiation of that law to the desired result for
+$\mathit{eAppend}$. It seems unlikely that a programmer not already
+familiar with program fusion would devise such a proof
+strategy. Another possibility is to prove the associativity of
+$\mathit{eAppend}$ by first writing an $\mathit{append}$ function for
+the ``unwrapped'' datatype $\mathit{List_{io}'}$ as a fold for that
+type, then proving associativity for this $\mathit{append}$ function
+as an instance of fold fusion for $\mathit{List_{io}'}$, and, finally,
+using the observation that the monad library function
+$\mathit{liftM2\; op}$ is associative if $\mathit{op}$ is to lift this
+proof to a proof of associativity of $\mathit{eAppend}$. This gives
+$\mathit{eAppend}$ as $\mathit{liftM2}$ applied to the
+$\mathit{append}$ function for $\mathit{List_{io}'}$. However, this
+second approach to associativity of $\mathit{eAppend}$ requires not
+only the same programmer knowledge of fold fusion as the previous
+approach, but specialised knowledge of Haskell's monad library and
+$\mathit{liftM2}$'s properties as well. Moreover, it will not be
+applicable in situations where $\mathit{liftM2}$ fails to preserve the
+relevant properties of $\mathit{op}$. So although the proof in
+\thmref{thm:direct-eappend-assoc} it is not necessarily the shortest
+possible, it is the most straightforward, natural, and therefore the
+most likely to be attempted.
+
+We see, then, that the definition and proof that we have given in this
+section -- not to mention alternative proofs akin to those discussed
+above -- demonstrate that direct use of initial $f$-algebras provides
 the wrong level of abstraction for dealing with datatypes that
 interleave data and effects.
 
@@ -1243,8 +1274,7 @@ calculation.
 To solve the problems we have identified with the direct use of
 $f$-algebras, we use the concept of $f$-and-$m$-algebras, originally
 introduced by Filinski and St\o{}vring \cite{filinski07inductive}, and
-generalised to arbitrary functors by the current authors
-\pattynote{Same comment as above.}
+generalised to arbitrary functors by Atkey, Ghani, Jacobs and Johann
 \cite{atkey12fibrational}. As the name may imply, $f$-and-$m$-algebras
 are simultaneously $f$-algebras and $m$-algebras. A twist is that the
 $m$-algebra component must be an Eilenberg-Moore
@@ -1266,13 +1296,30 @@ with the structure of the monad:
   \begin{displaymath}
     l :: m~a \to a
   \end{displaymath}
-  such that the following two equations are satisfied:
-  \begin{align}
+  such that the following two diagrams commute:
+  \begin{equation}
     \label{eq:em-alg-return}
-    l \circ \mathit{return}_m & = \mathit{id} \\
+    \xymatrix{
+      {a} \ar[r]^{\mathit{return}_m} \ar[rd]^{\mathit{id}}
+      &
+      {m~a} \ar[d]^{l}
+      \\
+      &
+      {a}
+    }
+  \end{equation}
+  \begin{equation}
     \label{eq:em-alg-join}
-    l \circ \mathit{join}_m & = l \circ \mathit{fmap}_m~l
-  \end{align}
+    \xymatrix{
+      {m~(m~a)} \ar[r]^{\mathit{join}_m} \ar[d]_{\mathit{fmap}_m~l}
+      &
+      {m~a} \ar[d]^{l}
+      \\
+      {m~a} \ar[r]^l
+      &
+      {a}
+    }
+  \end{equation}
 \end{definition}
 
 Eilenberg-Moore algebras form a key piece of the theory of monads,
@@ -1386,14 +1433,21 @@ in \autoref{sec:f-algebras}.
   \begin{displaymath}
     h :: (a, l_a) \to (b, l_b)
   \end{displaymath}
-  consists of a function $h :: a \to b$ such that:
+  consists of a function $h :: a \to b$ such that the following
+  diagram commutes:
   \begin{equation}
     \label{eq:em-alg-homomorphism}
-    h \circ l_a = l_b \circ \mathit{fmap}_m~h
+    \xymatrix{
+      {m~a} \ar[r]^{\mathit{fmap}_m~h} \ar[d]_{l_a}
+      &
+      {m~b} \ar[d]^{l_b}
+      \\
+      {a} \ar[r]^h
+      &
+      {b}
+    }
   \end{equation}
 \end{definition}
-
-\pattynote{Do we want more categorical diagrams?}
 
 \subsection{Definition of \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 
@@ -1432,18 +1486,16 @@ $m$-Eilenberg-Moore-algebra homomorphisms:
   \end{displaymath}
   between two $f$-and-$m$ algebras is a function $h :: a \to b$ such
   that:
-  \begin{displaymath}
-    \begin{array}{rcl}
-      h \circ k_a & = & k_b \circ \mathit{fmap}_f~h \\
-      h \circ l_a & = & l_b \circ \mathit{fmap}_m~h
-    \end{array}
-  \end{displaymath}
+  \begin{align}
+    \label{eq:fm-alg-hom1}
+    h \circ k_a & = k_b \circ \mathit{fmap}_f~h \\
+    \label{eq:fm-alg-hom2}
+    h \circ l_a & = l_b \circ \mathit{fmap}_m~h
+  \end{align}
 \end{definition}
-\pattynote{Number the last two equations for reference below, say as
-  (*) and (**).}
 
 Given the above definitions, the definition of initial
-$f$-and-$m$-algebras is straightforward, and follows the same
+$f$-and-$m$-algebra is straightforward, and follows the same
 structure as for initial $f$-algebras. Abstractly, an initial
 $f$-and-$m$-algebra is an initial object in the category of
 $f$-and-$m$-algebras and $f$-and-$m$-algebra homomorphisms. We use the
@@ -1477,11 +1529,11 @@ homomorphism.
 
   Let $(a, k, l)$ be an $f$-and-$m$-algebra, and let $\eFold{k}{l}$
   denote the induced function of type $\mu(f|m) \to a$. For any
-  function $g :: \mu(f|m) \to a$, we can prove the equation:
+  function $g :: \mu(f|m) \to a$, the equation:
   \begin{displaymath}
     \eFold{k}{l} = g
   \end{displaymath}
-  by demonstrating that
+  holds if and only if
   \begin{equation}\label{eq:fm-falg}
     g \circ \mathit{in}_f = k \circ \mathit{fmap}_f~g
   \end{equation}
@@ -1490,7 +1542,6 @@ homomorphism.
     g \circ \mathit{in}_m = l \circ \mathit{fmap}_m~g
   \end{equation}
 \end{proofprinciple}
-\pattynote{PP2 can be stated as a bi-implication.}
 
 The key feature of \proofprinref{pp:initial-f-m-alg} is that it
 cleanly splits the pure and effectful proof obligations. Therefore we
@@ -1523,27 +1574,28 @@ for our list append running example in the next section.
       \mathit{in_m}~\mathit{ml} = \mathsf{List}~(\kw{do}~\{ \mathsf{List}~x \leftarrow \mathit{ml}; x \})
     \end{array}
   \end{displaymath}
-\pattynote{Point out that, if not for the List constructor, this would
-  be join.}
+  (If it were not for the $\mathsf{List}$ constructor, then
+  $\mathit{in_m}$ would simply be $\mathit{join_m}$.)
+
   Finally, we define the induced homomorphism to any other
   $(\mathit{ListF}~a)$-and-$m$-algebra as a pair of mutually recursive
   functions, following the structure of the declaration of
   $\mathit{List}~m~a$:
-\pattynote{Is the type of $\eFold{-}{-}$ correct? Should it be 
-{\tt (ListF a b -> b) -> (m b -> b) -> List m a -> b?}}
   \begin{displaymath}
     \begin{array}{l}
-      \eFold{-}{-} :: (f~a \to a) \to (m~a \to a) \to \mathit{List}~m~a \to a \\
+      \eFold{-}{-} :: (\mathit{ListF}~a~b \to b) \to (m~b \to b) \to \mathit{List}~m~a \to b \\
       \eFold{k}{l} = \mathit{loop} \\
-      \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-        \kw{where} & \mathit{loop}~(\mathsf{List}~x) &=& l~(\mathit{fmap}_m~\mathit{loop'}~x) \\
-        & \mathit{loop'}~\mathsf{Nil}_m& = & k~\mathsf{Nil} \\
-        & \mathit{loop'}~(\mathsf{Cons}_m~a~\mathit{xs}) &=& k~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
+      \quad\begin{array}{r@{\hspace{0.4em}}l}
+        \kw{where} & \mathit{loop} :: \mathit{List}~m~a \to b \\
+        & \mathit{loop}~(\mathit{List}~x) = l~(\mathit{fmap}_m~\mathit{loop'}~x) \\
+        \\
+        & \mathit{loop'} :: \mathit{ListF}~a~b \to b \\
+        & \mathit{loop'}~\mathsf{Nil}_m = k~\mathsf{Nil} \\
+        & \mathit{loop'}~(\mathsf{Cons}_m~a~\mathit{xs}) = k~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
       \end{array}
     \end{array}
   \end{displaymath}
 \end{example}
-\pattynote{Include the type of loop above.}
 We will give a general construction of initial $f$-and-$m$-algebras in
 \autoref{sec:f-and-m-alg-impl} that builds on the generic definition
 of initial $f$-algebras from \autoref{sec:f-algebras}. The key result
@@ -1604,36 +1656,36 @@ result of the separation of pure and effectful concerns that the
 abstraction of $f$-and-$m$-algebras affords.
 
 Just as in the case of $\mathit{append}$, we can immediately read off
-two properties of $\mathit{eAppend}$ from the fact that it 
-\pattynote{Actually, $\lambda xs. eAppend\, xs\, ys$!}
-is constructed as a $(\mathit{ListF}~a)$-algebra homomorphism. We have
-one property for each of the constructors of the type constructor
-$\mathit{ListF}~a$:
+two properties of $\mathit{eAppend}$. We have one property for each of
+the constructors of the type constructor $\mathit{ListF}~a$:
 \begin{align}
   \label{eq:eAppend-nil}
   \mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})~\mathit{ys} & = \mathit{ys} \\
   \label{eq:eAppend-cons}
   \mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs}))~\mathit{ys} & = \mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))
 \end{align}
-\pattynote{The first is by (*), the second is from (**), which is the
-  same as (21).}
+Both of these equations follow from the fact that the
+$\eFold{k}{\mathit{in}_m}$ in the definition of $\mathit{eAppend}$ is
+an $f$-and-$m$-algebra homomorphism, using \autoref{eq:fm-alg-hom1}.
 
-Again by construction, we also know that $\mathit{eAppend}$
-\pattynote{Actually, $\lambda xs. eAppend\, xs\, ys$!}  is an
+Again by construction, we also know that for any fixed $\mathit{ys}$
+$\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys}$ is an
 $m$-Eilenberg-Moore-algebra homomorphism. Hence we have the following
-property of $\mathit{eAppend}$ for free. For all $x ::
-m~(\mu(\mathit{ListF}~a|m))$:
+property of $\mathit{eAppend}$ for free, from
+\autoref{eq:fm-alg-hom2}. For all $x :: m~(\mu(\mathit{ListF}~a|m))$:
 \begin{equation}\label{eq:eappend-em}
   \mathit{eAppend}~(\mathit{in}_m~\mathit{x})~\mathit{ys} = \mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{x})
 \end{equation}
-\pattynote{Also by (**) or (21). Here, we should point out that the
-  return/bind style interpretation of (26): $in_m$ is essentially
-  join, so the lefthand side of (26) is essentially bind. Using
-  ``let'' syntax {\tt let x = e1 in e2} for {\tt bind (\ x -> e2) e1},
-  this means that (26) is {\tt eAppend (let xs = x in return xs) ys =
-    let xs = x in eAppend xs ys}. This is a familiar commuting
-  conversion saying that the first thing eAppend does is evaluate its
-  first argument.}
+If we unfold the definition of $\mathit{in}_m$, we can see that
+\autoref{eq:eappend-em} captures the fact that $\mathit{eAppend}$
+always evaluates the effects placed ``before'' the first element of
+its first argument:
+\begin{displaymath}
+  \begin{array}{ll}
+     & \mathit{eAppend}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~\mathit{xs}) \})~\mathit{ys} \\
+    =& \mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~(\mathit{return}_m~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))) \}
+  \end{array}
+\end{displaymath}
 
 With these three properties of $\mathit{eAppend}$ in hand we can prove
 that it is associative. We use \proofprinref{pp:initial-f-m-alg},
@@ -1785,12 +1837,11 @@ homomorphism by its construction via the initial $f$-and-$m$-algebra
 property. However, $\mathit{eAppend}$ is not an Eilenberg-Moore
 algebra homomorphism in its \emph{second} argument, as the following
 counterexample shows.
-\pattynote{So $\lambda x. eAppend\, x\, y$ is an E-M-algebra homomorphism,
-  but $eAppend \, x$ isn't.}
- If we let the monad $m$ be the $\mathit{ErrorM}$
-monad we defined in \autoref{sec:eilenberg-moore-algebras}, then if
-$\mathit{eAppend}$ were an Eilenberg-Moore-algebra homomorphism in its
-second argument the following equation would hold:
+
+If we let the monad $m$ be the $\mathit{ErrorM}$ monad we defined in
+\autoref{sec:eilenberg-moore-algebras}, then if $\mathit{eAppend}$
+were an Eilenberg-Moore-algebra homomorphism in its second argument
+the following equation would hold:
 \begin{equation}\label{eq:purported-em}
   \begin{array}{cl}
     &\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"}))
@@ -1866,15 +1917,13 @@ that have to do with interleaved data and effects.
 \end{proof*}
 \pattynote{Redirects to intro rather than appendix. :-( }
 
-In the current authors' previous work \cite{atkey12fibrational}
-\pattynote{Same comment as elsewhere.}
-, this
-same result was obtained in a less elementary way by constructing a
-functor $\Phi$ from the category of $(f \circ m)$-algebras to the
-category of $f$-and-$m$-algebras. The functor $\Phi$ was shown to be a
-left adjoint, and since left adjoints preserve initial objects, $\Phi$
-maps any initial $(f \circ m)$-algebra to an initial
-$f$-and-$m$-algebra.
+In Atkey, Ghani, Jacobs and Johann's prior work
+\cite{atkey12fibrational}, this same result was obtained in a less
+elementary way by constructing a functor $\Phi$ from the category of
+$(f \circ m)$-algebras to the category of $f$-and-$m$-algebras. The
+functor $\Phi$ was shown to be a left adjoint, and since left adjoints
+preserve initial objects, $\Phi$ maps any initial $(f \circ
+m)$-algebra to an initial $f$-and-$m$-algebra.
 
 % FIXME: mention Filinski and Støvring's construction?
 
@@ -1885,8 +1934,8 @@ $f$-and-$m$-algebra.
 
 In light of \thmref{thm:make-initial-f-and-m-alg}, we can take the
 Haskell implementation of initial $f$-algebras from
-\autoref{sec:f-algebras} and apply the construction in the
-theorem to construct an initial $f$-and-$m$-algebra.
+\autoref{sec:f-algebras} and apply the construction in the theorem to
+construct an initial $f$-and-$m$-algebra.
 
 The seed of our construction is the existence of an initial $(f \circ
 m)$-algebra. Therefore, we need to first construct the composite
@@ -1987,11 +2036,13 @@ to make the interleaving explicit. One of the earliest was Kiselyov's
 iteratees \cite{kiselyov12iteratees}.  Iteratees are used to support
 lazy I/O in languages such as Haskell, Scala, and F\# by handling
 different kinds of sequential information processing in an incremental
-way.  In essence, iteratees are descriptions of functions that
-alternate reading from some input with effects in some monad,
-eventually yielding some output. Kiselyov captured this using the
-following datatype, which follows the same pattern of mutual recursion
-as the $\mathit{List}~m~a$ datatype declaration:
+way.
+
+Iteratees are descriptions of functions that alternate reading from
+some input with effects in some monad, eventually yielding some
+output. Kiselyov captured this using the following datatype, which
+follows the same pattern of mutual recursion as the
+$\mathit{List}~m~a$ datatype declaration:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{Reader'}~m~a~b
@@ -2030,19 +2081,20 @@ initial $f$-and-$m$-algebra, where the functor $f$ is given by:
     \end{array}
   \end{array}
 \end{displaymath}
-Consequently, we could use \proofprinref{pp:initial-f-m-alg} to reason
-about programs involving iteratees. For example, we could prove that
-$\mathit{Reader}~m~a~b$ is a monad whenever $m$ is. However, we can
-see iteratees as an instance of a yet more general construction:
-\emph{the coproduct of a free monad with an arbitrary monad}. Monad
-coproducts provide a general and canonical way of specifying the
-combination of two monads \cite{luth02composing}. Almost trivially,
-once we observe that $\mathit{Reader}~m~a~b$ is the coproduct of two
-monads, we can immediately deduce that it is a monad, rather than
-having to prove this fact as a special case for this particular
-type. As we will see below, in \autoref{sec:construct-coproducts}, the
-coproduct of a free monad and an arbitrary monad can be
-straightforwardly constructed using initial $f$-and-$m$-algebras.
+With this formulation, we could use \proofprinref{pp:initial-f-m-alg}
+to reason about programs involving iteratees. For example, we could
+prove that $\mathit{Reader}~m~a~b$ is a monad whenever $m$
+is. However, we can see iteratees as an instance of a yet more general
+construction: \emph{the coproduct of a free monad with an arbitrary
+  monad}. Monad coproducts provide a general and canonical way of
+specifying the combination of two monads
+\cite{luth02composing}. Almost trivially, once we observe that
+$\mathit{Reader}~m~a~b$ is the coproduct of two monads, we can
+immediately deduce that it is a monad, rather than having to prove
+this fact as a special case for this particular type. As we will see
+below, in \autoref{sec:construct-coproducts}, the coproduct of a free
+monad and an arbitrary monad can be straightforwardly constructed
+using initial $f$-and-$m$-algebras.
 
 In the next subsection, we present the formal definition of the notion
 of a free monad, and briefly describe the reading of free monads as
