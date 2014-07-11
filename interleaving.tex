@@ -1115,19 +1115,19 @@ $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\
   \end{displaymath}
   Looking at the final lines of these two chains of equations, we see
   that the problem reduces to proving the following equation:
-  \begin{displaymath}
+  \begin{equation}
+    \label{eq:fold-fusion-target}
     \fold{k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}} = (\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}
-  \end{displaymath}
+  \end{equation}
   To prove this equation, we use \proofprinref{pp:initial-alg}, which
   reduces the problem to proving the following equation for all $x ::
   \mathit{ListF}~a~(m~(\mu(\mathit{ListF}~a \circ m)))$:
-  \begin{equation}
-    \label{eq:fold-fusion-target}
+  \begin{displaymath}
     \begin{array}{cl}
       &\mathit{eAppend}~(\fold{k_{ys}}~(\mathit{in}~x))~\mathit{zs} \\
       =& k_{\mathit{eAppend}~\mathit{xs}~\mathit{ys}}~(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}))~x)
     \end{array}
-  \end{equation}
+  \end{displaymath}
   There are two cases to consider, depending on whether $x =
   \mathsf{Nil}$ or $x = \mathsf{Cons}~a~\mathit{xs}$. In the first
   case, we reason as follows. Note that, we are unable to directly
@@ -1215,43 +1215,72 @@ We identify the following problems with this proof:
   twice. We also had to expand $\mathit{eAppend}$ again in order to
   rewrite the occurrences of $\mathit{join_m}$ and $\mathit{fmap_m}$.
 \end{itemize}
+To some extent, it is possible to mitigate these problems without
+using $f$-and-$m$-algebras.
 
-FIXME: talk about the alternative proof, based on proving
-\autoref{eq:fold-fusion-target} using \emph{fold fusion}
+The first problem can be addressed by noting that
+$\mathit{eAppend}~\mathit{xs}~\mathit{ys} =
+\mathit{extend}~\fold{k_{\mathit{ys}}}~\mathit{xs}$, where
+$\mathit{extend} :: (a \to m~b) \to m~a \to m~b$ is the argument
+flipped bind $(\mbind)$ operation for the monad $m$. Using the
+general fact that $\mathit{extend}~f~(\mathit{extend}~g~\mathit{x}) =
+\mathit{extend}~(\mathit{extend}~f \circ g)~x$ allows for a quicker
+reduction of the theorem statement to \autoref{eq:fold-fusion-target}.
 
-An alternative proof that $\mathit{append}$ is associative appeals not
-directly to \proofprinref{pp:initial-alg}, but rather to an important
-consequence of it, known as the {\em fold fusion law}, that can first
-be derived as an independent lemma. The derivation of both the fold
-fusion law and the proof of associativity of $\mathit{append}$ based
-on it can then be lifted to the effectful setting. This modularization
-and instantiation does give a shorter and more streamlined proof than
-the one presented above, but it relies on 1) the programmer's correct
-extraction and formulation of the fold fusion law as the relevant
-lemma from the associativity problem for $\mathit{eAppend}$, 2) a
-correct proof that the effectful fold fusion law holds, and 3) the
-correct instantiation of that law to the desired result for
-$\mathit{eAppend}$. It seems unlikely that a programmer not already
-familiar with program fusion would devise such a proof
-strategy. Another possibility is to prove the associativity of
-$\mathit{eAppend}$ by first writing an $\mathit{append}$ function for
-the ``unwrapped'' datatype $\mathit{List_{io}'}$ as a fold for that
-type, then proving associativity for this $\mathit{append}$ function
-as an instance of fold fusion for $\mathit{List_{io}'}$, and, finally,
-using the observation that the monad library function
-$\mathit{liftM2\; op}$ is associative if $\mathit{op}$ is to lift this
-proof to a proof of associativity of $\mathit{eAppend}$. This gives
-$\mathit{eAppend}$ as $\mathit{liftM2}$ applied to the
-$\mathit{append}$ function for $\mathit{List_{io}'}$. However, this
-second approach to associativity of $\mathit{eAppend}$ requires not
-only the same programmer knowledge of fold fusion as the previous
-approach, but specialised knowledge of Haskell's monad library and
-$\mathit{liftM2}$'s properties as well. Moreover, it will not be
-applicable in situations where $\mathit{liftM2}$ fails to preserve the
-relevant properties of $\mathit{op}$. So although the proof in
-\thmref{thm:direct-eappend-assoc} it is not necessarily the shortest
-possible, it is the most straightforward, natural, and therefore the
-most likely to be attempted.
+The second problem can be addressed by using the general \emph{fold
+  fusion law} to prove \autoref{eq:fold-fusion-target}. Fold fusion is
+an important consequence of \proofprinref{pp:initial-alg} that can
+first be derived as an independent lemma. In the current setting, the
+fold fusion law can be stated as follows:
+\begin{displaymath}
+  \left.
+    \begin{array}{l}
+      f~(k_1~\mathsf{Nil}) = k_2~\mathsf{Nil} \\
+      f~(k_1~(\mathsf{Cons}~x~\mathit{xs})) = k_2~(\mathsf{Cons}~x~(\mathit{fmap_m}~f~\mathit{xs}))
+    \end{array}
+  \right\} \Rightarrow f \circ \fold{k_1} = \fold{k_2}
+\end{displaymath}
+Using fold fusion shortens the sequences of equational reasoning for
+the $\mathsf{Nil}$ and $\mathsf{Cons}$ cases by a few lines at the
+start and the end, but does not free us from having to unfold the
+definition of $\mathit{eAppend}$ and reason using the monad
+laws. Using fold fusion and the general property of $\mathit{extend}$
+does save us a little effort, but does not clearly separate the pure
+and effectful parts of the proof in the way that the
+$f$-and-$m$-algebra proof principle in the next section will allow us
+to, and still do not allow us to directly reuse the reasoning from the
+proof in the pure case in \thmref{thm:append-assoc}.
+
+
+% The derivation of both the fold fusion law and the proof of
+% associativity of $\mathit{append}$ based on it can then be lifted to
+% the effectful setting. This modularization and instantiation does give
+% a shorter and more streamlined proof than the one presented above, but
+% it relies on 1) the programmer's correct extraction and formulation of
+% the fold fusion law as the relevant lemma from the associativity
+% problem for $\mathit{eAppend}$, 2) a correct proof that the effectful
+% fold fusion law holds, and 3) the correct instantiation of that law to
+% the desired result for $\mathit{eAppend}$. It seems unlikely that a
+% programmer not already familiar with program fusion would devise such
+% a proof strategy. Another possibility is to prove the associativity of
+% $\mathit{eAppend}$ by first writing an $\mathit{append}$ function for
+% the ``unwrapped'' datatype $\mathit{List_{io}'}$ as a fold for that
+% type, then proving associativity for this $\mathit{append}$ function
+% as an instance of fold fusion for $\mathit{List_{io}'}$, and, finally,
+% using the observation that the monad library function
+% $\mathit{liftM2\; op}$ is associative if $\mathit{op}$ is to lift this
+% proof to a proof of associativity of $\mathit{eAppend}$. This gives
+% $\mathit{eAppend}$ as $\mathit{liftM2}$ applied to the
+% $\mathit{append}$ function for $\mathit{List_{io}'}$. However, this
+% second approach to associativity of $\mathit{eAppend}$ requires not
+% only the same programmer knowledge of fold fusion as the previous
+% approach, but specialised knowledge of Haskell's monad library and
+% $\mathit{liftM2}$'s properties as well. Moreover, it will not be
+% applicable in situations where $\mathit{liftM2}$ fails to preserve the
+% relevant properties of $\mathit{op}$. So although the proof in
+% \thmref{thm:direct-eappend-assoc} it is not necessarily the shortest
+% possible, it is the most straightforward, natural, and therefore the
+% most likely to be attempted.
 
 We see, then, that the definition and proof that we have given in this
 section -- not to mention alternative proofs akin to those discussed
