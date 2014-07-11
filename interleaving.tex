@@ -38,7 +38,7 @@
 \newcommand{\proofprinref}[1]{\hyperref[#1]{Proof Principle \ref*{#1}}}
 \newcommand{\thmref}[1]{\hyperref[#1]{Theorem \ref*{#1}}}
 \newcommand{\defref}[1]{\hyperref[#1]{Definition \ref*{#1}}}
-\newcommand{\appendixref}[1]{\hyperref[#1]{Appendix \ref*{#1}}}
+\newcommand{\appendixref}[1]{Appendix \ref*{#1}}
 
 \newcommand{\kw}[1]{\textbf{#1}}
 
@@ -1925,6 +1925,7 @@ initial $f$-and-$m$-algebra.
 
 
 \subsection{From initial \texorpdfstring{$(f \circ m)$}{(f . m)}-algebras to initial \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
+\label{sec:from-initial}
 
 Initial $f$-and-$m$-algebras can be constructed from initial $(f \circ
 m)$-algebras. If the type $\mu(f \circ m)$ is the carrier of an
@@ -1949,7 +1950,7 @@ that involve interleaved data and effects.
 \begin{proof*}
   See \appendixref{sec:make-initial-fm-proof}.
 \end{proof*}
-\pattynote{Redirects to intro rather than appendix. :-( }
+%\pattynote{Redirects to intro rather than appendix. :-( }
 
 In Atkey, Ghani, Jacobs and Johann's work \cite{atkey12fibrational},
 this same result was obtained in a less elementary way by constructing
@@ -2902,14 +2903,13 @@ just nontermination.
   \begin{displaymath}
     h = l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l} :: m~(\mu(f \circ m)) \to a
   \end{displaymath}
-\pattynote{One reviewer missed the connection here with eAppend. Not
-  sure why, but clarify?}  Close inspection of $h$ reveals that it has
-the same structure as the definition of $\mathit{eAppend}$ in terms of
-initial $f$-algebras we gave at the start of
-\autoref{sec:direct-eappend}. Therefore, as we noted in the
-introduction to this subsection, the construction we are building here
-abstracts out the common parts of proofs and definitions on effectful
-datatypes.
+  Close inspection of $h$ reveals that it has the same structure as
+  the definition of $\mathit{eAppend}$ in terms of initial
+  $f$-algebras we gave at the start of \autoref{sec:direct-eappend},
+  where $l = \mathit{join}_m$. Therefore, as we noted in the
+  introduction to \autoref{sec:from-initial}, the construction we are
+  building here abstracts out the common parts of proofs and
+  definitions on effectful datatypes.
 
   To complete our proof, we now need to demonstrate that $h$ is an
   $f$-and-$m$-algebra homomorphism, and that it is the unique such. We
