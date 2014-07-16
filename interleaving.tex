@@ -2108,7 +2108,7 @@ we can see that the type $\mathit{Reader}~m~a~b$ is an instance of an
 initial $f$-and-$m$-algebra, where the functor $f$ is given by:
 \begin{displaymath}
   \begin{array}{l}
-    \kw{data}~\mathit{ReaderF}~a~b~x = \\
+    \kw{data}~\mathit{ReaderF}~a~b~x \\
     \begin{array}[t]{c@{\hspace{0.5em}}l}
       = & \mathsf{Input}~(\mathit{Maybe}~a \to x) \\
       | & \mathsf{Yield}~b
@@ -2710,7 +2710,7 @@ $f$-and-$m$-algebras are the analogue for the effectful setting of
 initial $f$-algebras in the pure setting. As such, they support the
 extension of the standard definitional and proof principles to the
 effectful setting. This allows the implicit interleaving of data with
-effects, such as I/O and non-termination as, to be made explicit and
+effects, such as I/O and non-termination, to be made explicit and
 properly reflected in functions' types. Because they separate pure and
 effectful concerns, $f$-and-$m$-algebras support the direct transfer
 of definitions and proofs --- as illustrated with our running example
