@@ -143,14 +143,14 @@ operations that read them from an external source can be described by
 the following datatype declaration:
 \begin{displaymath}\label{defn:listio}
   \begin{array}{ll}
-    \kw{data}~\mathit{List'_{io}}
+    \kw{data}~\mathit{List'}_{io}
     &
-    \kw{newtype}~\mathit{List_{io}} = 
+    \kw{newtype}~\mathit{List}_{io} = 
     \\
     \quad
     \begin{array}[t]{c@{\hspace{0.5em}}l}
-      = & \mathsf{Nil_{io}} \\
-      | & \mathsf{Cons_{io}}~\mathit{Char}~\mathit{List_{io}} \\
+      = & \mathsf{Nil}_{io} \\
+      | & \mathsf{Cons}_{io}~\mathit{Char}~\mathit{List}_{io} \\
     \end{array}
     &
     \quad \mathsf{List_{io}}~(\mathit{IO}~\mathit{List'_{io}})
