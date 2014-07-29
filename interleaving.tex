@@ -523,12 +523,15 @@ follows:
   data. Examples include Kiselyov's Iteratees
   \cite{kiselyov12iteratees} and Gonzalez's \texttt{pipes}
   library\footnote{\url{http://hackage.haskell.org/package/pipes}}. We
-  show that these constructions are often instances of the general
-  construction of the coproduct of a free monad with another
+  show that at least these two constructions are instances of the
+  general construction of the coproduct of a free monad with another
   monad. Hyland, Plotkin and Power previously gave this coproduct
   construction using purely categorical techniques. In
   \autoref{sec:coproducts-with-free-monads}, we reconstruct this
-  result using $f$-and-$m$-algebras.
+  result using $f$-and-$m$-algebras. Several of the properties proved
+  by Kiselyov and Gonzalez for their respective libraries are shown to
+  follow directly from the observation that their definitions are
+  instances of the sum of a free monad with another monad.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2094,22 +2097,22 @@ $\mathit{List}~m~a$ datatype declaration:
 \end{displaymath}
 A value of type $\mathit{Reader}~m~a~b$ is some effect described by
 the monad $m$, yielding either a result of type $b$, or a request for
-input. As Kiselyov demonstrates, the fact that values of type
-$\mathit{Reader}~m~a~b$ abstract the source of the data that they read
-is extremely powerful: different constructions allow values of type
-$\mathit{Reader}~m~a~b$ to be chained together, or connected to actual
-input/output devices, all while retaining the ability to perform
-concrete effects in the monad $m$.
+input of type $a$. As Kiselyov demonstrates, the fact that values of
+type $\mathit{Reader}~m~a~b$ abstract the source of the data that they
+read is extremely powerful: different constructions allow values of
+type $\mathit{Reader}~m~a~b$ to be chained together, or connected to
+actual input/output devices, all while retaining the ability to
+perform concrete effects in the monad $m$.
 
 Kiselyov treats the $\mathit{Reader}~m~a~b$ type in isolation, and
 notes that it has several useful properties, including the fact that
 it is (the functor part of) a monad. In terms of $f$-and-$m$-algebras
-we can see that the type $\mathit{Reader}~m~a~b$ is an instance of an
-initial $f$-and-$m$-algebra, where the functor $f$ is given by:
+we can see that the type $\mathit{Reader}~m~a~b$ is an initial
+$f$-and-$m$-algebra, where the functor $f$ is given by:
 \begin{displaymath}
   \begin{array}{l}
     \kw{data}~\mathit{ReaderF}~a~b~x \\
-    \begin{array}[t]{c@{\hspace{0.5em}}l}
+    \quad\begin{array}[t]{c@{\hspace{0.5em}}l}
       = & \mathsf{Input}~(\mathit{Maybe}~a \to x) \\
       | & \mathsf{Yield}~b
     \end{array}
@@ -2117,18 +2120,63 @@ initial $f$-and-$m$-algebra, where the functor $f$ is given by:
 \end{displaymath}
 With this formulation, we could use \proofprinref{pp:initial-f-m-alg}
 to reason about programs involving iteratees. For example, we could
-prove that $\mathit{Reader}~m~a~b$ is a monad whenever $m$
-is. However, we can see iteratees as an instance of a yet more general
-construction: the coproduct of a free monad with an arbitrary
-  monad. Monad coproducts provide a general and canonical way of
-specifying the combination of two monads
-\cite{luth02composing}. Almost trivially, once we observe that
-$\mathit{Reader}~m~a~b$ is the coproduct of two monads, we can
-immediately deduce that it is a monad, rather than having to prove
-this fact as a special case for this particular type. As we will see
+prove Kiselyov's result that $\mathit{Reader}~m~a~b$ is a monad
+whenever $m$ is.
+
+However, we can see iteratees as an instance of a yet more general
+construction: the coproduct of a free monad with an arbitrary monad
+$m$. Monad coproducts provide a general and canonical way of
+specifying the combination of two monads \cite{luth02composing} (we
+formally define coproducts of monads in
+\autoref{sec:coproducts-of-monads}, below). Almost trivially, once we
+observe that $\mathit{Reader}~m~a$ is the coproduct of two monads, we
+can immediately deduce that it is a monad, rather than having to prove
+this fact as a special case for $\mathit{Reader}~m~a$. As we will see
 below in \autoref{sec:construct-coproducts}, the coproduct of a free
 monad and an arbitrary monad can be straightforwardly constructed
-using initial $f$-and-$m$-algebras.
+using initial $f$-and-$m$-algebras. Much of this straightforwardness
+rests on the clear separation of pure and effectful concerns afforded
+by $f$-and-$m$-algebras.
+
+Following on from Kiselyov's work, Gonzalez implemented the
+\texttt{pipes} library. The central definition of the \texttt{pipes}
+library is the $\mathit{Proxy}~a'~a~b'~b~m~r$ datatype, which
+generalises Kiselyov's $\mathit{Reader}~m~a~b$ type. Gonzalez defines
+the $\mathit{Proxy}$ type as follows:
+\begin{displaymath}
+  \begin{array}{l}
+    \kw{data}~\mathit{Proxy}~a'~a~b'~b~m~r \\
+    \quad\begin{array}[t]{c@{\hspace{0.5em}}l}
+      = & \mathsf{Request}~a'~(a \to \mathit{Proxy}~a'~a~b'~b~m~r) \\
+      | & \mathsf{Respond}~b~(b' \to \mathit{Proxy}~a'~a~b'~b~m~r) \\
+      | & \mathsf{M}~(m~(\mathit{Proxy}~a'~a~b'~b~m~r)) \\
+      | & \mathsf{Pure}~r
+    \end{array}
+  \end{array}
+\end{displaymath}
+In essence, a value of type $\mathit{Proxy}~a'~a~b'~b~m~r$ is a tree
+of \emph{requests} of type $a'$, reading values of type $a$, and
+\emph{responses} of type $b$, reading values of type $b'$, interleaved
+with effects described by the monad $m$, finally yielding values of
+type $r$. Thus, Gonzalez's type adds the possibility of bidirectional
+requests and responses to Kiselyov's $\mathit{Reader}$ type (hence the
+name ``\texttt{pipes}'' of the library).
+
+Gonzalez proves several properties of the $\mathit{Proxy}$ types
+directly\footnote{\url{https://github.com/Gabriel439/Haskell-Pipes-Library/blob/master/laws.md}},
+including demonstrating that, just as was the case for Iteratees, it
+forms (the functor part of) a monad. Gonzalez's proofs appeal to a
+slighty informal notion of coinduction in order to handle recursion in
+the presence of potentially infinite $\mathit{Proxy}~a'~a~b'~b~m~r$
+values arising from Haskell's non-strict semantics (recall the
+discussion in \autoref{sec:motivate-interleaving}). Just as with
+Iteratees, we could observe that $\mathit{Proxy}$ is an instance of
+interleaved data and effects, and reformulate Gonzalez's proofs using
+\proofprinref{pp:initial-f-m-alg}, accounting for non-strictness by
+treating it just as an arbitrary monad. However, we can again save
+work by observing that $\mathit{Proxy}~a'~a~b'~b~m~r$ is an instance
+of the coproduct of a free monad and the monad $m$, and consequently
+the result that $\mathit{Proxy}~a'~a~b'~b~m~r$ follows.
 
 In the next subsection, we present the formal definition of the notion
 of a free monad, and briefly describe the reading of free monads as
