@@ -2639,8 +2639,6 @@ This program executes two abstract read commands to read a pair of
 strings, and then executes a concrete $\mathit{IO}$ action to print
 the two strings in reverse order to the terminal.
 
-%FIXME: like Scheme's with-input-from-file
-
 We can provide an interpretation for the abstract $\mathit{read}$
 operations by combining the coproduct interface with the free monad
 interface. For example, to interpret the read commands as reading from
@@ -2652,7 +2650,10 @@ the terminal, we use the $\mathit{useGetLine}$ interpretation from
 
 Alternatively, we can interpret the abstract $\mathit{read}$ commands
 as reading from a file handle. The function $\mathit{useFileHandle}$
-describes how to execute single reads on a file handle as an $\mathit{IO}$ action:
+describes how to execute single reads on a file handle as an
+$\mathit{IO}$ action\footnote{An anonymous reviewer notes that this
+  functionality is very similar to the standard Scheme
+  \texttt{with-input-from-file} function.}:
 \begin{displaymath}
   \begin{array}{@{}l}
     \mathit{useFileHandle} :: \mathit{Handle} \to \mathit{ReaderF}~\mathit{String}~a \to \mathit{IO}~a \\
