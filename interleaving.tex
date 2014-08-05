@@ -350,6 +350,32 @@ $a$ and another $\mathit{List_{lazy}}~a$. (Note that, for simplicity's
 sake, we have not modelled the fact that constructors of datatypes in
 Haskell also evaluate their arguments lazily.)
 
+The $\mathit{List}_{\mathit{lazy}}~a$ type is precisely the ``even''
+style of interleaving pure data and laziness advocated by Wadler, Taha
+and MacQueen \cite{wadler89laziness}. The obvious alternative
+interleaving, named the ``odd'' style by Wadler \emph{et al.}, is
+expressible as a single datatype declaration:
+\begin{displaymath}
+  \begin{array}{l}
+    \kw{data}~\mathit{List_{odd}}~a \\
+    \quad
+    \begin{array}[t]{c@{\hspace{0.5em}}l}
+      = & \mathsf{Nil}_{\mathit{odd}} \\
+      | & \mathsf{Cons}_{\mathit{odd}}~a~(\mathit{List_{odd}}~a)_\bot
+    \end{array}
+  \end{array}
+\end{displaymath}
+In the ``odd'' formulation, the lifting monad $(-)_\bot$ is only used
+in the recursive position in the $\mathsf{Cons}_{\mathit{odd}}$
+constructor. Wadler \emph{et al.} argue that this ``odd'' style leads
+to lazy computations being forced much earlier than the programmer
+might expect: since the first element of a list in the odd style is
+\emph{not} wrapped in the lifting monad, any function that returns a
+$\mathit{List_{odd}}$ value must always have the first element
+available immediately. The ``even'' style, as exemplified by our
+$\mathit{List}_{\mathit{lazy}}$ type constructor above, is, Wadler
+\emph{et al.} argue, usually what is expected.
+
 Correctly reasoning about values of type $\mathit{List_{lazy}}~a$ and
 other lazy data structures has traditionally required the use of
 domain-theoretic techniques (Pitts \cite{pitts96relational} provides a
@@ -410,8 +436,12 @@ $\mathit{MuFM'_0}~f~m$ with a $0$ subscript because we will introduce
 a more refined, but isomorphic, presentation in
 \autoref{sec:f-and-m-alg-impl}.) This definition makes it clear that
 the datatypes we are considering interleave pure data, represented by
-the functor $f$, with effects, represented by the monad $m$. The aim
-of this article is to show that $f$-and-$m$-algebras are the
+the functor $f$, with effects, represented by the monad $m$. Our
+definition is the generalisation of Wadler \emph{et al.}'s
+``even''-style lazy lists, from lists to arbitrary functors $f$, and
+from lifting to arbitrary monads $m$.
+
+The aim of this article is to show that $f$-and-$m$-algebras are the
 appropriate level of abstraction both for defining functions that
 operate on values of type $\mathit{MuFM_0}~f~m$, and for reasoning
 about them.
