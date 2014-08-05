@@ -1758,16 +1758,17 @@ property of $\mathit{eAppend}$ for free, from
 \begin{equation}\label{eq:eappend-em}
   \mathit{eAppend}~(\mathit{in}_m~\mathit{x})~\mathit{ys} = \mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{x})
 \end{equation}
-% If we unfold the definition of $\mathit{in}_m$, we can see that
-% \autoref{eq:eappend-em} captures the fact that $\mathit{eAppend}$
-% always evaluates the effects placed ``before'' the first element of
-% its first argument:
-% \begin{displaymath}
-%   \begin{array}{ll}
-%      & \mathit{eAppend}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~\mathit{xs}) \})~\mathit{ys} \\
-%     =& \mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~(\mathit{return}_m~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))) \}
-%   \end{array}
-% \end{displaymath}
+If we unfold the definition of $\mathit{in}_m$, we can see that
+\autoref{eq:eappend-em} captures the fact that $\mathit{eAppend}$
+always evaluates its first argument. This is made clearer if we remove
+the occurences of the $\mathsf{List}$ constructor, yielding the
+following equation that is equivalent to \autoref{eq:eappend-em}:
+\begin{displaymath}
+  \begin{array}{ll}
+     & \mathit{eAppend}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{xs}) \})~\mathit{ys} \\
+    =& \mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{eAppend}~\mathit{xs}~\mathit{ys} \}
+  \end{array}
+\end{displaymath}
 
 With these three properties of $\mathit{eAppend}$ in hand we can prove
 that it is associative. We use \proofprinref{pp:initial-f-m-alg},
