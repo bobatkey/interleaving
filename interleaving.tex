@@ -1618,10 +1618,26 @@ unlike the direct reasoning we carried out in
 for our list append running example in the next section.
 
 \begin{example}
-  The $\mathit{List}~m~a$ datatype that we defined in the introduction
-  can be presented as the carrier of an initial
-  $(\mathit{ListF}~a)$-and-$m$-algebra. The $\mathit{in_{\mathit{ListF}~a}}$
-  function is defined as follows:
+  The $\mathit{List}~m~a$ datatype in the introduction was defined as
+  follows:
+  \begin{displaymath}
+    \begin{array}{ll}
+      \kw{data}~\mathit{List'}~m~a
+      &
+      \kw{newtype}~\mathit{List}~m~a = 
+      \\
+      \quad
+      \begin{array}[t]{c@{\hspace{0.5em}}l}
+        = & \mathsf{Nil} \\
+        | & \mathsf{Cons}~a~(\mathit{List}~m~a) \\
+      \end{array}
+      &
+      \quad \mathsf{List}~(m~(\mathit{List'}~m~a))
+    \end{array}
+  \end{displaymath}
+  This datatype can be presented as the carrier of an initial
+  $(\mathit{ListF}~a)$-and-$m$-algebra. The
+  $\mathit{in_{\mathit{ListF}~a}}$ function is defined as follows:
   \begin{displaymath}
     \begin{array}{l}
       \mathit{in_{\mathit{ListF}~a}} :: \mathit{ListF}~a~(\mathit{List}~m~a) \to \mathit{List}~m~a \\
