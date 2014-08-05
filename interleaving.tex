@@ -87,10 +87,7 @@
   effects. Because initial $f$-and-$m$-algebras are the analogue for
   the effectful setting of initial $f$-algebras, they support the
   extension of the standard definitional and proof principles to the
-  effectful setting. Because initial $f$-and-$m$-algebras separate
-  pure and effectful concerns, they support the direct transfer of
-  definitions and proofs from the pure setting to the effectful
-  setting.
+  effectful setting.
 
   Initial $f$-and-$m$-algebras are originally due to Filinski and
   St\o{}vring, who studied them in the category Cpo. They were
@@ -269,7 +266,7 @@ given in terms of the standard Haskell primitives for performing IO on
 file handles:
 \begin{displaymath}
   \begin{array}{l}
-  \mathit{hGetContents} :: \mathit{Handle} \to \mathit{List_{io}}~\mathit{Char} \\
+  \mathit{hGetContents} :: \mathit{Handle} \to \mathit{List_{io}} \\
   \begin{array}{@{}l@{\hspace{0.2em}}l}
     \mathit{hGetContents}~h = \mathsf{List_{io}}~(\kw{do} & \mathit{isEOF} \leftarrow \mathit{hIsEOF}~h \\
     & \kw{if}~\mathit{isEOF}~\kw{then}~\mathit{return}~\mathsf{Nil}_{\mathit{io}} \\
@@ -281,8 +278,8 @@ file handles:
   \end{array}
 \end{array}
 \end{displaymath}
-By using the $\mathit{List_{io}}~\mathit{Char}$ datatype, we
-have made the possibility of effects between the elements of the list
+By using the $\mathit{List_{io}}$ datatype, we have made the
+possibility of effects between the elements of the list
 explicit. Therefore, the problems we identified above with implicit
 interleaving are solved: input/output failures are reported within the
 scope of $\mathit{IO}$ actions, and we have access to the
@@ -875,8 +872,9 @@ initiality. We can define $\mathit{append}$ in terms of $\fold{-}$ as:
     \end{array}
   \end{array}
 \end{displaymath}
-Immediately from the definition of $\mathit{append}$ we know that it
-is a $(\mathit{ListF}~a)$-algebra homomorphism in its first argument
+Immediately from the definition of $\mathit{append}$ we know that
+$\lambda \mathit{xs}.\ \mathit{append}~\mathit{xs}~\mathit{ys}$ is a
+$(\mathit{ListF}~a)$-algebra homomorphism, for any $\mathit{ys}$,
 because it is defined in terms of $\fold{-}$. Unfolding the
 definitions shows that the following two equational properties of
 $\mathit{append}$ hold. These tell us how it operates on lists of the
@@ -1713,16 +1711,16 @@ property of $\mathit{eAppend}$ for free, from
 \begin{equation}\label{eq:eappend-em}
   \mathit{eAppend}~(\mathit{in}_m~\mathit{x})~\mathit{ys} = \mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{x})
 \end{equation}
-If we unfold the definition of $\mathit{in}_m$, we can see that
-\autoref{eq:eappend-em} captures the fact that $\mathit{eAppend}$
-always evaluates the effects placed ``before'' the first element of
-its first argument:
-\begin{displaymath}
-  \begin{array}{ll}
-     & \mathit{eAppend}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~\mathit{xs}) \})~\mathit{ys} \\
-    =& \mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~(\mathit{return}_m~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))) \}
-  \end{array}
-\end{displaymath}
+% If we unfold the definition of $\mathit{in}_m$, we can see that
+% \autoref{eq:eappend-em} captures the fact that $\mathit{eAppend}$
+% always evaluates the effects placed ``before'' the first element of
+% its first argument:
+% \begin{displaymath}
+%   \begin{array}{ll}
+%      & \mathit{eAppend}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~\mathit{xs}) \})~\mathit{ys} \\
+%     =& \mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{return}_m~(\mathit{List}~(\mathit{return}_m~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}))) \}
+%   \end{array}
+% \end{displaymath}
 
 With these three properties of $\mathit{eAppend}$ in hand we can prove
 that it is associative. We use \proofprinref{pp:initial-f-m-alg},
@@ -1769,7 +1767,7 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
   \autoref{eq:eAppend-cons}.
 
   Secondly, we must show that the right-hand side of the equation to
-  be proved is an $m$-Eilenberg-Moore-algebra homomorphism, i.e., the
+  be proved is an $m$-Eilenberg-Moore-algebra homomorphism, i.e., that
   \autoref{eq:fm-malg} holds:
   \begin{displaymath}
     \begin{array}{cl}
@@ -1778,8 +1776,9 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
     \end{array}
   \end{displaymath}
   This follows straightforwardly from the fact that $\mathit{eAppend}$
-  is itself an $m$-Eilenberg-Moore-algebra homomorphism, as we noted
-  above in \autoref{eq:eappend-em}, and that such homomorphisms are closed under composition:
+  is itself an $m$-Eilenberg-Moore-algebra homomorphism in its first
+  argument, as we noted above in \autoref{eq:eappend-em}, and that
+  such homomorphisms are closed under composition:
   \begin{displaymath}
     \begin{array}{cl}
       & \mathit{eAppend}~(\mathit{eAppend}~(\mathit{in}_m~x)~\mathit{ys})~\mathit{zs} \\
@@ -1827,8 +1826,10 @@ get to the last element of the list.
 
 If we try to prove this property using
 \proofprinref{pp:initial-f-m-alg}, we see that we are unable to prove
-\autoref{eq:fm-malg}, namely that the right-hand side must be an
-Eilenberg-Moore-algebra homomorphism.
+\autoref{eq:fm-malg}, namely that the right-hand side of the effectful
+version of \autoref{eq:reverse-append} (\autoref{eq:ereverse-eappend},
+below) must be an Eilenberg-Moore-algebra homomorphism in the variable
+$\mathit{xs}$.
 
 We can define a reverse function on effectful lists as follows. This
 is very similar to the standard definition of (non-tail recursive)
@@ -1863,9 +1864,9 @@ This same extra step is required in the case for pure datatypes as
 well, so this is not where the problem with interleaved effects
 lies. If we attempt to apply \proofprinref{pp:initial-f-m-alg} to the
 equation:
-\begin{displaymath}
+\begin{equation}\label{eq:ereverse-eappend}
   \eFold{k'}{\mathit{in}_m}~\mathit{xs} = \mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})
-\end{displaymath}
+\end{equation}
 Then the pure part of the proof goes through straightforwardly. We are
 left with proving that the right-hand side of this equation is an
 Eilenberg-Moore-algebra homomorphism in its second
@@ -2018,8 +2019,8 @@ following the construction in \thmref{thm:make-initial-f-and-m-alg}:
   \end{array}
 \end{displaymath}
 
-Finally, we construct the unique $f$-and-$m$-homomorphism out of
-$\mathit{MuFM}~f~m$ following the proof of
+Finally, we construct the unique $f$-and-$m$-algebra-homomorphism out
+of $\mathit{MuFM}~f~m$ following the proof of
 \thmref{thm:make-initial-f-and-m-alg} by building upon our
 implementation of the unique homomorphisms out of the initial $(f
 \fcompose m)$-algebra:
@@ -2047,7 +2048,7 @@ $\eFold{-}{-}$ is as follows:
 
 Whichever implementation of $\eFold{-}{-}$ we choose, we note that
 there is an implicit precondition that the second argument (of type
-$m~a \to a$) must be an Eilenberg-Moore algebra. Unfortunately, it is
+$m~a \to a$) must be an $m$-Eilenberg-Moore algebra. Unfortunately, it is
 not possible to express this requirement in Haskell's type system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2162,7 +2163,8 @@ type $r$. Thus, Gonzalez's type adds the possibility of bidirectional
 requests and responses to Kiselyov's $\mathit{Reader}$ type (hence the
 name ``\texttt{pipes}'' of the library).
 
-Gonzalez proves several properties of the $\mathit{Proxy}$ types
+Gonzalez proves several properties of the $\mathit{Proxy}$ type
+constructor
 directly\footnote{\url{https://github.com/Gabriel439/Haskell-Pipes-Library/blob/master/laws.md}},
 including demonstrating that, just as was the case for Iteratees, it
 forms (the functor part of) a monad. Gonzalez's proofs appeal to a
@@ -2170,13 +2172,13 @@ slighty informal notion of coinduction in order to handle recursion in
 the presence of potentially infinite $\mathit{Proxy}~a'~a~b'~b~m~r$
 values arising from Haskell's non-strict semantics (recall the
 discussion in \autoref{sec:motivate-interleaving}). Just as with
-Iteratees, we could observe that $\mathit{Proxy}$ is an instance of
-interleaved data and effects, and reformulate Gonzalez's proofs using
-\proofprinref{pp:initial-f-m-alg}, accounting for non-strictness by
-treating it just as an arbitrary monad. However, we can again save
+Iteratees, we could observe that $\mathit{Proxy}$ types are instances
+of data interleaved with effects, and reformulate Gonzalez's proofs
+using \proofprinref{pp:initial-f-m-alg}, accounting for non-strictness
+by treating it just as an arbitrary monad. However, we can again save
 work by observing that $\mathit{Proxy}~a'~a~b'~b~m~r$ is an instance
 of the coproduct of a free monad and the monad $m$, and consequently
-the result that $\mathit{Proxy}~a'~a~b'~b~m~r$ follows.
+the result that $\mathit{Proxy}~a'~a~b'~b~m~r$ is a monad follows.
 
 In the next subsection, we present the formal definition of the notion
 of a free monad, and briefly describe the reading of free monads as
@@ -2738,8 +2740,7 @@ $f$-and-$m$-algebras.
 
 We emphasise that the result we have presented here is not new; Hyland
 \emph{et al.} have already demonstrated, albeit with a different proof
-technique, that the construction we give below in
-\autoref{sec:construct-coproducts} actually defines the monad
+technique, that the construction we have given here actually defines the monad
 coproduct. A special case of this result, where the free monad part of
 the construction is the free monad over the identity functor, has also
 been previously presented by Pir{\'o}g and Gibbons
@@ -2756,7 +2757,7 @@ simplify defining and reasoning about functions that manipulate
 interleaved data and effects. The key observation is that initial
 $f$-and-$m$-algebras are the analogue for the effectful setting of
 initial $f$-algebras in the pure setting. As such, they support the
-extension of the standard definitional and proof principles to the
+transporting of the standard definitional and proof principles to the
 effectful setting. This allows the implicit interleaving of data with
 effects, such as I/O and non-termination, to be made explicit and
 properly reflected in functions' types. Because they separate pure and
