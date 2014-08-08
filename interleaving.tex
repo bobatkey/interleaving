@@ -400,21 +400,21 @@ generalisation abstracts over the monad $m$:
     \\
     \quad
     \begin{array}[t]{c@{\hspace{0.5em}}l}
-      = & \mathsf{Nil} \\
-      | & \mathsf{Cons}~a~(\mathit{List}~m~a) \\
+      = & \mathsf{Nil}_m \\
+      | & \mathsf{Cons}_m~a~(\mathit{List}~m~a) \\
     \end{array}
     &
     \quad \mathsf{List}~(m~(\mathit{List'}~m~a))
   \end{array}
 \end{displaymath}
 A value of type $\mathit{List}~m~a$ consists of an effect described by
-$m$, then either a $\mathsf{Nil}$ to indicate the end of the list,
-or a $\mathsf{Cons}$ with a value of type $a$ and another value of
+$m$, then either a $\mathsf{Nil}_m$ to indicate the end of the list,
+or a $\mathsf{Cons}_m$ with a value of type $a$ and another value of
 type $\mathit{List}~m~a$. Thus, this datatype describes lists of values
 of type $a$ interleaved with effects from the monad $m$.
 
 We can now generalise further by replacing the constructors
-$\mathsf{Nil}$ and $\mathsf{Cons}$ with an arbitrary functor $f$ that
+$\mathsf{Nil}_m$ and $\mathsf{Cons}_m$ with an arbitrary functor $f$ that
 describes the data to be interleaved with the effects of the monad
 $m$. Doing so, we arrive at the following definition:
 \begin{displaymath}
@@ -1628,8 +1628,8 @@ for our list append running example in the next section.
       \\
       \quad
       \begin{array}[t]{c@{\hspace{0.5em}}l}
-        = & \mathsf{Nil} \\
-        | & \mathsf{Cons}~a~(\mathit{List}~m~a) \\
+        = & \mathsf{Nil}_m \\
+        | & \mathsf{Cons}_m~a~(\mathit{List}~m~a) \\
       \end{array}
       &
       \quad \mathsf{List}~(m~(\mathit{List'}~m~a))
@@ -1669,9 +1669,9 @@ for our list append running example in the next section.
       \eFold{k}{l} = \mathit{loop} \\
       \quad\begin{array}{r@{\hspace{0.4em}}l}
         \kw{where} & \mathit{loop} :: \mathit{List}~m~a \to b \\
-        & \mathit{loop}~(\mathit{List}~x) = l~(\mathit{fmap}_m~\mathit{loop'}~x) \\
+        & \mathit{loop}~(\mathsf{List}~x) = l~(\mathit{fmap}_m~\mathit{loop'}~x) \\
         \\
-        & \mathit{loop'} :: \mathit{ListF}~a~b \to b \\
+        & \mathit{loop'} :: \mathit{List}'~m~a \to b \\
         & \mathit{loop'}~\mathsf{Nil}_m = k~\mathsf{Nil} \\
         & \mathit{loop'}~(\mathsf{Cons}_m~a~\mathit{xs}) = k~(\mathsf{Cons}~a~(\mathit{loop}~\mathit{xs}))
       \end{array}
@@ -1720,8 +1720,9 @@ in terms of initial $f$-and-$m$-algebras as:
     \mathit{eAppend} :: \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \\
     \mathit{eAppend}~\mathit{xs}~\mathit{ys} = \eFold{k}{\mathit{in}_m}~\mathit{xs} \\
     \begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \textbf{where} & k~\mathsf{Nil} &=& \mathit{ys} \\ &
-      k~(\mathsf{Cons}~a~\mathit{xs}) &=&
+      \textbf{where} & k &::& \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m)) \to \mu(\mathit{ListF}~a|m) \\
+      & k~\mathsf{Nil} &=& \mathit{ys} \\
+      & k~(\mathsf{Cons}~a~\mathit{xs}) &=&
       \mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~\mathit{xs})
     \end{array}
   \end{array}
@@ -1760,13 +1761,15 @@ property of $\mathit{eAppend}$ for free, from
 \end{equation}
 If we unfold the definition of $\mathit{in}_m$, we can see that
 \autoref{eq:eappend-em} captures the fact that $\mathit{eAppend}$
-always evaluates its first argument. This is made clearer if we remove
-the occurences of the $\mathsf{List}$ constructor, yielding the
-following equation that is equivalent to \autoref{eq:eappend-em}:
+always evaluates its first argument. This is made clearer if we write
+$\mathit{in}_m$ using the inverse function to the constructor
+$\mathsf{List}$, $\mathit{unList}~(\mathsf{List}~\mathit{xs}) =
+\mathit{xs}$, yielding the following equation that is equivalent to
+\autoref{eq:eappend-em}:
 \begin{displaymath}
   \begin{array}{ll}
-     & \mathit{eAppend}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{xs}) \})~\mathit{ys} \\
-    =& \mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{eAppend}~\mathit{xs}~\mathit{ys} \}
+     & \mathit{eAppend}~(\mathsf{List}~(\mathbf{do}~\{\mathit{xs} \leftarrow x; \mathit{unList}~\mathit{xs} \}))~\mathit{ys} \\
+    =& \mathsf{List}~(\mathbf{do}~\{ \mathit{xs} \leftarrow x; \mathit{unList}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}) \})
   \end{array}
 \end{displaymath}
 
@@ -1776,8 +1779,9 @@ which splits the proof into the pure and effectful parts. As we shall
 see, the pure part of the proof, where the real work happens, is
 identical to the proof steps we took in the proof of
 \thmref{thm:append-assoc}. The effectful parts of the proof are
-straightforward, following directly from the fact that
-$\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
+straightforward, following directly from the fact that $\lambda
+\mathit{xs}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys}$ is an
+$m$-Eilenberg-Moore-algebra homomorphism for all $\mathit{ys}$
 (\autoref{eq:eappend-em}).
 
 \begin{theorem}
@@ -1823,10 +1827,11 @@ $\mathit{eAppend}$ is an $m$-Eilenberg-Moore-algebra homomorphism
       =&\mathit{in}_m~(\mathit{fmap}_m~(\lambda \mathit{xs}.~\mathit{eAppend}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys})~\mathit{zs})~x)
     \end{array}
   \end{displaymath}
-  This follows straightforwardly from the fact that $\mathit{eAppend}$
-  is itself an $m$-Eilenberg-Moore-algebra homomorphism in its first
-  argument, as we noted above in \autoref{eq:eappend-em}, and that
-  such homomorphisms are closed under composition:
+  This follows straightforwardly from the fact that $\lambda
+  \mathit{xs}. \mathit{eAppend}~\mathit{xs}~\mathit{ys}$ is itself an
+  $m$-Eilenberg-Moore-algebra homomorphism for all $\mathit{ys}$, as
+  we noted above in \autoref{eq:eappend-em}, and that such
+  homomorphisms are closed under composition:
   \begin{displaymath}
     \begin{array}{cl}
       & \mathit{eAppend}~(\mathit{eAppend}~(\mathit{in}_m~x)~\mathit{ys})~\mathit{zs} \\
@@ -1888,7 +1893,8 @@ function we defined above.
     \mathit{eReverse} :: \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \\
     \mathit{eReverse} = \eFold{k}{\mathit{in}_m} \\
     \quad\begin{array}{r@{\hspace{0.4em}}l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \kw{where} & k~\mathsf{Nil} &=& \mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil} \\
+      \kw{where} & k &::& \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m)) \to \mu(\mathit{ListF}~a|m) \\
+      & k~\mathsf{Nil} &=& \mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil} \\
       & k~(\mathsf{Cons}~a~\mathit{xs}) &=& \mathit{eAppend}~\mathit{xs}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))
     \end{array}
   \end{array}
@@ -1898,7 +1904,7 @@ before we can apply \proofprinref{pp:initial-f-m-alg}, because the
 left-hand side of the equation is constructed from a composite of two
 functions of the form $\eFold{-}{-}$. However, it is
 straightforward to prove that this composite is equal to
-$\eFold{\mathit{alg}}{\mathit{in}_m}$, where
+$\eFold{\mathit{k'}}{\mathit{in}_m}$, where
 \begin{displaymath}
   \begin{array}{l}
     k' :: \mathit{ListF}~a~(\mu(\mathit{ListF}~a|m)) \to \mu(\mathit{ListF}~a|m) \\
@@ -1916,13 +1922,14 @@ equation:
   \eFold{k'}{\mathit{in}_m}~\mathit{xs} = \mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})
 \end{equation}
 Then the pure part of the proof goes through straightforwardly. We are
-left with proving that the right-hand side of this equation is an
-Eilenberg-Moore-algebra homomorphism in its second
-argument. Certainly, $\mathit{eReverse}$ is an Eilenberg-Moore-algebra
-homomorphism by its construction via the initial $f$-and-$m$-algebra
-property. However, $\mathit{eAppend}$ is not an Eilenberg-Moore
-algebra homomorphism in its \emph{second} argument, as the following
-counterexample shows.
+left with proving that $\lambda
+\mathit{xs}.~\mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})$
+(i.e., the right hand side of this equation) is an
+Eilenberg-Moore-algebra homomorphism for all $\mathit{ys}$. Certainly,
+$\mathit{eReverse}$ is an Eilenberg-Moore-algebra homomorphism by its
+construction via the initial $f$-and-$m$-algebra property. However,
+$\mathit{eAppend}$ is not an Eilenberg-Moore algebra homomorphism in
+its \emph{second} argument, as the following counterexample shows.
 
 If we let the monad $m$ be the $\mathit{ErrorM}$ monad we defined in
 \autoref{sec:eilenberg-moore-algebras}, then if $\mathit{eAppend}$
@@ -1931,8 +1938,7 @@ the following equation would hold:
 \begin{equation}\label{eq:purported-em}
   \begin{array}{cl}
     &\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"}))
-    \\ =&\mathit{in}_{\mathit{ErrorM}}~\\ & \hspace{1cm}(\mathit{fmap}_{\mathit{ErrorM}}~(\lambda
-    ys.~\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil}))))~\\ & \hspace{1.5cm}(\mathsf{Error}~\texttt{"msg"}))
+    \\ =&\mathit{in}_{\mathit{ErrorM}}~\\ & \hspace{1cm}(\mathit{fmap}_{\mathit{ErrorM}}~(\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil}))))~\\ & \hspace{1.5cm}(\mathsf{Error}~\texttt{"msg"}))
   \end{array}
 \end{equation}
 However, starting from the left-hand side, we calculate as follows:
@@ -2235,7 +2241,7 @@ ways. In \autoref{sec:construct-free-monads}, we show that concrete
 free monads can be defined using specific initial $f$-algebras. We
 will be able to reuse most of this construction when constructing the
 coproduct in \autoref{sec:construct-coproducts}. We present the formal
-definition of monad coproduct in \autoref{sec:coproducts-of-monads},
+definition of the monad coproduct in \autoref{sec:coproducts-of-monads},
 and elaborate on the reading of free monads as interaction trees, now
 interleaved with effects from some arbitrary monad. In
 \autoref{sec:construct-coproducts}, we present a concrete construction
@@ -2651,9 +2657,10 @@ the terminal, we use the $\mathit{useGetLine}$ interpretation from
 Alternatively, we can interpret the abstract $\mathit{read}$ commands
 as reading from a file handle. The function $\mathit{useFileHandle}$
 describes how to execute single reads on a file handle as an
-$\mathit{IO}$ action\footnote{An anonymous reviewer notes that this
-  functionality is very similar to the standard Scheme
-  \texttt{with-input-from-file} function.}:
+$\mathit{IO}$ action\footnote{This functionality is very similar to
+  the standard Scheme \texttt{with-input-from-file} function, which
+  temporarily uses a file as the source for input, rather than the
+  terminal.}:
 \begin{displaymath}
   \begin{array}{@{}l}
     \mathit{useFileHandle} :: \mathit{Handle} \to \mathit{ReaderF}~\mathit{String}~a \to \mathit{IO}~a \\
@@ -2919,38 +2926,34 @@ and St\o{}vring's do not derive induction rules or other proof
 principles for effectful datatypes. Filinski and St\o{}vring do,
 however, give a principle of {\em proof by rigid induction} for such
 datatypes that is a variant of those of both Lehmann and
-Smyth~\cite{ls81} and Crole and Pitts~\cite{cp92}. It supports the
-same kind of inductive reasoning, again in the specific category and
-for the specific functors with which they work, that we show initial
-$f$-and-$m$-algebras to support more generally.  \pattynote{We don't
-  explicitly give proof principles (i.e., actually identify the proof
-  principles we illustrate), so it's hard to draw the same parallel
-  for them as for definitional principles. Be careful here.} The
-results reported in this article thus extend both the definitional
-principles of Filinksi and St\o{}vring for structuring recursion over
-effectful datatypes, and their proof principles for reasoning about
-computations over such datatypes, to the general category-theoretic
-setting and to arbitrary functors.  Filinski and St\o{}vring also give
-fusion rules for effectful streams (although not for arbitrary
-effectful datatypes), and illustrate the extension of relational
-reasoning to effectful datatypes. We consider neither fusion rules nor
-relational reasoning here.  Nevertheless, we see that this article
-generalises previous extensions of the initial algebra methodology to
-the effectful setting in three ways: it handles arbitrary functors,
-rather than special classes of functors; it handles actual
-interleaving of effects and data, rather than just the wrapping of
-pure results in effectful contexts; and it gives proof principles for
-reasoning about interleaved effectful computations, rather than just
-constructs for structuring those computations.
+Smyth~\cite{ls81} and Crole and Pitts~\cite{cp92}. More generally,
+their development supports the same kind of reasoning principles,
+again in the specific category and for the specific functors with
+which they work, that we show arbitrary initial $f$-and-$m$-algebras
+to support. The results reported in this article thus extend both the
+definitional principles of Filinksi and St\o{}vring for structuring
+recursion over effectful datatypes, and their proof principles for
+reasoning about computations over such datatypes, to the general
+category-theoretic setting and to arbitrary functors.  Filinski and
+St\o{}vring also give fusion rules for effectful streams (although not
+for arbitrary effectful datatypes), and illustrate the extension of
+relational reasoning to effectful datatypes. We consider neither
+fusion rules nor relational reasoning here.  Nevertheless, we see that
+this article generalises previous extensions of the initial algebra
+methodology to the effectful setting in three ways: it handles
+arbitrary functors, rather than special classes of functors; it
+handles actual interleaving of effects and data, rather than just the
+wrapping of pure results in effectful contexts; and it gives proof
+principles for reasoning about interleaved effectful computations,
+rather than just constructs for structuring those computations.
 
 % \pattynote{Perhaps leave the following paragraph in the introduction?
 %   If so, then skip to last paragraph, which appears below after it.}
 
 \subsection{Future Work}
 
-The monadic induction schemes introduced by Filinski and St\o{}vring,
-and generalised here, \pattynote{Careful! Induction schemes not
-  explicitly given} give one way to reason about effect-interleaved
+The monadic induction schemes supported by Filinski and St\o{}vring,
+and generalised here, give one way to reason about effect-interleaved
 data. The ``fast and loose'' reasoning advocated by Danielsson {\em et
   al.}~\cite{dan06} is another.  Using a logical relations style
 relation to relate total and non-total semantics of programs,
@@ -2961,7 +2964,35 @@ from both practical and theoretical viewpoints to know if this kind of
 ``morally correct'' reasoning can be extended to effects other than
 just nontermination.
 
-\pattynote{Add other future work?}
+In this article we have concentrated on demonstrating the utility of
+initial $f$-and-$m$-algebras for definition and reasoning, but we have
+not yet explored the potential for additional theoretical development
+of $f$-and-$m$-algebras. Fusion laws and other derived properties of
+initial $f$-and-$m$-algebras, extending the work of Filinski and
+St\o{}vring that we mentioned above from streams to arbitrary
+interleaved data types, are the most obvious avenue for future work. A
+further line of future work lies in deeper investigation of the
+categorical properties of the category of $f$-and-$m$-algebras. In the
+present work, we constructed the category of $f$-and-$m$-algebras and
+showed that it had initial objects from first principles, while in
+Atkey \emph{et al.}'s previous work \cite{atkey12fibrational}, this
+was demonstrated by constructing an adjunction between the category of
+$f$-and-$m$-algebras and the category of $(f \circ m)$-algebras. An
+anonymous reviewer has pointed out the interesting property that the
+category of $f$-and-$m$-algebras is isomorphic to the category of
+Eilenberg-Moore algebras for the $(\mathit{FreeM}~f)+m$ monad, showing
+that the monad coproduct construction in
+\autoref{sec:coproducts-with-free-monads} has a deeper
+significance. Further investigation of this kind of characterisation
+may lead to yet higher-level tools for defining and reasoning about
+programs that interleave pure data with effects.
+
+\section*{Acknowledgements}
+
+We would like to gratefully acknowledge the work of Neil Ghani and
+Bart Jacobs, both on the original conference paper
+\cite{atkey12fibrational} that led to the work presented here, and on
+an earlier version of the present paper.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
