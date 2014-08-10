@@ -371,7 +371,7 @@ constructor. Wadler \emph{et al.} argue that this ``odd'' style leads
 to lazy computations being forced much earlier than the programmer
 might expect: since the first element of a list in the odd style is
 \emph{not} wrapped in the lifting monad, any function that returns a
-$\mathit{List_{odd}}$ value must always have the first element
+$\mathit{List_{odd}}~a$ value must always have the first element
 available immediately. The ``even'' style, as exemplified by our
 $\mathit{List}_{\mathit{lazy}}$ type constructor above, is, Wadler
 \emph{et al.} argue, usually what is expected.
@@ -1023,13 +1023,12 @@ able to reuse the core of the above proof.
 Given the success of initial $f$-algebras for defining and reasoning
 about programs that operate on pure datatypes, it seems reasonable
 that they might extend to programming and reasoning about programs
-that operate on effectful datatypes like $\mathit{List}~m~a$ and
-$\mathit{Reader}~m~a~b$. As we shall see, it is possible to use
-initial $f$-algebras for reasoning about programs on effectful
-datatypes, but the proofs become unnecessarily complicated. We
-demonstrate this through an extension of the list append example from
-\autoref{sec:pure-append} to the case of lists with interleaved
-effects.
+that operate on effectful datatypes like $\mathit{List}~m~a$. As we
+shall see, it is possible to use initial $f$-algebras for reasoning
+about programs on effectful datatypes, but the proofs become
+unnecessarily complicated. We demonstrate this through an extension of
+the list append example from \autoref{sec:pure-append} to the case of
+lists with interleaved effects.
 
 Our presentation is parametric in the kind of effects that
 are interleaved with the list. We merely assume that they can be
@@ -1343,12 +1342,12 @@ introduced by Filinski and St\o{}vring \cite{filinski07inductive}, and
 generalised to arbitrary functors by Atkey, Ghani, Jacobs and Johann
 \cite{atkey12fibrational}. As the name may imply, $f$-and-$m$-algebras
 are simultaneously $f$-algebras and $m$-algebras. A twist is that the
-$m$-algebra component must be an Eilenberg-Moore
-algebra. Eilenberg-Moore algebra structure for a type $a$ describes
+$m$-algebra component must be an $m$-Eilenberg-Moore
+algebra. $m$-Eilenberg-Moore algebra structure for a type $a$ describes
 how to incorporate the effects of the monad $m$ into values of type
 $a$.
 
-\subsection{Eilenberg-Moore algebras}
+\subsection{\texorpdfstring{$m$}{m}-Eilenberg-Moore algebras}
 \label{sec:eilenberg-moore-algebras}
 
 Given a monad $(m, \mathit{fmap}_m, \mathit{return}_m,
@@ -1388,13 +1387,13 @@ with the structure of the monad:
   \end{equation}
 \end{definition}
 
-Eilenberg-Moore algebras form a key piece of the theory of monads,
-especially in their application to universal algebra. For a monad that
-represents an algebraic theory (e.g., abelian groups), the collection
-of all Eilenberg-Moore algebras for that monad are exactly the
-structures supporting that algebraic theory. Mac Lane's book
+$m$-Eilenberg-Moore algebras form a key piece of the theory of monads,
+especially in their application to universal algebra. For a monad $m$
+that represents an algebraic theory (e.g., abelian groups), the
+category of all $m$-Eilenberg-Moore algebras is exactly the category
+of structures supporting that algebraic theory. Mac Lane's book
 \cite{maclane98} goes into further depth on this view of
-Eilenberg-Moore algebras.
+$m$-Eilenberg-Moore algebras.
 
 In terms of computational effects, an $m$-Eilenberg-Moore-algebra $(a,
 l)$ represents a way of ``performing'' the effects of the monad $m$ in
@@ -1440,10 +1439,10 @@ carrier $\mathit{IO}~a$ as follows:
   \end{array}
 \end{displaymath}
 The function $\mathit{throw}$ and the constructor $\mathsf{ErrorCall}$
-are part of the Haskell standard $\mathit{Control.Exception}$
-module. The algebra $l$ propagates normal $\mathit{IO}$ actions, and
-interprets errors using the exception throwing facilities of the
-Haskell $\mathit{IO}$ monad.
+are part of the $\mathit{Control.Exception}$ module in the Haskell
+standard library. The algebra $l$ propagates normal $\mathit{IO}$
+actions, and interprets errors using the exception throwing facilities
+of the Haskell $\mathit{IO}$ monad.
 
 The general pattern of $m$-Eilenberg-Moore-algebras with carriers that
 are themselves constructed from monads has been studied by Filinski
@@ -1453,9 +1452,9 @@ $m~(m'~a) \to m'~a$, for all $a$, capture the fact that the monad $m'$
 can perform all the effects that the monad $m$ can, so we can say that
 $m'$ is layered over $m$.
 
-A particularly useful class of Eilenberg-Moore algebras for a given
-monad $m$ is the class of \emph{free}
-$m$-Eilenberg-Moore-algebras. The \emph{free} Eilenberg-Moore algebra
+A particularly useful class of $m$-Eilenberg-Moore algebras for a
+given monad $m$ is the class of \emph{free}
+$m$-Eilenberg-Moore-algebras. The \emph{free} $m$-Eilenberg-Moore algebra
 for an arbitrary type $a$ is given by $(m\,a, \,\mathit{join}_m)$. In
 terms of layered monads, this just states that the monad $m$ can be
 layered over itself. We will make use of this construction below in
@@ -1489,7 +1488,7 @@ the proof of \thmref{thm:make-initial-f-and-m-alg} below.
 %   projections from the tuple type, respectively.
 % \end{enumerate}
 
-Finally in this short introduction to Eilenberg-Moore algebras, we
+Finally in this short introduction to $m$-Eilenberg-Moore algebras, we
 define homomorphisms between $m$-Eilenberg-Moore-algebras. These are
 exactly the same as homomorphisms between $f$-algebras that we defined
 in \autoref{sec:f-algebras}.
@@ -1522,7 +1521,7 @@ $f$-algebra and an $m$-Eilenberg-Moore-algebra with the same
 carrier. Intuitively, the $f$-algebra part deals with the pure parts
 of the structure, and the $m$-Eilenberg-Moore-algebra part deals with
 the effectful parts. We require the extra structure of an
-Eilenberg-Moore algebra in order to account for the potential merging
+$m$-Eilenberg-Moore algebra in order to account for the potential merging
 of the effects that are present between the layers of the inductive
 datatype (through the preservation of $\mathit{join}$) and the correct
 preservation of potential lack of effects (through the preservation of
@@ -1584,7 +1583,7 @@ carriers of initial $f$-and-$m$-algebras. The uniqueness requirement
 yields the following proof principle for functions defined on initial
 $f$-and-$m$-algebras. It follows the same basic form as
 \proofprinref{pp:initial-alg} for initial $f$-algebras, but also
-includes an obligation to prove that the right-hand side of the
+includes an obligation to prove that the right hand side of the
 equation to be shown is an $m$-Eilenberg-Moore-algebra
 homomorphism.
 
@@ -1610,12 +1609,13 @@ homomorphism.
 \end{proofprinciple}
 
 The key feature of \proofprinref{pp:initial-f-m-alg} is that it
-cleanly splits the pure and effectful proof obligations. Therefore we
-may use this principle to cleanly reason about programs that operate
-on interleaved pure and effectful data at a high level of abstraction,
-unlike the direct reasoning we carried out in
-\autoref{sec:direct-eappend}. We shall see this separation in action
-for our list append running example in the next section.
+cleanly splits the pure (\autoref{eq:fm-falg}) and effectful
+(\autoref{eq:fm-malg}) proof obligations. Therefore we may use this
+principle to cleanly reason about programs that operate on interleaved
+pure and effectful data at a high level of abstraction, unlike the
+direct reasoning we carried out in \autoref{sec:direct-eappend}. We
+shall see this separation in action for our list append running
+example in the next section.
 
 \begin{example}
   The $\mathit{List}~m~a$ datatype in the introduction was defined as
@@ -1818,7 +1818,7 @@ $m$-Eilenberg-Moore-algebra homomorphism for all $\mathit{ys}$
   $\mathit{eAppend}$ captured above in \autoref{eq:eAppend-nil} and
   \autoref{eq:eAppend-cons}.
 
-  Secondly, we must show that the right-hand side of the equation to
+  Secondly, we must show that the right hand side of the equation to
   be proved is an $m$-Eilenberg-Moore-algebra homomorphism, i.e., that
   \autoref{eq:fm-malg} holds:
   \begin{displaymath}
@@ -1879,9 +1879,9 @@ get to the last element of the list.
 
 If we try to prove this property using
 \proofprinref{pp:initial-f-m-alg}, we see that we are unable to prove
-\autoref{eq:fm-malg}, namely that the right-hand side of the effectful
+\autoref{eq:fm-malg}, namely that the right hand side of the effectful
 version of \autoref{eq:reverse-append} (\autoref{eq:ereverse-eappend},
-below) must be an Eilenberg-Moore-algebra homomorphism in the variable
+below) must be an $m$-Eilenberg-Moore-algebra homomorphism in the variable
 $\mathit{xs}$.
 
 We can define a reverse function on effectful lists as follows. This
@@ -1901,7 +1901,7 @@ function we defined above.
 \end{displaymath}
 Verifying the effectful analogue of \autoref{eq:reverse-append} requires a little extra step
 before we can apply \proofprinref{pp:initial-f-m-alg}, because the
-left-hand side of the equation is constructed from a composite of two
+left hand side of the equation is constructed from a composite of two
 functions of the form $\eFold{-}{-}$. However, it is
 straightforward to prove that this composite is equal to
 $\eFold{\mathit{k'}}{\mathit{in}_m}$, where
@@ -1925,23 +1925,25 @@ Then the pure part of the proof goes through straightforwardly. We are
 left with proving that $\lambda
 \mathit{xs}.~\mathit{eAppend}~(\mathit{eReverse}~\mathit{ys})~(\mathit{eReverse}~\mathit{xs})$
 (i.e., the right hand side of this equation) is an
-Eilenberg-Moore-algebra homomorphism for all $\mathit{ys}$. Certainly,
-$\mathit{eReverse}$ is an Eilenberg-Moore-algebra homomorphism by its
-construction via the initial $f$-and-$m$-algebra property. However,
-$\mathit{eAppend}$ is not an Eilenberg-Moore algebra homomorphism in
-its \emph{second} argument, as the following counterexample shows.
+$m$-Eilenberg-Moore-algebra homomorphism for all
+$\mathit{ys}$. Certainly, $\mathit{eReverse}$ is an
+$m$-Eilenberg-Moore-algebra homomorphism by its construction via the
+initial $f$-and-$m$-algebra property. However, $\lambda
+\mathit{ys}.~\mathit{eAppend}~\mathit{xs}~\mathit{ys}$ is not an
+$m$-Eilenberg-Moore algebra homomorphism for all $\mathit{xs}$, as the
+following counterexample shows.
 
-If we let the monad $m$ be the $\mathit{ErrorM}$ monad we defined in
-\autoref{sec:eilenberg-moore-algebras}, then if $\mathit{eAppend}$
-were an Eilenberg-Moore-algebra homomorphism in its second argument
-the following equation would hold:
+Let the monad $m$ be the $\mathit{ErrorM}$ monad we defined in
+\autoref{sec:eilenberg-moore-algebras}. If $\mathit{eAppend}$ were an
+$\mathit{ErrorM}$-Eilenberg-Moore-algebra homomorphism in its second
+argument the following equation would hold:
 \begin{equation}\label{eq:purported-em}
   \begin{array}{cl}
     &\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"}))
     \\ =&\mathit{in}_{\mathit{ErrorM}}~\\ & \hspace{1cm}(\mathit{fmap}_{\mathit{ErrorM}}~(\mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil}))))~\\ & \hspace{1.5cm}(\mathsf{Error}~\texttt{"msg"}))
   \end{array}
 \end{equation}
-However, starting from the left-hand side, we calculate as follows:
+However, starting from the left hand side, we calculate as follows:
 \begin{displaymath}
   \begin{array}{cl}
     & \mathit{eAppend}~(\mathit{in}_{\mathit{ListF}~a}~(\mathsf{Cons}~a~(\mathit{in}_{\mathit{ListF}~a}~\mathsf{Nil})))~(\mathit{in}_{\mathit{ErrorM}}~(\mathsf{Error}~\texttt{"msg"})) \\
@@ -1966,7 +1968,7 @@ for the failure given at the start of this subsection.
 % does not hold in the presence of arbitrary interleaved
 % effects. Intuitively, it is again clear why: the expression on the
 % left pushes all the effects to the start of the list as
-% $\mathit{eReverse}$ traverses the list, while the right-hand side
+% $\mathit{eReverse}$ traverses the list, while the right hand side
 % leaves the effects interspersed between the elements.
 
 \section{Generic implementation of initial \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
@@ -2123,7 +2125,7 @@ effects with pure data\footnote{For example, the \texttt{iteratees},
   \texttt{pipes} Haskell libraries all make use of interleaved data
   and effects. These libraries are all available from the Hackage
   archive of Haskell libraries
-  (\url{http://hackage.haskell.org/packages/hackage.html}).}, in order
+  (\url{http://hackage.haskell.org/}).}, in order
 to make the interleaving explicit. One of the earliest was Kiselyov's
 iteratees \cite{kiselyov12iteratees}.  Iteratees are used to support
 lazy I/O in languages such as Haskell, Scala, and F\# by handling
@@ -2134,7 +2136,8 @@ Iteratees are descriptions of functions that alternate reading from
 some input with effects in some monad, eventually yielding some
 output. Kiselyov captured this using the following datatype, which
 follows the same pattern of mutual recursion as the
-$\mathit{List}~m~a$ datatype declaration:
+$\mathit{List}~m~a$ datatype declaration from
+\autoref{sec:motivate-interleaving}:
 \begin{displaymath}
   \begin{array}{ll}
     \kw{data}~\mathit{Reader'}~m~a~b
@@ -2222,14 +2225,14 @@ constructor
 directly\footnote{\url{https://github.com/Gabriel439/Haskell-Pipes-Library/blob/master/laws.md}},
 including demonstrating that, just as was the case for Iteratees, it
 forms (the functor part of) a monad. Gonzalez's proofs appeal to a
-slighty informal notion of coinduction in order to handle recursion in
-the presence of potentially infinite $\mathit{Proxy}~a'~a~b'~b~m~r$
-values arising from Haskell's non-strict semantics (recall the
-discussion in \autoref{sec:motivate-interleaving}). Just as with
-Iteratees, we could observe that $\mathit{Proxy}$ types are instances
-of data interleaved with effects, and reformulate Gonzalez's proofs
-using \proofprinref{pp:initial-f-m-alg}, accounting for non-strictness
-by treating it just as an arbitrary monad. However, we can again save
+informal notion of coinduction in order to handle recursion in the
+presence of potentially infinite $\mathit{Proxy}~a'~a~b'~b~m~r$ values
+arising from Haskell's non-strict semantics (recall the discussion in
+\autoref{sec:motivate-interleaving}). Just as with Iteratees, we could
+observe that $\mathit{Proxy}$ types are instances of data interleaved
+with effects, and reformulate Gonzalez's proofs using
+\proofprinref{pp:initial-f-m-alg}, accounting for non-strictness by
+treating it just as an arbitrary monad. However, we can again save
 work by observing that $\mathit{Proxy}~a'~a~b'~b~m~r$ is an instance
 of the coproduct of a free monad and the monad $m$, and consequently
 the result that $\mathit{Proxy}~a'~a~b'~b~m~r$ is a monad follows.
@@ -2980,8 +2983,8 @@ was demonstrated by constructing an adjunction between the category of
 $f$-and-$m$-algebras and the category of $(f \circ m)$-algebras. An
 anonymous reviewer has pointed out the interesting property that the
 category of $f$-and-$m$-algebras is isomorphic to the category of
-Eilenberg-Moore algebras for the $(\mathit{FreeM}~f)+m$ monad, showing
-that the monad coproduct construction in
+$((\mathit{FreeM}~f)+m)$-Eilenberg-Moore algebras, showing that the
+monad coproduct construction in
 \autoref{sec:coproducts-with-free-monads} has a deeper
 significance. Further investigation of this kind of characterisation
 may lead to yet higher-level tools for defining and reasoning about
@@ -3015,12 +3018,12 @@ an earlier version of the present paper.
     \mathit{in}_f = \mathit{return}_m \circ \mathit{in} :: f~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
   \end{displaymath}
   The $m$-Eilenberg-Moore-algebra component is straightforward, using
-  the free Eilenberg-Moore-algebra construction from
+  the free $m$-Eilenberg-Moore-algebra construction from
   \autoref{sec:eilenberg-moore-algebras}:
   \begin{displaymath}
     \mathit{in}_m = \mathit{join}_m :: m~(m~(\mu(f \circ m))) \to m~(\mu(f \circ m))
   \end{displaymath}
-  Since we have used the free Eilenberg-Moore-algebra construction, we
+  Since we have used the free $m$-Eilenberg-Moore-algebra construction, we
   are automatically guaranteed that we have an
   $m$-Eilenberg-Moore-algebra.
 
@@ -3076,7 +3079,7 @@ an earlier version of the present paper.
          &l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l} \circ \mathit{join}_m \\
         =&\eqAnnotation{naturality of $\mathit{join}_m$ (\autoref{eq:monad-join-natural})} \\
          &l \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
-        =&\eqAnnotation{$l$ is an Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
+        =&\eqAnnotation{$l$ is an $m$-Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
          &l \circ \mathit{fmap}_m~k \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
          &l \circ \mathit{fmap}_m~(l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
