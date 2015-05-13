@@ -46,11 +46,11 @@
 
 \author[R. Atkey, P. Johann]
        {ROBERT ATKEY \\
-         University of Edinburgh \\
+         University of Strathclyde \\
          \vspace{1em}
          PATRICIA JOHANN \\
          Appalachian State University \\
-         \email{bob.atkey@ed.ac.uk, johannp@appstate.edu}}
+         \email{robert.atkey@strath.ac.uk, johannp@appstate.edu}}
        
 \begin{document}
 
@@ -107,7 +107,7 @@ programs that operate on recursively defined datatypes. For example,
 recursive functions on lists can often by re-expressed in terms of the
 higher-order function $\mathit{foldr}$, which has the type:
 \begin{displaymath}
-  \mathit{foldr} :: a \to (e \to a \to a) \to [e] \to a
+  \mathit{foldr} :: (a \to b \to b) \to b \to [a] \to b
 \end{displaymath}
 The benefits of expressing recursive functions in terms of combinators
 like $\mathit{foldr}$, rather than through direct use of recursion,
@@ -169,10 +169,17 @@ that describes the effects. In this article we will show that initial
 $f$-and-$m$-algebras represent a better level of abstraction for
 dealing with interleaved data and effects.
 
-The key idea is to separate the concerns of dealing with pure data,
-via $f$-algebras, and effects, via $m$-Eilenberg-Moore-algebras. We
-shall see in \autoref{sec:f-and-m-append} that this separation has the
-following benefits:
+The key idea behind $f$-and-$m$-algebras is to separate the concerns
+of dealing with pure data, via $f$-algebras, and effects, via
+$m$-Eilenberg-Moore-algebras. For readers unfamiliar with
+$m$-Eilenberg-Moore-algebras, they can be though of as a special kind
+of $f$-algebra that interacts well with computational effects
+described by a monad $m$. We will introduce
+$m$-Eilenberg-Moore-algebras properly in
+\autoref{sec:eilenberg-moore-algebras}.
+
+We shall see in \autoref{sec:f-and-m-append} that the separation into
+pure and effectful concerns has the following benefits:
 \begin{itemize}
 \item \emph{Definitions} of functions on datatypes that interleave
   data and effects look very similar to their counterparts on pure
@@ -616,20 +623,24 @@ infer which $f$'s associated $\mathit{fmap}$ was intended. However, in
 the interest of clarity, we shall always use a subscript on
 $\mathit{fmap}$ to indicate which type operator is intended.
 
-An $f$-algebra for a given functor $f$ is a way of describing an
-operation for reducing each layer in an inductive data structure to a
-value. Formally, $f$-algebras are defined as follows:
+An $f$-algebra for a given functor $f$ is an operation for reducing an
+$f$-structure of values to a value\todo{Change suggested by
+  R2}. Formally, $f$-algebras are defined as follows:
 \begin{definition}
   An \emph{$f$-algebra} is a pair $(a, k)$ of a
   \emph{carrier type} $a$ and a \emph{structure map}
   $k :: f~a \to a$.
 \end{definition}
 Given a pair of $f$-algebras, there is also the concept of a
-homomorphism between them:
+homomorphism (\emph{i.e.}, a stucture preserving map\todo{Suggested by
+  R2}) between them:
 \begin{definition}
   Given a pair of $f$-algebras $(a,k_a)$ and $(b, k_b)$, an
-  \emph{$f$-algebra homomorphism} between them is a function $h :: a
-  \to b$ such that the following diagram commutes:
+  \emph{$f$-algebra homomorphism} between them is a function
+  $h :: a \to b$ such that the following diagram commutes\footnote{By
+    \emph{commutes}, we mean the standard meaning: the two paths in
+    the diagram denote equal functions built by composing the labels
+    on the arrows.}:
   \begin{equation}
     \label{eq:falgebra-homomorphism}
     \xymatrix{
@@ -650,9 +661,11 @@ homomorphism between them:
 \end{definition}
 
 \begin{definition}
-  An \emph{initial $f$-algebra} is an $f$-algebra $(\mu \! f,
-  \mathit{in})$ such that for any $f$-algebra $(a, k)$, there exists
-  a unique $f$-algebra homomorphism $\fold{k} :: \mu f \to a$.
+  An \emph{initial $f$-algebra} is an $f$-algebra
+  $(\mu \! f, \mathit{in})$ such that for any $f$-algebra $(a, k)$,
+  there exists a unique $f$-algebra homomorphism from
+  $(\mu \! f, \mathit{in})$ to $(a, k)$; we write this homomorphism as
+  $\fold{k}$, which is a function of type $\mu f \to a$.\todo{suggested by R2}
 \end{definition}
 
 The requirement that an initial $f$-algebra always has an $f$-algebra
@@ -873,7 +886,10 @@ construct the coproduct of two monads in
 We now introduce our running example of list append and its
 associativity property. In this section, we use an initial
 $(\mathit{ListF}~a)$-algebra and \proofprinref{pp:initial-alg} to
-define and prove associative the append function on pure lists. In
+define and prove associative the append function on pure
+lists. (Purity here means that this proof does \emph{not} apply to
+Haskell's lazy lists, unlike the proofs we will present in
+\autoref{sec:direct-eappend} and \autoref{sec:f-and-m-append}.) In
 \autoref{sec:direct-eappend} we attempt to use the initial $f$-algebra
 technique to prove the analogous property in a setting with
 interleaved effects, and see that direct use of initial $f$-algebras
@@ -1026,9 +1042,18 @@ that they might extend to programming and reasoning about programs
 that operate on effectful datatypes like $\mathit{List}~m~a$. As we
 shall see, it is possible to use initial $f$-algebras for reasoning
 about programs on effectful datatypes, but the proofs become
-unnecessarily complicated. We demonstrate this through an extension of
-the list append example from \autoref{sec:pure-append} to the case of
-lists with interleaved effects.
+unnecessarily complicated.
+
+\todo{paragraph inserted to answer R2's reorganisation suggestion}We
+demonstrate these complications through an extension of the list
+append example from \autoref{sec:pure-append} to the case of lists
+with interleaved effects. We carry out this proof directly at the
+level of $f$-algebras, just as we did in the previous section. After
+the proof, we reflect on the difficulties that we encountered in the
+proof. Some of these difficulties can be mitigated by use of more
+advanced $f$-algebra techniques, such as \emph{fold fusion}. However,
+we will discover that $f$-and-$m$-algebras yields a more satisfactory
+solution.
 
 Our presentation is parametric in the kind of effects that
 are interleaved with the list. We merely assume that they can be
@@ -1070,10 +1095,10 @@ homomorphism induced by initiality. We now define $\mathit{eAppend}$
 This definition bears a slight resemblance to the definition of
 $\mathit{append}$ above, but we have had to insert uses of the monadic
 structure $\mathit{return_m}$, $\mathit{join_m}$ and $\mathit{fmap_m}$
-to deal with the management of effects. Thus we have had to
-intermingle the effectful parts of the definition with the pure
-parts. This is a result of the fact that the initial $f$-algebra
-abstraction is unaware of the presence of effects.
+to manage the effects. Thus we have had to intermingle the effectful
+parts of the definition with the pure parts. This is a result of the
+fact that the initial $f$-algebra abstraction is unaware of the
+presence of effects.
 
 As we did for $\mathit{append}$ in \autoref{eq:append-nil} and
 \autoref{eq:append-cons} above, we can derive two properties of
@@ -1115,7 +1140,7 @@ the definition of $\mathit{eAppend}$ too early.
   $k$ defined in the body of $\mathit{eAppend}$ with the free variable
   $\mathit{ys}$ replaced by $l$.
 
-  The left hand side of the equation to be proved is equal to:
+  Let us simplify the left hand side of the equation to be proved:
   \begin{displaymath}
     \begin{array}{cl}
        &\mathit{eAppend}~\mathit{xs}~(\mathit{eAppend}~\mathit{ys}~\mathit{zs})
@@ -1204,10 +1229,6 @@ $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\
       =&\eqAnnotation{naturality of $\mathit{join_m}$ (\autoref{eq:monad-join-natural})} \\
       &\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{join}_m~(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{k_{zs}})~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs})))))) \\
-%    \end{array}
-%  \end{displaymath}
-%  \begin{displaymath}
-%    \begin{array}{cl}
       =&\eqAnnotation{monad law: $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap}_m~\mathit{join_m}$ (\autoref{eq:monad-join-join})} \\
       &\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\mathit{join_m}~\\
@@ -1218,6 +1239,10 @@ $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
       & \mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})))) \\
+    \end{array}
+  \end{displaymath}
+  \begin{displaymath}
+    \begin{array}{cl}
       =&\eqAnnotation{definition of $k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
       &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})) \\
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
@@ -1279,8 +1304,8 @@ laws. Using fold fusion and the general property of $\mathit{extend}$
 does save us a little effort, but does not clearly separate the pure
 and effectful parts of the proof in the way that the
 $f$-and-$m$-algebra proof principle in the next section will allow us
-to, and still do not allow us to directly reuse the reasoning from the
-proof in the pure case in \thmref{thm:append-assoc}.
+to, and still does not allow us to directly reuse the reasoning from
+the proof in the pure case in \thmref{thm:append-assoc}.
 
 
 % The derivation of both the fold fusion law and the proof of
@@ -1448,7 +1473,7 @@ The general pattern of $m$-Eilenberg-Moore-algebras with carriers that
 are themselves constructed from monads has been studied by Filinski
 under the name ``layered monads'' \cite{filinski99representing}. The
 idea is that the presence of $m$-Eilenberg-Moore-algebras of the form
-$m~(m'~a) \to m'~a$, for all $a$, capture the fact that the monad $m'$
+$m~(m'~a) \to m'~a$, for all $a$, captures the fact that the monad $m'$
 can perform all the effects that the monad $m$ can, so we can say that
 $m'$ is layered over $m$.
 
@@ -1852,6 +1877,13 @@ were able to reuse the proof of the pure case from
 \autoref{sec:pure-append}, and so need only to establish the side
 condition for effects.
 
+\todo{Added paragraph for R3}This proof, and the $f$-algebra proof in
+\autoref{sec:direct-eappend}, are both generic in the monad $m$ that
+we use to represent effects. In particular, if we instantiate $m$ to
+be the non-termination monad, then we have proved that list append for
+Haskell's standard lazy lists is associative, without having to
+explicitly deal with a Cpo semantics.
+
 \subsection{Reverse for lists with interleaved effects?}
 \label{sec:reverse}
 
@@ -2119,18 +2151,16 @@ of streams of interleaved data and effects by giving the
 $\mathit{hGetContents}$ function a type that more precisely reflects
 its actual behaviour. The Haskell community, motivated by the concerns
 about lazy I/O that we listed in \autoref{sec:motivate-interleaving},
-has proposed many other datatypes that capture the interleaving of
+has proposed several other datatypes that capture the interleaving of
 effects with pure data\footnote{For example, the \texttt{iteratees},
   \texttt{iterIO}, \texttt{conduits}, \texttt{enumerators}, and
   \texttt{pipes} Haskell libraries all make use of interleaved data
   and effects. These libraries are all available from the Hackage
-  archive of Haskell libraries
-  (\url{http://hackage.haskell.org/}).}, in order
-to make the interleaving explicit. One of the earliest was Kiselyov's
-iteratees \cite{kiselyov12iteratees}.  Iteratees are used to support
-lazy I/O in languages such as Haskell, Scala, and F\# by handling
-different kinds of sequential information processing in an incremental
-way.
+  archive of Haskell libraries (\url{http://hackage.haskell.org/}).},
+in order to make the interleaving explicit. One of the earliest was
+Kiselyov's iteratees \cite{kiselyov12iteratees}.  Iteratees are used
+to support lazy I/O in languages such as Haskell by handling different
+kinds of sequential information processing in an incremental way.
 
 Iteratees are descriptions of functions that alternate reading from
 some input with effects in some monad, eventually yielding some
@@ -2224,7 +2254,7 @@ Gonzalez proves several properties of the $\mathit{Proxy}$ type
 constructor
 directly\footnote{\url{https://github.com/Gabriel439/Haskell-Pipes-Library/blob/master/laws.md}},
 including demonstrating that, just as was the case for Iteratees, it
-forms (the functor part of) a monad. Gonzalez's proofs appeal to a
+forms (the functor part of) a monad. Gonzalez's proofs appeal to an
 informal notion of coinduction in order to handle recursion in the
 presence of potentially infinite $\mathit{Proxy}~a'~a~b'~b~m~r$ values
 arising from Haskell's non-strict semantics (recall the discussion in
@@ -2596,7 +2626,7 @@ following definition sets out the precise conditions:
   \begin{displaymath}
     \begin{array}{rcl}
       \mathit{inj}_1 & :: & m_1~a \to (\cprd{m_1}{m_2})~a \\
-      \mathit{inj}_2 & :: & m_1~a \to (\cprd{m_1}{m_2})~a
+      \mathit{inj}_2 & :: & m_2~a \to (\cprd{m_1}{m_2})~a
     \end{array}
   \end{displaymath}
   and the property that for any monad $(m,\mathit{fmap}_m,
@@ -2626,7 +2656,7 @@ actions of the $\mathit{IO}$ monad. We view
 $\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}}$
 as the modular reconstruction of the Iteratee monad
 $\mathit{Reader}~m~a$ we presented in
-\autoref{sec:motivate-interleaving}.
+\autoref{sec:coproducts-with-free-monads}.
 
 The following example extends the $\mathit{swapRead}$ example from
 \autoref{sec:free-monads} to perform an input/output effect as well as
@@ -2827,9 +2857,9 @@ have further shown how programming with initial $f$-and-$m$-algebras
 can be made practical by giving a generic construction of them in
 terms of $(f \circ m)$-algebras. Finally, we have argued that other
 datatypes that interleave data and effects in languages such as
-Haskell, Scala, and F\# can be expressed as coproducts of free monads
-with arbitrary monads, and can thus be straightforwardly constructed
-using initial $f$-and-$m$-algebras.
+Haskell can be expressed as coproducts of free monads with arbitrary
+monads, and can thus be straightforwardly constructed using initial
+$f$-and-$m$-algebras.
 
 \subsection{Related Work}
 
@@ -2860,7 +2890,7 @@ distributive law for just the binary product functor is all that is
 actually required to ensure that distributive laws exist for all
 regular functors. However, such laws need not exist for all monads;
 there is no distributive law for binary products for the state monad,
-for example. In any case, the assumption that distributive laws exists
+for example. In any case, the assumption that distributive laws exist
 is too strong for the purposes of this article: we are concerned here
 with structural recursion over \emph{effectful} data, in which data
 and effects are interleaved, rather than just monadically wrapped
@@ -2880,7 +2910,7 @@ computations they structure must still consume pure data.  Pardo also
 develops rules for fusing monadic programs structured using the
 monadic constructs he defines.
 
-Meijer and Juering~\cite{mj95} further extend ideas of origami
+Meijer and Jeuring~\cite{mj95} further extend ideas of origami
 programming to the effectful setting by developing a number of monadic
 fusion rules. Among these is a new short cut fusion rule for
 eliminating (pure) intermediate structures of type $fa$ for regular
@@ -2914,7 +2944,7 @@ carrier of the initial $f$-and-$m$-algebra, and Filinski and
 St\o{}vring's $\mathit{fold}$s are special cases of our
 $\mathit{fold}$s from \defref{def:f-and-m-folds}. Such monadic
 $\mathit{fold}$s differ from those of Fokkinga, Pardo, and Meijer and
-Juering in that they derive from initiality in the category of
+Jeuring in that they derive from initiality in the category of
 $f$-and-$m$-algebras, rather than from initiality of algebras in the
 Kleisli category for $m$ under the auspices of a distributive law for
 $f$ and $m$.  Because initial $f$-and-$m$-algebras properly interleave
@@ -2961,11 +2991,11 @@ data. The ``fast and loose'' reasoning advocated by Danielsson {\em et
   al.}~\cite{dan06} is another.  Using a logical relations style
 relation to relate total and non-total semantics of programs,
 Danielsson {\em et al.}  show that programmers can reason about
-programs as though they were written in a total language and expect
-the results to carry over to non-total languages.  It would be useful
-from both practical and theoretical viewpoints to know if this kind of
-``morally correct'' reasoning can be extended to effects other than
-just nontermination.
+programs as though they were written in a total language and expect,
+in certain cases, to carry the results over to non-total languages.
+It would be useful from both practical and theoretical viewpoints to
+know if this kind of ``morally correct'' reasoning can be extended to
+effects other than just nontermination.
 
 In this article we have concentrated on demonstrating the utility of
 initial $f$-and-$m$-algebras for definition and reasoning, but we have
@@ -3008,6 +3038,12 @@ an earlier version of the present paper.
 
 \section{Proof of \thmref{thm:make-initial-f-and-m-alg}}
 \label{sec:make-initial-fm-proof}
+
+Let $(f, \mathit{fmap}_f)$ be a functor, and
+$(m, \mathit{fmap}_m, \mathit{return}_m, \mathit{join}_m)$ be a monad.
+If we have an initial $(f \circ m)$-algebra
+$(\mu(f \circ m), \mathit{in})$, then $m~(\mu(f \circ m))$ is the
+carrier of an initial $f$-and-$m$-algebra.
 
 \begin{proof*}
   The $f$-algebra and $m$-Eilenberg-Moore-algebra structure are
@@ -3080,17 +3116,19 @@ an earlier version of the present paper.
         =&\eqAnnotation{naturality of $\mathit{join}_m$ (\autoref{eq:monad-join-natural})} \\
          &l \circ \mathit{join}_m \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{$l$ is an $m$-Eilenberg-Moore algebra (\autoref{eq:em-alg-join})} \\
-         &l \circ \mathit{fmap}_m~k \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
+         &l \circ \mathit{fmap}_m~l \circ \mathit{fmap}_m~(\mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
          &l \circ \mathit{fmap}_m~(l \circ \mathit{fmap}_m~\fold{k \circ \mathit{fmap}_f~l}) \\
         =&\eqAnnotation{definition of $h$} \\
          &l \circ \mathit{fmap}_m~h
       \end{array}
     \end{displaymath}
-  \item The function $h$ is the unique such $f$-and-$m$-algebra. Let
-    us assume that there exists another $f$-and-$m$-algebra
-    homomorphism $h' :: m~(\mu(f \circ m)) \to a$. We aim to show that
-    $h = h'$. We first observe that the following function defined by composition:
+  \item The function $h$ is the unique such $f$-and-$m$-algebra
+    homomorphism. Let us assume that there exists another
+    $f$-and-$m$-algebra homomorphism $h' :: m~(\mu(f \circ m)) \to
+    a$.
+    We aim to show that $h = h'$. We first observe that the following
+    function defined by composition:
     \begin{displaymath}
       h' \circ \mathit{return}_m :: \mu(f \circ m) \to a
     \end{displaymath}
