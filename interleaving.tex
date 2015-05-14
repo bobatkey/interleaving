@@ -172,9 +172,9 @@ dealing with interleaved data and effects.
 The key idea behind $f$-and-$m$-algebras is to separate the concerns
 of dealing with pure data, via $f$-algebras, and effects, via
 $m$-Eilenberg-Moore-algebras. For readers unfamiliar with
-$m$-Eilenberg-Moore-algebras, they can be though of as a special kind
-of $f$-algebra that interacts well with computational effects
-described by a monad $m$. We will introduce
+$m$-Eilenberg-Moore-algebras, an $m$-Eilenberg-Moore-algebra can be
+thought of as a special kind of $f$-algebra that interacts well with
+computational effects described by a monad $m$. We will introduce
 $m$-Eilenberg-Moore-algebras properly in
 \autoref{sec:eilenberg-moore-algebras}.
 
@@ -624,16 +624,15 @@ the interest of clarity, we shall always use a subscript on
 $\mathit{fmap}$ to indicate which type operator is intended.
 
 An $f$-algebra for a given functor $f$ is an operation for reducing an
-$f$-structure of values to a value\todo{Change suggested by
-  R2}. Formally, $f$-algebras are defined as follows:
+$f$-structure of values to a value. Formally, $f$-algebras are defined
+as follows:
 \begin{definition}
   An \emph{$f$-algebra} is a pair $(a, k)$ of a
   \emph{carrier type} $a$ and a \emph{structure map}
   $k :: f~a \to a$.
 \end{definition}
 Given a pair of $f$-algebras, there is also the concept of a
-homomorphism (\emph{i.e.}, a stucture preserving map\todo{Suggested by
-  R2}) between them:
+homomorphism (\emph{i.e.}, a structure preserving map) between them:
 \begin{definition}
   Given a pair of $f$-algebras $(a,k_a)$ and $(b, k_b)$, an
   \emph{$f$-algebra homomorphism} between them is a function
@@ -661,11 +660,13 @@ homomorphism (\emph{i.e.}, a stucture preserving map\todo{Suggested by
 \end{definition}
 
 \begin{definition}
-  An \emph{initial $f$-algebra} is an $f$-algebra
-  $(\mu \! f, \mathit{in})$ such that for any $f$-algebra $(a, k)$,
-  there exists a unique $f$-algebra homomorphism from
-  $(\mu \! f, \mathit{in})$ to $(a, k)$; we write this homomorphism as
-  $\fold{k}$, which is a function of type $\mu f \to a$.\todo{suggested by R2}
+  An \emph{initial $f$-algebra} is an $f$-algebra $(\mu \! f,
+  \mathit{in})$ such that for any $f$-algebra $(a, k)$, there exists a
+  unique $f$-algebra homomorphism from $(\mu \! f, \mathit{in})$ to
+  $(a, k)$. We write this homomorphism as $\fold{k}$, and note that
+  $\fold{k}$ is a function of type $\mu f \to a$ such that $\fold{k}
+  \circ \mathit{in} = k \circ \mathit{fmap}_f~\fold{k}$.
+
 \end{definition}
 
 The requirement that an initial $f$-algebra always has an $f$-algebra
@@ -864,6 +865,8 @@ in our extended example of the use of $f$-and-$m$-algebras to
 construct the coproduct of two monads in
 \autoref{sec:coproducts-with-free-monads}.
 
+\pagebreak
+
 \begin{definition}
   Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
   \mathit{join_{m_1}})$ and $(m_2, \mathit{fmap_{m_1}},
@@ -907,7 +910,9 @@ We program and reason against the abstract interface of initial
 $f$-algebras. Hence we assume that an initial
 $(\mathit{ListF}~a)$-algebra $(\mu(\mathit{ListF}~a), \mathit{in})$
 exists, and we write $\fold{-}$ for the unique homomorphism induced by
-initiality. We can define $\mathit{append}$ in terms of $\fold{-}$ as:
+initiality, {\emph i.e.}, for the unique map taking each $f$-algebra
+$(a,k)$ to the unique $f$-algebra homomorphism $\fold{k} :: \mu f \to
+a$. We can define $\mathit{append}$ in terms of $\fold{-}$ as:
 \begin{displaymath}
   \begin{array}{l}
     \mathit{append} :: \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \to \mu(\mathit{ListF}~a) \\
@@ -1044,15 +1049,14 @@ shall see, it is possible to use initial $f$-algebras for reasoning
 about programs on effectful datatypes, but the proofs become
 unnecessarily complicated.
 
-\todo{paragraph inserted to answer R2's reorganisation suggestion}We
-demonstrate these complications through an extension of the list
+We demonstrate these complications through an extension of the list
 append example from \autoref{sec:pure-append} to the case of lists
 with interleaved effects. We carry out this proof directly at the
 level of $f$-algebras, just as we did in the previous section. After
 the proof, we reflect on the difficulties that we encountered in the
 proof. Some of these difficulties can be mitigated by use of more
 advanced $f$-algebra techniques, such as \emph{fold fusion}. However,
-we will discover that $f$-and-$m$-algebras yields a more satisfactory
+we will discover that $f$-and-$m$-algebras yield a more satisfactory
 solution.
 
 Our presentation is parametric in the kind of effects that
@@ -1097,13 +1101,15 @@ $\mathit{append}$ above, but we have had to insert uses of the monadic
 structure $\mathit{return_m}$, $\mathit{join_m}$ and $\mathit{fmap_m}$
 to manage the effects. Thus we have had to intermingle the effectful
 parts of the definition with the pure parts. This is a result of the
-fact that the initial $f$-algebra abstraction is unaware of the
+fact that the initial $f$-algebra abstraction is oblivious to the
 presence of effects.
 
 As we did for $\mathit{append}$ in \autoref{eq:append-nil} and
 \autoref{eq:append-cons} above, we can derive two properties of
-$\mathit{eAppend}$ that tell us how it acts on the two list
-constructors:
+$\mathit{eAppend}$. Equations~\ref{eq:eappend-direct-nil}
+and~\ref{eq:eappend-direct-cons} tell us how $\mathit{eAppend}$ acts on
+pure computations that return values constructed with each of the list
+constructors: 
 \begin{equation}
   \label{eq:eappend-direct-nil}
   \mathit{eAppend}~(\mathit{return}_m~(\mathit{in}~\mathsf{Nil}))~\mathit{ys} = \mathit{ys}
@@ -1597,8 +1603,10 @@ effects (represented by $m$).
   An \emph{initial $f$-and-$m$-algebra} is an $f$-and-$m$-algebra
   $(\mu(f|m), \mathit{in}_f, \mathit{in}_m)$ such that for any
   $f$-and-$m$-algebra $(a, k, l)$, there exists a unique
-  $f$-and-$m$-algebra homomorphism $\eFold{k}{l} :: \mu(f|m) \to
-  a$.
+  $f$-and-$m$-algebra homomorphism from $(\mu(f|m),\\ \mathit{in}_f,
+  \mathit{in}_m)$ to $(a, k, l)$. We write this homomorphism as
+  $\eFold{k}{l}$ and note that $\eFold{k}{l}$ is a function of type
+  $\mu(f|m) \to a$
 \end{definition}
 
 As for initial $f$-algebras, the requirement that an initial
@@ -1877,12 +1885,12 @@ were able to reuse the proof of the pure case from
 \autoref{sec:pure-append}, and so need only to establish the side
 condition for effects.
 
-\todo{Added paragraph for R3}This proof, and the $f$-algebra proof in
-\autoref{sec:direct-eappend}, are both generic in the monad $m$ that
-we use to represent effects. In particular, if we instantiate $m$ to
-be the non-termination monad, then we have proved that list append for
-Haskell's standard lazy lists is associative, without having to
-explicitly deal with a Cpo semantics.
+This proof, and the $f$-algebra proof in \autoref{sec:direct-eappend},
+are both generic in the monad $m$ that we use to represent effects. In
+particular, if we instantiate $m$ to be the non-termination monad,
+then we have proved that list append for Haskell's standard lazy lists
+is associative, without having to explicitly deal with a Cpo
+semantics.
 
 \subsection{Reverse for lists with interleaved effects?}
 \label{sec:reverse}
@@ -1916,10 +1924,10 @@ version of \autoref{eq:reverse-append} (\autoref{eq:ereverse-eappend},
 below) must be an $m$-Eilenberg-Moore-algebra homomorphism in the variable
 $\mathit{xs}$.
 
-We can define a reverse function on effectful lists as follows. This
-is very similar to the standard definition of (non-tail recursive)
-reverse on pure lists, and makes use of the $\mathit{eAppend}$
-function we defined above.
+However, we can define a reverse function on effectful lists as
+follows. This is very similar to the standard definition of (non-tail
+recursive) reverse on pure lists, and makes use of the
+$\mathit{eAppend}$ function we defined above.
 \begin{displaymath}
   \begin{array}{l}
     \mathit{eReverse} :: \mu(\mathit{ListF}~a|m) \to \mu(\mathit{ListF}~a|m) \\
@@ -2052,7 +2060,7 @@ left adjoint, and since left adjoints preserve initial objects, $\Phi$
 maps any initial $(f \circ m)$-algebra to an initial
 $f$-and-$m$-algebra.
 
-% FIXME: mention Filinski and Støvring's construction?
+% FIXME: mention Filinski and St??vring's construction?
 
 \subsection{Implementation of initial \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras in Haskell}
 \label{sec:f-and-m-alg-impl}
@@ -2995,7 +3003,7 @@ programs as though they were written in a total language and expect,
 in certain cases, to carry the results over to non-total languages.
 It would be useful from both practical and theoretical viewpoints to
 know if this kind of ``morally correct'' reasoning can be extended to
-effects other than just nontermination.
+effects other than just nontermination. 
 
 In this article we have concentrated on demonstrating the utility of
 initial $f$-and-$m$-algebras for definition and reasoning, but we have
@@ -3034,16 +3042,22 @@ an earlier version of the present paper.
 \bibliographystyle{jfp}
 \bibliography{paper}
 
+\pagebreak
+
 \appendix
 
 \section{Proof of \thmref{thm:make-initial-f-and-m-alg}}
 \label{sec:make-initial-fm-proof}
 
+{\em Theorem 4}
+
+\noindent
 Let $(f, \mathit{fmap}_f)$ be a functor, and
 $(m, \mathit{fmap}_m, \mathit{return}_m, \mathit{join}_m)$ be a monad.
 If we have an initial $(f \circ m)$-algebra
 $(\mu(f \circ m), \mathit{in})$, then $m~(\mu(f \circ m))$ is the
 carrier of an initial $f$-and-$m$-algebra.
+
 
 \begin{proof*}
   The $f$-algebra and $m$-Eilenberg-Moore-algebra structure are
@@ -3179,3 +3193,4 @@ carrier of an initial $f$-and-$m$-algebra.
 
 
 \end{document}
+
