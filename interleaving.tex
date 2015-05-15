@@ -135,10 +135,19 @@ and $\mathit{foldr}$.
 In this article we present a class of recursive datatypes where direct
 use of the initial $f$-algebra methodology does \emph{not} provide the
 right level of abstraction. Specifically, we consider recursive
-datatypes that interleave pure data with effectful computation. For
-example, lists of characters that are interleaved with input/output
-operations that read them from an external source can be described by
-the following datatype declaration:
+datatypes that interleave pure data with effectful
+computation\footnote{Following Filinski and St{\o}vring
+  \cite{filinski07inductive}, we will refer to datatypes that
+  interleave pure data with effects as \emph{effectful
+    datatypes}. Strictly speaking, this is a misnomer because values
+  of these types only contain pure descriptions of effects. However,
+  we feel that this name correctly conveys the intuition that
+  datatypes with interleaved monadic values are of a different
+  character to datatypes without monadic values, as we illustrate by
+  the examples in this introduction.} . For example, lists of
+characters that are interleaved with input/output operations that read
+them from an external source can be described by the following
+datatype declaration:
 \begin{displaymath}\label{defn:listio}
   \begin{array}{ll}
     \kw{data}~\mathit{List'}_{io}
@@ -1245,12 +1254,12 @@ $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\
       =&\eqAnnotation{definition of $\mathit{eAppend}$} \\
       & \mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})))) \\
+      =&\eqAnnotation{definition of $k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
+      &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})) \\
     \end{array}
   \end{displaymath}
   \begin{displaymath}
     \begin{array}{cl}
-      =&\eqAnnotation{definition of $k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
-      &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})) \\
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
       &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\\
       & \hspace{1cm}(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}))~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox
@@ -2716,6 +2725,40 @@ arbitrary $\mathit{IO}$ actions:
   \lambda h.~[\fmext{\mathit{useFileHandle}~h}, \mathit{id}] :: \mathit{Handle} \to (\cprd{(\mathit{FreeM}~(\mathit{ReaderF}~\mathit{String}))}{\mathit{IO}})~a \to \mathit{IO}~a
 \end{displaymath}
 
+Abstracting over the meaning of symbols such as $\mathit{read}$ as we
+have done here is of course not new. The basic feature of the
+$\lambda$-calculus is to allow abstraction over the meaning of
+symbols. We could have written $\mathit{swapRead2}$ as follows, using
+$\lambda$-abstractions rather than the monad coproduct:
+\begin{displaymath}
+  \begin{array}{@{}l}
+    \mathit{swapRead2} :: \mathit{IO}~\mathit{String} \to \mathit{IO}~() \\
+    \mathit{swapRead2}~\mathit{read} = \kw{do}~
+    \begin{array}[t]{@{}l}
+      s_1 \leftarrow \mathit{read} \\
+      s_2 \leftarrow \mathit{read} \\
+      \mathit{putStrLn}~(\texttt{"("} \dplus s_2 \dplus \texttt{","} \dplus s_1 \dplus \texttt{")"})
+    \end{array}
+  \end{array}  
+\end{displaymath}
+The two different interpretations above could then be obtained as
+$\mathit{swapRead2}~\mathit{getLine}$ and
+$\mathit{swapRead2}~(\mathit{hGetLine}~h)$. However, this approach
+becomes unwieldy if the definition of $\mathit{swapRead2}$ becomes
+more complex: the parameter $\mathit{read}$ needs to be passed through
+to all other functions that might need to do abstracted reading, and
+it is the responsibility of the programmer to do this plumbing
+manually. With the monad coproduct approach, the plumbing is handled
+automatically. Another advantage of monad coproducts over
+$\lambda$-abstraction of command interpretations is that we have
+access to the pure data constructors describing the commands. In the
+\texttt{pipes} library, for example, composition of $\mathit{Proxy}$
+values into a pipeline relies on being able to match the
+$\mathsf{Request}$ constructors of one $\mathit{Proxy}$ with the
+$\mathsf{Response}$ constructors of another. Abstraction over opaque
+$\mathit{IO}$ actions, as in the alternative $\mathit{swapRead2}$
+above, does not permit this kind of introspection.
+
 \subsection{Constructing coproducts with free monads via \texorpdfstring{$f$}{f}-and-\texorpdfstring{$m$}{m}-algebras}
 \label{sec:construct-coproducts}
 
@@ -3003,7 +3046,18 @@ programs as though they were written in a total language and expect,
 in certain cases, to carry the results over to non-total languages.
 It would be useful from both practical and theoretical viewpoints to
 know if this kind of ``morally correct'' reasoning can be extended to
-effects other than just nontermination. 
+effects other than just nontermination. Indeed, while in this paper we
+have looked at reasoning principles that are valid for all monads $m$,
+including nontermination, it would be interesting to investigate what
+properties of pure data carry over to effectful data in the presence
+of monads with specific properties. For instance, the equation
+$\mathit{eLength}~(\mathit{eAppend}~\mathit{xs}~\mathit{ys}) =
+\mathit{eLength}~(\mathit{eAppend}~\mathit{ys}~\mathit{xs})$,
+for a suitable definition of $\mathit{eLength}$, is not valid in the
+presence of effects described by an arbitrary monad $m$, but is valid
+if $m$ is \emph{commutative}. By considering specific classes of
+monads, it may be possible to formulate specialised variants of
+\proofprinref{pp:initial-f-m-alg}.
 
 In this article we have concentrated on demonstrating the utility of
 initial $f$-and-$m$-algebras for definition and reasoning, but we have
