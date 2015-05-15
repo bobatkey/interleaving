@@ -12,8 +12,8 @@
 \def\sectionautorefname{Section}
 \def\subsectionautorefname{Section}
 
-\usepackage{todonotes}
-\newcommand{\pattynote}[1]{\todo[inline, color=green!40]{#1}}
+%\usepackage{todonotes}
+%\newcommand{\pattynote}[1]{\todo[inline, color=green!40]{#1}}
 
 \usepackage[all]{xy}
 
@@ -874,7 +874,7 @@ in our extended example of the use of $f$-and-$m$-algebras to
 construct the coproduct of two monads in
 \autoref{sec:coproducts-with-free-monads}.
 
-\pagebreak
+%\pagebreak
 
 \begin{definition}
   Let $(m_1, \mathit{fmap_{m_1}}, \mathit{return}_{m_1},
@@ -1248,6 +1248,10 @@ $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\
       &\mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~\mathit{join_m}~\\
       & \hspace{1.5cm}(\mathit{fmap}_m~(\mathit{fmap_m}~\fold{k_{zs}})~(\mathit{fmap}_m~\fold{k_{ys}}~\mathit{xs})))))) \\
+    \end{array}
+  \end{displaymath}
+  \begin{displaymath}
+    \begin{array}{cl}
       =&\eqAnnotation{$\mathit{fmap}_m$ preserves function composition (\autoref{eq:fmap-comp})} \\
       & \mathit{return}_m~(\mathit{in}~(\mathsf{Cons}~a~\\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~(\mathit{join_m} \circ \mathit{fmap_m}~\fold{k_{zs}} \circ \fold{k_{ys}})~\mathit{xs})))) \\
@@ -1256,10 +1260,6 @@ $\mathit{join_m} \circ \mathit{join_m} = \mathit{join_m} \circ \mathit{fmap_m}~\
       & \hspace{1cm}(\mathit{join_m}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})))) \\
       =&\eqAnnotation{definition of $k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}$} \\
       &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~(\mathsf{Cons}~a~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}})~\mathit{xs})) \\
-    \end{array}
-  \end{displaymath}
-  \begin{displaymath}
-    \begin{array}{cl}
       =&\eqAnnotation{definition of $\mathit{fmap}_{\mathit{ListF}~a}$} \\
       &k_{\mathit{eAppend}~\mathit{ys}~\mathit{zs}}~\\
       & \hspace{1cm}(\mathit{fmap}_{\mathit{ListF}~a}~(\mathit{fmap}_m~((\lambda l.~\mathit{eAppend}~l~\mathit{zs}) \circ \fold{k_{ys}}))~(\mathsf{Cons}~a~\mathit{xs})) \mathproofbox
